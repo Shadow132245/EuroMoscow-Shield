@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyShield Red PRO | Advanced Python Obfuscator</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
+    
+    <style>
+        :root {
+            --bg-core: #050505;
+            --bg-panel: #111111;
+            --accent: #ff003c; /* Cyberpunk Red */
+            --accent-glow: rgba(255, 0, 60, 0.25);
+            --text-main: #eeeeee;
+        }
+
+        * { box-sizing: border-box; }
+        
+        body {
+            margin: 0;
+            background-color: var(--bg-core);
+            color: var(--text-main);
+            font-family: 'Rajdhani', sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Navbar */
+        nav {
+            height: 60px;
+            background: rgba(17, 17, 17, 0.9);
+            border-bottom: 2px solid var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            box-shadow: 0 0 20px var(--accent-glow);
+            z-index: 10;
+        }
+        .brand { font-size: 24px; font-weight: 700; letter-spacing: 2px; }
+        .brand span { color: var(--accent); }
+
+        /* Main Workspace */
+        .workspace {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 60px);
+        }
+
+        /* Sidebar Options */
+        .sidebar {
+            width: 300px;
+            background: var(--bg-panel);
+            border-right: 1px solid #333;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .section-title {
+            color: var(--accent);
+            text-transform: uppercase;
+            font-size: 14px;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+
+        /* Custom Checkbox */
+        .option-group { display: flex; flex-direction: column; gap: 10px; }
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 8px;
+            background: #1a1a1a;
+            border-radius: 4px;
+            transition: 0.3s;
+        }
+        .checkbox-wrapper:hover { background: #252525; }
+        input[type="checkbox"] { accent-color: var(--accent); transform: scale(1.2); }
+
+        /* Editors Area */
+        .editors {
+            flex: 1;
+            display: flex;
+            flex-direction: row;
+        }
+        
+        .editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #333;
+            position: relative;
+        }
+
+        .editor-toolbar {
+            height: 40px;
+            background: #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            border-bottom: 1px solid #333;
+        }
+
+        /* CodeMirror Customization */
+        .CodeMirror {
+            flex: 1;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+        }
+
+        /* Action Buttons */
+        .actions {
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: 0.3s;
+        }
+
+        .btn-encrypt {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+        .btn-encrypt:hover { background: #d40032; }
+
+        .btn-decrypt { background: #333; color: white; }
+        .btn-decrypt:hover { background: #444; }
+
+        .btn-download {
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            margin-top: 10px;
+        }
+        .btn-file {
+            background: #222;
+            color: #ccc;
+            font-size: 14px;
+        }
+
+        /* Loader */
+        .loader-overlay {
+            position: absolute;
+            top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+        }
+        .spinner {
+            border: 4px solid #333;
+            border-top: 4px solid var(--accent);
+            border-radius: 50%;
+            width: 40px; height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="brand"><i class="fas fa-shield-virus"></i> PYSHIELD <span>PRO</span></div>
+        <div style="font-size:12px; color:#666;">SECURE PYTHON OBFUSCATION</div>
+    </nav>
+
+    <div class="workspace">
+        
+        <div class="sidebar">
+            <div class="section-title">Encryption Layers</div>
+            <div class="option-group">
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" id="opt-rename" checked> 
+                    <span>Variable Renaming (AST)</span>
+                </label>
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" id="opt-zlib" checked> 
+                    <span>Zlib Compression</span>
+                </label>
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" id="opt-base64" checked> 
+                    <span>Base64 Encoding</span>
+                </label>
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" id="opt-hex"> 
+                    <span>Hex Dump</span>
+                </label>
+            </div>
+
+            <div class="section-title" style="margin-top:20px;">File Actions</div>
+            <input type="file" id="fileInput" style="display:none" accept=".py">
+            <button class="btn btn-file" onclick="document.getElementById('fileInput').click()">
+                <i class="fas fa-upload"></i> Upload .py File
+            </button>
+
+            <div class="actions">
+                <button class="btn btn-encrypt" onclick="runProcess('encrypt')">
+                    <i class="fas fa-lock"></i> Encrypt Code
+                </button>
+                <button class="btn btn-decrypt" onclick="runProcess('decrypt')">
+                    <i class="fas fa-unlock"></i> Decrypt Logic
+                </button>
+                <form action="/download" method="POST" id="downloadForm" target="_blank">
+                    <input type="hidden" name="code" id="downloadCode">
+                    <button type="button" class="btn btn-download" onclick="downloadResult()">
+                        <i class="fas fa-download"></i> Download Result
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="editor-container">
+            <div class="editor-toolbar">SOURCE CODE</div>
+            <textarea id="code-input"></textarea>
+        </div>
+
+        <div class="editor-container" style="border-right:none;">
+            <div class="loader-overlay" id="loader"><div class="spinner"></div></div>
+            <div class="editor-toolbar">
+                <span>OUTPUT RESULT</span>
+                <i class="fas fa-copy" style="cursor:pointer; color:var(--accent);" onclick="copyToClipboard()"></i>
+            </div>
+            <textarea id="code-output"></textarea>
+        </div>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+
+    <script>
+        // Initialize Editors
+        var editorIn = CodeMirror.fromTextArea(document.getElementById("code-input"), {
+            mode: "python",
+            theme: "dracula",
+            lineNumbers: true,
+            indentUnit: 4
+        });
+
+        var editorOut = CodeMirror.fromTextArea(document.getElementById("code-output"), {
+            mode: "python",
+            theme: "dracula",
+            lineNumbers: true,
+            readOnly: true
+        });
+
+        // File Upload Handling
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                editorIn.setValue(e.target.result);
+            };
+            reader.readAsText(file);
+        });
+
+        async function runProcess(action) {
+            const code = editorIn.getValue();
+            if(!code.trim()) return alert("Code area is empty!");
+
+            // Collect Options
+            let options = [];
+            if(document.getElementById('opt-rename').checked) options.push('rename');
+            if(document.getElementById('opt-zlib').checked) options.push('zlib');
+            if(document.getElementById('opt-base64').checked) options.push('base64');
+            if(document.getElementById('opt-hex').checked) options.push('hex');
+
+            document.getElementById('loader').style.display = 'flex';
+
+            try {
+                const res = await fetch('/process', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ code, action, options })
+                });
+                const data = await res.json();
+                editorOut.setValue(data.result);
+            } catch(e) {
+                editorOut.setValue("Error: " + e);
+            } finally {
+                document.getElementById('loader').style.display = 'none';
+            }
+        }
+
+        function downloadResult() {
+            const code = editorOut.getValue();
+            if(!code) return alert("No result to download!");
+            document.getElementById('downloadCode').value = code;
+            document.getElementById('downloadForm').submit();
+        }
+
+        function copyToClipboard() {
+            navigator.clipboard.writeText(editorOut.getValue());
+            alert("Copied!");
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyShield API | Documentation</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-core: #050505;
+            --bg-panel: #111111;
+            --accent: #ff003c;
+            --text-main: #eeeeee;
+            --code-bg: #1a1a1a;
+        }
+
+        body {
+            background-color: var(--bg-core);
+            color: var(--text-main);
+            font-family: 'Rajdhani', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Navbar */
+        nav {
+            height: 60px;
+            background: rgba(17, 17, 17, 0.95);
+            border-bottom: 2px solid var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .brand { font-size: 24px; font-weight: 700; color: #fff; text-decoration: none;}
+        .brand span { color: var(--accent); }
+        .nav-link { color: #888; text-decoration: none; font-weight: 600; transition: 0.3s; }
+        .nav-link:hover { color: #fff; }
+
+        /* Container */
+        .container { max-width: 900px; margin: 40px auto; padding: 20px; }
+
+        h1, h2, h3 { margin-top: 40px; color: #fff; }
+        h1 { border-bottom: 1px solid #333; padding-bottom: 15px; font-size: 3rem; }
+        p { line-height: 1.6; color: #aaa; font-size: 1.1rem; }
+
+        /* API Badges */
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .post { background: var(--accent); color: white; }
+        .url { background: #333; color: #aaa; margin-left: 10px; }
+
+        /* Code Blocks */
+        pre {
+            background: var(--code-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent);
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+        .keyword { color: var(--accent); }
+        .string { color: #4af626; }
+        .comment { color: #666; font-style: italic; }
+
+        /* Table */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { text-align: left; padding: 15px; border-bottom: 1px solid #333; }
+        th { color: var(--accent); text-transform: uppercase; font-size: 0.9rem; }
+        td { color: #ccc; font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; }
+
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="/" class="brand"><i class="fas fa-shield-virus"></i> PYSHIELD <span>DOCS</span></a>
+        <a href="/" class="nav-link"><i class="fas fa-arrow-left"></i> Back to Tool</a>
+    </nav>
+
+    <div class="container">
+        
+        <h1>API Reference</h1>
+        <p>Integrate PyShield's powerful obfuscation engine directly into your own applications. Our REST API allows you to obfuscate or decrypt Python code programmatically.</p>
+
+        <h2>Process Code</h2>
+        <p>This is the main endpoint to handle both encryption and decryption.</p>
+        
+        <div style="margin: 20px 0;">
+            <span class="badge post">POST</span>
+            <span class="badge url">/process</span>
+        </div>
+
+        <h3>Request Parameters (JSON)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>code</td>
+                    <td>string</td>
+                    <td>The Python source code to process.</td>
+                </tr>
+                <tr>
+                    <td>action</td>
+                    <td>string</td>
+                    <td>Either <span class="keyword">'encrypt'</span> or <span class="keyword">'decrypt'</span>.</td>
+                </tr>
+                <tr>
+                    <td>options</td>
+                    <td>array</td>
+                    <td>List of layers: <span class="keyword">['rename', 'zlib', 'base64', 'hex']</span>.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>Example Usage</h2>
+        <p>Here is how you can use the API using Python <code>requests</code> library.</p>
+
+        <pre>
+<span class="keyword">import</span> requests
+
+url = <span class="string">"http://127.0.0.1:5000/process"</span>
+
+payload = {
+    <span class="keyword">"code"</span>: <span class="string">"print('Hello World')"</span>,
+    <span class="keyword">"action"</span>: <span class="string">"encrypt"</span>,
+    <span class="keyword">"options"</span>: [<span class="string">"rename"</span>, <span class="string">"zlib"</span>, <span class="string">"base64"</span>]
+}
+
+response = requests.post(url, json=payload)
+print(response.json()[<span class="string">'result'</span>])
+        </pre>
+
+        <h3>Response</h3>
+        <pre>
+{
+    <span class="keyword">"result"</span>: <span class="string">"import base64;exec(base64.b64decode('...'))"</span>
+}
+        </pre>
+
+    </div>
+
+</body>
+</html>
