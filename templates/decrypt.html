@@ -4,10 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EuroMoscow Shield | Py Decryptor</title>
-    <meta name="description" content="Decrypt Python code automatically. AI Auto-Detect for Base64, Zlib, Rot13, and XOR.">
-    <meta property="og:title" content="EuroMoscow Shield | Python Decryptor">
-    <meta property="og:image" content="{{ url_for('static', filename='logo.png') }}">
-    
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -18,21 +14,38 @@
         * { box-sizing: border-box; }
         body { margin: 0; background-color: var(--bg-core); color: var(--text-main); font-family: 'Rajdhani', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         ::-webkit-scrollbar { width: 6px; height: 6px; } ::-webkit-scrollbar-track { background: var(--bg-core); } ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; } ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+        
         nav { height: 70px; background: rgba(10, 10, 10, 0.95); border-bottom: 2px solid var(--accent); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; flex-shrink: 0; }
         .brand { font-size: 22px; font-weight: 800; letter-spacing: 1px; color: #fff; text-transform: uppercase; display: flex; align-items: center; gap: 10px; text-decoration: none;}
         .brand span { color: var(--accent); text-shadow: 0 0 10px var(--accent); }
-        .nav-items { display: flex; gap: 5px; }
-        .nav-link { color: #888; text-decoration: none; font-weight: 600; font-size: 13px; transition: 0.3s; padding: 8px 10px; border-radius: 4px; display: flex; align-items: center; gap: 6px; }
+        .nav-items { display: flex; gap: 5px; align-items: center; }
+        .nav-link { color: #888; text-decoration: none; font-weight: 600; font-size: 13px; transition: 0.3s; padding: 8px 10px; border-radius: 4px; display: flex; align-items: center; gap: 6px; border: 1px solid transparent; }
         .nav-link:hover, .nav-link.active { color: #fff; background: rgba(255, 255, 255, 0.05); border: 1px solid #333; }
         .nav-link.active { border-color: var(--accent); color: var(--accent); }
-        @media (max-width: 600px) { .nav-link span { display: none; } .nav-link i { font-size: 16px; } }
+        
+        @media (max-width: 900px) { 
+            .nav-link span { display: none; } 
+            .nav-link i { font-size: 16px; } 
+            .brand span { display: none; }
+            nav { padding: 0 10px; }
+        }
+
         .workspace { display: flex; flex: 1; height: calc(100vh - 100px); overflow: hidden; }
         .sidebar { width: 350px; background: var(--bg-panel); border-left: 1px solid #222; padding: 25px; display: flex; flex-direction: column; gap: 20px; flex-shrink: 0; z-index: 5; order: 2; overflow-y: auto; }
         .editor-area { flex: 1; display: flex; flex-direction: column; order: 1; min-width: 0; }
         .editor-container { flex: 1; display: flex; flex-direction: column; border-right: 1px solid #333; position: relative; min-height: 0; }
         .editor-toolbar { height: 40px; background: #151515; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid #333; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #666; flex-shrink: 0; }
         .CodeMirror { flex: 1; font-family: 'JetBrains Mono', monospace; font-size: 14px; height: auto !important; }
-        @media (max-width: 900px) { body { height: auto; overflow-y: auto; } .workspace { flex-direction: column; height: auto; overflow: visible; } .sidebar { width: 100%; border-left: none; border-top: 2px solid var(--accent); order: 2; height: auto; } .editor-area { order: 1; height: auto; } .editor-container { width: 100%; height: 350px; border-right: none; border-bottom: 1px solid #333; } nav { position: sticky; top: 0; } }
+        
+        @media (max-width: 900px) {
+            body { height: auto; overflow-y: auto; }
+            .workspace { flex-direction: column; height: auto; overflow: visible; }
+            .sidebar { width: 100%; border-left: none; border-top: 2px solid var(--accent); order: 2; height: auto; }
+            .editor-area { order: 1; height: auto; }
+            .editor-container { width: 100%; height: 350px; border-right: none; border-bottom: 1px solid #333; }
+            nav { position: sticky; top: 0; }
+        }
+
         .log-panel { background: #000; border: 1px solid #333; padding: 15px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #666; height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; }
         .log-entry { display: flex; gap: 10px; }
         .log-time { color: #444; } .log-msg { color: #aaa; } .log-success { color: var(--success); } .log-error { color: var(--accent); }
@@ -52,12 +65,14 @@
             <a href="/" class="nav-link"><i class="fab fa-python"></i> <span>PY ENC</span></a>
             <a href="/decryptor" class="nav-link active"><i class="fas fa-unlock"></i> <span>PY DEC</span></a>
             <span style="color:#333;">|</span>
-            <a href="/js-shield" class="nav-link" style="color:#f7df1e;"><i class="fab fa-js"></i> <span>JS ENC</span></a>
-            <a href="/js-decryptor" class="nav-link" style="color:#f7df1e;"><i class="fas fa-unlock-alt"></i> <span>JS DEC</span></a>
+            <a href="/js-shield" class="nav-link" style="color:#f7df1e;"><i class="fab fa-js"></i> <span>JS</span></a>
+            <a href="/js-decryptor" class="nav-link" style="color:#f7df1e;"><i class="fas fa-unlock-alt"></i> <span>DEC</span></a>
             <span style="color:#333;">|</span>
+            <a href="/lua-shield" class="nav-link" style="color:#00ff88;"><i class="fas fa-gamepad"></i> <span>LUA</span></a>
             <a href="/docs" class="nav-link"><i class="fas fa-book"></i> <span>API</span></a>
         </div>
     </nav>
+
     <div class="workspace">
         <div class="editor-area">
             <div class="editor-container">
