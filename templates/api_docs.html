@@ -3,48 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EuroMoscow Shield | Lua Encryptor</title>
+    <title>EuroMoscow Shield | API Docs</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/lua/lua.min.js"></script>
     <style>
-        :root { --bg-core: #050505; --bg-panel: #111111; --accent: #00ff88; --text-main: #eeeeee; }
-        * { box-sizing: border-box; }
-        body { margin: 0; background-color: var(--bg-core); color: var(--text-main); font-family: 'Rajdhani', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; } ::-webkit-scrollbar-track { background: var(--bg-core); } ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; } ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
-        
-        nav { height: 70px; background: rgba(10, 10, 10, 0.95); border-bottom: 2px solid var(--accent); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; flex-shrink: 0; }
+        :root { --bg-core: #050505; --accent: #00e1ff; --text-main: #eeeeee; --code-bg: #111; }
+        body { background-color: var(--bg-core); color: var(--text-main); font-family: 'Rajdhani', sans-serif; margin: 0; overflow-x: hidden; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; } ::-webkit-scrollbar-track { background: var(--bg-core); } ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; } ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+        nav { height: 70px; background: rgba(10, 10, 10, 0.95); border-bottom: 2px solid var(--accent); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; position: sticky; top: 0; z-index: 100; }
         .brand { font-size: 22px; font-weight: 800; letter-spacing: 1px; color: #fff; text-transform: uppercase; display: flex; align-items: center; gap: 10px; text-decoration: none;}
         .brand span { color: var(--accent); text-shadow: 0 0 10px var(--accent); }
         .nav-items { display: flex; gap: 5px; align-items: center; }
         .nav-link { color: #888; text-decoration: none; font-weight: 600; font-size: 13px; transition: 0.3s; padding: 8px 10px; border-radius: 4px; display: flex; align-items: center; gap: 6px; border: 1px solid transparent; }
         .nav-link:hover, .nav-link.active { color: #fff; background: rgba(255, 255, 255, 0.05); border: 1px solid #333; }
         .nav-link.active { border-color: var(--accent); color: var(--accent); }
-        @media (max-width: 900px) { .nav-link span { display: none; } .nav-link i { font-size: 16px; } .brand span { display: none; } nav { padding: 0 10px; } }
-
-        .workspace { display: flex; flex: 1; height: calc(100vh - 100px); overflow: hidden; }
-        .sidebar { width: 300px; background: var(--bg-panel); border-right: 1px solid #222; padding: 20px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; flex-shrink: 0; z-index: 5; }
-        .editor-container { flex: 1; display: flex; flex-direction: column; border-right: 1px solid #333; position: relative; min-width: 0; }
-        .editor-toolbar { height: 40px; background: #151515; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border-bottom: 1px solid #333; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #666; flex-shrink: 0; }
-        .CodeMirror { flex: 1; font-family: 'JetBrains Mono', monospace; font-size: 14px; height: auto !important; }
-        @media (max-width: 900px) { body { height: auto; overflow-y: auto; } .workspace { flex-direction: column; height: auto; overflow: visible; } .sidebar { width: 100%; border-right: none; border-top: 2px solid var(--accent); order: 2; height: auto; } .editor-container { width: 100%; height: 400px; border-right: none; border-bottom: 1px solid #333; order: 1; } nav { position: sticky; top: 0; } }
-        
-        .section-title { color: var(--accent); text-transform: uppercase; font-weight: bold; font-size: 14px; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 8px; }
-        .checkbox-wrapper { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px; background: #1a1a1a; border-radius: 6px; transition: 0.3s; border: 1px solid #333; }
-        .checkbox-wrapper:hover { background: #222; border-color: var(--accent); }
-        input[type="checkbox"] { accent-color: var(--accent); transform: scale(1.2); }
-        .btn { padding: 14px; border: none; border-radius: 6px; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 16px; cursor: pointer; text-transform: uppercase; transition: 0.3s; width: 100%; letter-spacing: 1px; }
-        .btn-encrypt { background: var(--accent); color: #000; box-shadow: 0 4px 15px rgba(0, 255, 136, 0.2); } .btn-encrypt:hover { background: #00cc6a; }
-        .btn-file { background: #1a1a1a; color: #ccc; font-size: 14px; border: 1px dashed #444; } .btn-file:hover { border-color: var(--accent); color: white; }
-        .btn-download { background: transparent; border: 1px solid var(--accent); color: var(--accent); margin-top: 10px; } .btn-download:hover { background: rgba(0, 255, 136, 0.1); }
-        .loader-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 50; backdrop-filter: blur(2px); }
-        .spinner { border: 4px solid #333; border-top: 4px solid var(--accent); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        footer { height: 40px; background: #080808; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #444; border-top: 1px solid #222; font-family: 'JetBrains Mono', monospace; flex-shrink: 0; margin-top: auto;}
+        @media (max-width: 900px) { nav { padding: 0 10px; } .nav-link span { display: none; } .nav-link i { font-size: 18px; } .brand span { display: none; } .container { padding: 15px; margin-top: 10px; } h1 { font-size: 1.8rem; } }
+        .container { max-width: 900px; margin: 40px auto; padding: 20px; }
+        h1 { color: #fff; border-bottom: 1px solid #333; padding-bottom: 15px; font-size: 2.5rem; margin-top: 0; }
+        h2 { color: var(--accent); margin-top: 40px; border-left: 3px solid var(--accent); padding-left: 15px; }
+        p { line-height: 1.6; color: #aaa; font-size: 1.1rem; }
+        .badge { display: inline-block; padding: 5px 12px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-weight: bold; font-size: 0.9rem; }
+        .post { background: var(--accent); color: #000; }
+        pre { background: var(--code-bg); padding: 25px; border-radius: 8px; border: 1px solid #333; overflow-x: auto; font-family: 'JetBrains Mono', monospace; color: #ccc; font-size: 14px; }
+        .keyword { color: var(--accent); } .string { color: #00ff88; } .comment { color: #666; font-style: italic; }
+        .table-wrapper { overflow-x: auto; } table { width: 100%; border-collapse: collapse; margin-top: 20px; min-width: 500px; } th, td { text-align: left; padding: 12px; border-bottom: 1px solid #333; color: #ccc; } th { color: var(--accent); text-transform: uppercase; font-size: 0.9rem; }
+        footer { text-align: center; margin-top: 80px; padding: 20px; border-top: 1px solid #222; color: #444; font-size: 12px; font-family: 'JetBrains Mono', monospace; }
     </style>
 </head>
 <body>
@@ -55,63 +39,47 @@
             <a href="/decryptor" class="nav-link"><i class="fas fa-unlock"></i> <span>PY DEC</span></a>
             <span style="color:#333;">|</span>
             <a href="/js-shield" class="nav-link"><i class="fab fa-js"></i> <span>JS ENC</span></a>
-            <a href="/js-decryptor" class="nav-link" style="color:#f7df1e;"><i class="fas fa-unlock-alt"></i> <span>JS DEC</span></a>
+            <a href="/js-decryptor" class="nav-link"><i class="fas fa-unlock-alt"></i> <span>DEC</span></a>
             <span style="color:#333;">|</span>
-            <a href="/lua-shield" class="nav-link active" style="color:#00ff88; border-color:#00ff88;"><i class="fas fa-gamepad"></i> <span>LUA</span></a>
-            <a href="/docs" class="nav-link"><i class="fas fa-book"></i> <span>API</span></a>
+            <a href="/lua-shield" class="nav-link" style="color:#00ff88;"><i class="fas fa-gamepad"></i> <span>LUA</span></a>
+            <a href="/terminal" class="nav-link" style="color:#0f0; border-color:#0f0;"><i class="fas fa-terminal"></i> <span>TERM</span></a>
+            <a href="/docs" class="nav-link active"><i class="fas fa-book"></i> <span>API</span></a>
         </div>
     </nav>
-    <div class="workspace">
-        <div class="sidebar">
-            <div class="section-title">Lua Layers</div>
-            <div style="display:flex; flex-direction:column; gap:12px;">
-                <label class="checkbox-wrapper"><input type="checkbox" id="opt-byte" checked> <span>Bytecode Array</span></label>
-                <label class="checkbox-wrapper"><input type="checkbox" id="opt-hex"> <span>Hex Encoding</span></label>
-                <label class="checkbox-wrapper"><input type="checkbox" id="opt-reverse"> <span>String Reversal</span></label>
-            </div>
-            <div class="section-title" style="margin-top:20px;">File Manager</div>
-            <input type="file" id="fileInput" style="display:none" accept=".lua">
-            <button class="btn btn-file" onclick="document.getElementById('fileInput').click()"><i class="fas fa-upload"></i> Upload .lua File</button>
-            <div style="margin-top: auto; display:flex; flex-direction:column; gap:12px;">
-                <button class="btn btn-encrypt" onclick="runProcess('encrypt')"><i class="fas fa-lock"></i> Obfuscate Lua</button>
-                <button type="button" class="btn btn-download" onclick="downloadResult()"><i class="fas fa-download"></i> Download .lua</button>
-            </div>
+    <div class="container">
+        <h1>Developer API Reference</h1>
+        <p>Integrate the powerful <strong>EuroMoscow Shield</strong> obfuscation engine directly into your applications.</p>
+        <h2>POST /process</h2>
+        <p>Send code to be obfuscated or decrypted using a JSON payload.</p>
+        <div style="margin: 20px 0; background: #111; padding: 15px; border-radius: 6px; border: 1px solid #333; overflow-x: auto;">
+            <span class="badge post">POST</span> 
+            <span style="font-family:'JetBrains Mono'; margin-left:10px; color:#fff;">{{ request.url_root }}process</span>
         </div>
-        <div class="editor-container">
-            <div class="editor-toolbar"><span><i class="fas fa-gamepad"></i> LUA SOURCE</span> <i class="fas fa-eraser" style="cursor:pointer;" onclick="editorIn.setValue('')"></i></div>
-            <textarea id="code-input"></textarea>
+        <h3>Request Parameters</h3>
+        <div class="table-wrapper">
+            <table>
+                <thead><tr><th>Key</th><th>Type</th><th>Description</th></tr></thead>
+                <tbody>
+                    <tr><td>code</td><td>String</td><td>The source code to process.</td></tr>
+                    <tr><td>action</td><td>String</td><td>'encrypt' or 'decrypt'</td></tr>
+                    <tr><td>lang</td><td>String</td><td>'python' or 'javascript' or 'lua'</td></tr>
+                    <tr><td>options</td><td>List</td><td>['rename', 'marshal', 'zlib', 'rot13', 'xor', 'base64', 'hex', 'url']</td></tr>
+                </tbody>
+            </table>
         </div>
-        <div class="editor-container" style="border-right:none;">
-            <div class="loader-overlay" id="loader"><div class="spinner"></div></div>
-            <div class="editor-toolbar"><span style="color:var(--accent); font-weight:bold;"><i class="fas fa-terminal"></i> OUTPUT</span> <i class="fas fa-copy" style="cursor:pointer; color:var(--accent);" onclick="copyToClipboard()"></i></div>
-            <textarea id="code-output"></textarea>
-        </div>
+        <h3>Python Example</h3>
+        <pre><span class="keyword">import</span> requests
+url = <span class="string">"{{ request.url_root }}process"</span>
+payload = { <span class="keyword">"code"</span>: <span class="string">"print('EuroMoscow System')"</span>, <span class="keyword">"action"</span>: <span class="string">"encrypt"</span>, <span class="keyword">"lang"</span>: <span class="string">"python"</span>, <span class="keyword">"options"</span>: [<span class="string">"rename"</span>, <span class="string">"marshal"</span>, <span class="string">"xor"</span>] }
+response = requests.post(url, json=payload)
+print(response.json()[<span class="string">'result'</span>])</pre>
+        <h3>JavaScript Example</h3>
+        <pre><span class="keyword">const</span> axios = require(<span class="string">'axios'</span>);
+<span class="keyword">async function</span> protect() {
+    <span class="keyword">const</span> res = <span class="keyword">await</span> axios.post(<span class="string">"{{ request.url_root }}process"</span>, { code: <span class="string">"alert('Hi')"</span>, action: <span class="string">"encrypt"</span>, lang: <span class="string">"javascript"</span>, options: [<span class="string">"hex"</span>] });
+    console.log(res.data.result);
+}</pre>
+        <footer>&copy; 2025 Developed by <span style="color:var(--accent);">EuroMoscow</span>.</footer>
     </div>
-    <footer>&copy; 2025 EuroMoscow.</footer>
-    <script>
-        var editorIn = CodeMirror.fromTextArea(document.getElementById("code-input"), { mode: "lua", theme: "dracula", lineNumbers: true, lineWrapping: true, placeholder: "Paste Lua code..." });
-        var editorOut = CodeMirror.fromTextArea(document.getElementById("code-output"), { mode: "lua", theme: "dracula", lineNumbers: true, lineWrapping: true, readOnly: true });
-        document.getElementById('fileInput').addEventListener('change', function(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { editorIn.setValue(e.target.result); }; reader.readAsText(file); });
-        async function runProcess(action) {
-            const code = editorIn.getValue(); if(!code.trim()) return alert("Please enter Lua code.");
-            let options = [];
-            if(document.getElementById('opt-byte').checked) options.push('byte');
-            if(document.getElementById('opt-hex').checked) options.push('hex');
-            if(document.getElementById('opt-reverse').checked) options.push('reverse');
-            document.getElementById('loader').style.display = 'flex';
-            try { const res = await fetch('/process', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ code, action, lang: 'lua', options }) }); const data = await res.json(); editorOut.setValue(data.result); } catch(e) { editorOut.setValue("Error: " + e); } finally { document.getElementById('loader').style.display = 'none'; }
-        }
-        // Client-Side Download
-        function downloadResult() {
-            const code = editorOut.getValue();
-            if(!code) return alert("No result!");
-            const blob = new Blob([code], { type: "text/x-lua" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url; a.download = "EuroMoscow_Script.lua";
-            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-        }
-        function copyToClipboard() { navigator.clipboard.writeText(editorOut.getValue()); alert("Copied!"); }
-    </script>
 </body>
 </html>
