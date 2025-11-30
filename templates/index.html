@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EuroMoscow Shield | Encryptor</title>
+    <title>EuroMoscow Shield | Py Encryptor</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -11,9 +11,19 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
     
     <style>
-        :root { --bg-core: #050505; --bg-panel: #111111; --accent: #ff003c; --accent-glow: rgba(255, 0, 60, 0.35); --text-main: #eeeeee; }
+        /* --- BLUE THEME CHANGE HERE --- */
+        :root { 
+            --bg-core: #050505; 
+            --bg-panel: #111111; 
+            --accent: #00e1ff; /* أزرق نيوني */
+            --accent-glow: rgba(0, 225, 255, 0.35); 
+            --text-main: #eeeeee; 
+        }
+        
         * { box-sizing: border-box; }
         body { margin: 0; background-color: var(--bg-core); color: var(--text-main); font-family: 'Rajdhani', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* Scrollbar Blue */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg-core); }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
@@ -25,7 +35,10 @@
         .nav-items { display: flex; gap: 5px; }
         .nav-link { color: #888; text-decoration: none; font-weight: 600; font-size: 13px; transition: 0.3s; padding: 8px 10px; border-radius: 4px; display: flex; align-items: center; gap: 6px; }
         .nav-link:hover, .nav-link.active { color: #fff; background: rgba(255, 255, 255, 0.05); border: 1px solid #333; }
+        
+        /* Active Link Blue */
         .nav-link.active { border-color: var(--accent); color: var(--accent); }
+        
         @media (max-width: 600px) { .nav-link span { display: none; } .nav-link i { font-size: 16px; } }
 
         .workspace { display: flex; flex: 1; height: calc(100vh - 100px); overflow: hidden; }
@@ -47,7 +60,7 @@
         .checkbox-wrapper:hover { background: #222; border-color: var(--accent); }
         input[type="checkbox"] { accent-color: var(--accent); transform: scale(1.2); }
         .btn { padding: 14px; border: none; border-radius: 6px; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 16px; cursor: pointer; text-transform: uppercase; transition: 0.3s; width: 100%; letter-spacing: 1px; }
-        .btn-encrypt { background: var(--accent); color: white; box-shadow: 0 4px 15px var(--accent-glow); }
+        .btn-encrypt { background: var(--accent); color: #000; box-shadow: 0 4px 15px var(--accent-glow); }
         .btn-file { background: #1a1a1a; color: #ccc; font-size: 14px; border: 1px dashed #444; }
         .btn-download { background: transparent; border: 1px solid var(--accent); color: var(--accent); margin-top: 10px; }
         
