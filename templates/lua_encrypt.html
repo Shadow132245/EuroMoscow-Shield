@@ -16,7 +16,6 @@
         * { box-sizing: border-box; }
         body { margin: 0; background-color: var(--bg-core); color: var(--text-main); font-family: 'Rajdhani', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         ::-webkit-scrollbar { width: 6px; height: 6px; } ::-webkit-scrollbar-track { background: var(--bg-core); } ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; } ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
-        
         nav { height: 70px; background: rgba(10, 10, 10, 0.95); border-bottom: 2px solid var(--accent); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; flex-shrink: 0; }
         .brand { font-size: 22px; font-weight: 800; letter-spacing: 1px; color: #fff; text-transform: uppercase; display: flex; align-items: center; gap: 10px; text-decoration: none;}
         .brand span { color: var(--accent); text-shadow: 0 0 10px var(--accent); }
@@ -25,14 +24,12 @@
         .nav-link:hover, .nav-link.active { color: #fff; background: rgba(255, 255, 255, 0.05); border: 1px solid #333; }
         .nav-link.active { border-color: var(--accent); color: var(--accent); }
         @media (max-width: 900px) { .nav-link span { display: none; } .nav-link i { font-size: 16px; } .brand span { display: none; } nav { padding: 0 10px; } }
-
         .workspace { display: flex; flex: 1; height: calc(100vh - 100px); overflow: hidden; }
         .sidebar { width: 300px; background: var(--bg-panel); border-right: 1px solid #222; padding: 20px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; flex-shrink: 0; z-index: 5; }
         .editor-container { flex: 1; display: flex; flex-direction: column; border-right: 1px solid #333; position: relative; min-width: 0; }
         .editor-toolbar { height: 40px; background: #151515; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border-bottom: 1px solid #333; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #666; flex-shrink: 0; }
         .CodeMirror { flex: 1; font-family: 'JetBrains Mono', monospace; font-size: 14px; height: auto !important; }
         @media (max-width: 900px) { body { height: auto; overflow-y: auto; } .workspace { flex-direction: column; height: auto; overflow: visible; } .sidebar { width: 100%; border-right: none; border-top: 2px solid var(--accent); order: 2; height: auto; } .editor-container { width: 100%; height: 400px; border-right: none; border-bottom: 1px solid #333; order: 1; } nav { position: sticky; top: 0; } }
-        
         .section-title { color: var(--accent); text-transform: uppercase; font-weight: bold; font-size: 14px; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 8px; }
         .checkbox-wrapper { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px; background: #1a1a1a; border-radius: 6px; transition: 0.3s; border: 1px solid #333; }
         .checkbox-wrapper:hover { background: #222; border-color: var(--accent); }
@@ -55,9 +52,10 @@
             <a href="/decryptor" class="nav-link"><i class="fas fa-unlock"></i> <span>PY DEC</span></a>
             <span style="color:#333;">|</span>
             <a href="/js-shield" class="nav-link"><i class="fab fa-js"></i> <span>JS ENC</span></a>
-            <a href="/js-decryptor" class="nav-link" style="color:#f7df1e;"><i class="fas fa-unlock-alt"></i> <span>JS DEC</span></a>
+            <a href="/js-decryptor" class="nav-link"><i class="fas fa-unlock-alt"></i> <span>DEC</span></a>
             <span style="color:#333;">|</span>
             <a href="/lua-shield" class="nav-link active" style="color:#00ff88; border-color:#00ff88;"><i class="fas fa-gamepad"></i> <span>LUA</span></a>
+            <a href="/terminal" class="nav-link" style="color:#0f0; border-color:#0f0;"><i class="fas fa-terminal"></i> <span>TERM</span></a>
             <a href="/docs" class="nav-link"><i class="fas fa-book"></i> <span>API</span></a>
         </div>
     </nav>
@@ -101,16 +99,7 @@
             document.getElementById('loader').style.display = 'flex';
             try { const res = await fetch('/process', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ code, action, lang: 'lua', options }) }); const data = await res.json(); editorOut.setValue(data.result); } catch(e) { editorOut.setValue("Error: " + e); } finally { document.getElementById('loader').style.display = 'none'; }
         }
-        // Client-Side Download
-        function downloadResult() {
-            const code = editorOut.getValue();
-            if(!code) return alert("No result!");
-            const blob = new Blob([code], { type: "text/x-lua" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url; a.download = "EuroMoscow_Script.lua";
-            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-        }
+        function downloadResult() { const code = editorOut.getValue(); if(!code) return alert("No result!"); const blob = new Blob([code], { type: "text/x-lua" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = "EuroMoscow_Script.lua"; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); }
         function copyToClipboard() { navigator.clipboard.writeText(editorOut.getValue()); alert("Copied!"); }
     </script>
 </body>
