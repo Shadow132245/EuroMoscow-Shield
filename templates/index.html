@@ -3,36 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EuroMoscow | Python Encrypt</title>
+    <title>EuroMoscow Shield | Py Encryptor</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
+    
     <style>
         :root { --bg-core: #050505; --bg-panel: #111111; --accent: #00e1ff; --text-main: #eeeeee; }
-        body { margin:0; background:var(--bg-core); color:var(--text-main); font-family:'Rajdhani',sans-serif; height:100vh; display:flex; flex-direction:column; overflow:hidden; }
-        /* Scrollbar */
-        ::-webkit-scrollbar { width:6px; } ::-webkit-scrollbar-thumb { background:#333; border-radius:4px; } ::-webkit-scrollbar-thumb:hover { background:var(--accent); }
-        /* Nav */
-        nav { height:70px; background:rgba(10,10,10,0.95); border-bottom:2px solid var(--accent); display:flex; align-items:center; justify-content:space-between; padding:0 20px; z-index:100; flex-shrink:0; }
-        .brand { font-size:20px; font-weight:800; color:#fff; text-decoration:none; display:flex; gap:10px; align-items:center;} .brand span { color:var(--accent); }
-        .nav-items { display:flex; gap:5px; flex-wrap:wrap; }
-        .nav-link { color:#888; text-decoration:none; font-weight:600; font-size:12px; padding:6px 8px; border-radius:4px; display:flex; align-items:center; gap:5px; border:1px solid transparent; transition:0.3s; }
-        .nav-link:hover, .nav-link.active { color:#fff; background:rgba(255,255,255,0.05); border-color:#333; }
-        .nav-link.active { border-color:var(--accent); color:var(--accent); }
-        @media (max-width: 900px) { nav { height:auto; flex-direction:column; padding:10px; } .nav-items { justify-content:center; margin-top:10px; } .brand { font-size:18px; } }
-        /* Layout */
-        .workspace { display:flex; flex:1; overflow:hidden; }
-        .sidebar { width:300px; background:var(--bg-panel); border-right:1px solid #222; padding:20px; overflow-y:auto; flex-shrink:0; }
-        .editor-container { flex:1; display:flex; flex-direction:column; position:relative; min-width:0; }
-        .editor-toolbar { height:40px; background:#151515; display:flex; align-items:center; justify-content:space-between; padding:0 15px; border-bottom:1px solid #333; font-size:12px; color:#666; }
-        .CodeMirror { flex:1; height:auto!important; font-size:14px; }
-        @media (max-width: 900px) { .workspace { flex-direction:column; overflow-y:auto; } .sidebar { width:100%; border-right:none; border-top:2px solid var(--accent); order:2; } .editor-container { width:100%; height:400px; order:1; } }
-        /* UI */
-        .btn { padding:12px; width:100%; background:var(--accent); color:#fff; border:none; border-radius:4px; font-weight:bold; cursor:pointer; margin-top:10px; }
-        .btn-dl { background:transparent; border:1px solid var(--accent); color:var(--accent); }
-        .checkbox-wrapper { display:flex; gap:10px; align-items:center; padding:8px; background:#1a1a1a; margin-bottom:5px; border-radius:4px; cursor:pointer; }
+        * { box-sizing: border-box; }
+        body { margin: 0; background-color: var(--bg-core); color: var(--text-main); font-family: 'Rajdhani', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* Navbar */
+        nav { height: 70px; background: rgba(10, 10, 10, 0.95); border-bottom: 2px solid var(--accent); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; flex-shrink: 0; }
+        .brand { font-size: 20px; font-weight: 800; color: #fff; text-decoration: none; display: flex; gap: 10px; align-items: center; } .brand span { color: var(--accent); }
+        .nav-items { display: flex; gap: 5px; align-items: center; }
+        .nav-link { color: #888; text-decoration: none; font-weight: 600; font-size: 11px; padding: 6px 8px; border-radius: 4px; display: flex; align-items: center; gap: 4px; border: 1px solid transparent; transition: 0.3s; }
+        .nav-link:hover, .nav-link.active { color: #fff; background: rgba(255, 255, 255, 0.05); border: 1px solid #333; }
+        .nav-link.active { border-color: var(--accent); color: var(--accent); }
+        
+        .workspace { display: flex; flex: 1; overflow: hidden; }
+        .sidebar { width: 300px; background: var(--bg-panel); border-right: 1px solid #222; padding: 20px; overflow-y: auto; flex-shrink: 0; }
+        .editor-container { flex: 1; display: flex; flex-direction: column; position: relative; min-width: 0; }
+        .editor-toolbar { height: 40px; background: #151515; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border-bottom: 1px solid #333; font-size: 12px; color: #666; }
+        .CodeMirror { flex: 1; font-size: 14px; height: auto !important; }
+        
+        .checkbox-wrapper { display: flex; gap: 10px; align-items: center; padding: 8px; background: #1a1a1a; margin-bottom: 5px; border-radius: 4px; cursor: pointer; }
+        input[type="checkbox"] { accent-color: var(--accent); }
+        .btn { padding: 12px; width: 100%; background: var(--accent); color: #fff; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-file { background: #1a1a1a; border: 1px dashed #444; color: #ccc; }
+        .btn-dl { background: transparent; border: 1px solid var(--accent); color: var(--accent); }
+        
+        .loader-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 50; }
+        .spinner { border: 4px solid #333; border-top: 4px solid var(--accent); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        footer { height: 30px; background: #080808; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #444; border-top: 1px solid #222; }
     </style>
 </head>
 <body>
@@ -55,29 +61,37 @@
 
     <div class="workspace">
         <div class="sidebar">
-            <h4 style="color:var(--accent); margin:0 0 10px 0;">Protection</h4>
+            <h4 style="color:var(--accent); margin:0 0 10px 0;">CORE PROTECTION</h4>
             <label class="checkbox-wrapper"><input type="checkbox" id="opt-rename" checked> Variable Renaming</label>
             <label class="checkbox-wrapper"><input type="checkbox" id="opt-marshal" checked> Portable Blob</label>
             <label class="checkbox-wrapper"><input type="checkbox" id="opt-deadcode" checked> Dead Code</label>
-            <hr style="border-color:#333">
-            <label class="checkbox-wrapper"><input type="checkbox" id="opt-xor" checked> EuroMoscow XOR</label>
+            
+            <h4 style="color:var(--accent); margin:15px 0 10px 0;">ENCRYPTION</h4>
+            <label class="checkbox-wrapper"><input type="checkbox" id="opt-zlib" checked> Zlib</label>
             <label class="checkbox-wrapper"><input type="checkbox" id="opt-rot13" checked> Rot13</label>
+            <label class="checkbox-wrapper"><input type="checkbox" id="opt-xor" checked> XOR</label>
             <label class="checkbox-wrapper"><input type="checkbox" id="opt-base64" checked> Base64</label>
             
+            <h4 style="color:var(--accent); margin:15px 0 10px 0;">FILES</h4>
             <input type="file" id="fileInput" style="display:none" accept=".py">
-            <button class="btn" style="background:#333" onclick="document.getElementById('fileInput').click()">Upload .py</button>
+            <button class="btn btn-file" onclick="document.getElementById('fileInput').click()">Upload .py</button>
+            <input type="file" id="zipInput" style="display:none" accept=".zip">
+            <button class="btn btn-file" style="margin-top:5px" onclick="document.getElementById('zipInput').click()">Upload .zip</button>
+
             <button class="btn" onclick="runProcess()">OBFUSCATE</button>
-            <button class="btn btn-dl" onclick="download()">Download</button>
+            <button class="btn btn-dl" onclick="downloadResult()">DOWNLOAD</button>
         </div>
         <div class="editor-container">
             <div class="editor-toolbar"><span>INPUT</span> <i class="fas fa-eraser" onclick="editorIn.setValue('')" style="cursor:pointer"></i></div>
             <textarea id="in"></textarea>
         </div>
-        <div class="editor-container">
+        <div class="editor-container" style="border-right:none; border-left:1px solid #333;">
+            <div class="loader-overlay" id="loader"><div class="spinner"></div></div>
             <div class="editor-toolbar"><span style="color:var(--accent)">OUTPUT</span> <i class="fas fa-copy" onclick="copy()" style="cursor:pointer"></i></div>
             <textarea id="out"></textarea>
         </div>
     </div>
+    <footer>&copy; 2025 EuroMoscow.</footer>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
@@ -93,16 +107,34 @@
             const code = editorIn.getValue(); if(!code.trim()) return alert("No Code!");
             let opts = [];
             document.querySelectorAll('input[type=checkbox]:checked').forEach(c => opts.push(c.id.replace('opt-','')));
+            document.getElementById('loader').style.display = 'flex';
             try {
                 const res = await fetch('/process', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code, action:'encrypt', lang:'python', options:opts}) });
                 const d = await res.json(); editorOut.setValue(d.result);
-            } catch(e) { editorOut.setValue("Error: "+e); }
+            } catch(e) { editorOut.setValue("Error: "+e); } finally { document.getElementById('loader').style.display = 'none'; }
         }
 
-        function download() {
-            const blob = new Blob([editorOut.getValue()], {type:'text/x-python'});
-            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'Protected.py'; a.click();
+        function downloadResult() {
+            const code = editorOut.getValue(); if(!code) return alert("No result!");
+            const blob = new Blob([code], {type:'text/x-python'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = 'Protected.py'; a.click();
         }
+        
+        // ZIP Logic
+        document.getElementById('zipInput').addEventListener('change', async function(e) {
+            const file = e.target.files[0]; if(!file) return; if(!confirm("Encrypt ZIP?")) return;
+            const fd = new FormData(); fd.append('file', file);
+            let opts = []; if(document.getElementById('opt-rename').checked) opts.push('rename'); if(document.getElementById('opt-marshal').checked) opts.push('marshal'); fd.append('options', opts.join(','));
+            document.getElementById('loader').style.display = 'flex';
+            try {
+                const res = await fetch('/upload-zip', {method:'POST', body:fd});
+                const blob = await res.blob(); const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = 'Project_Protected.zip'; a.click();
+                alert("Done!");
+            } catch(e) { alert("Error"); } finally { document.getElementById('loader').style.display = 'none'; }
+        });
+
         function copy() { navigator.clipboard.writeText(editorOut.getValue()); alert("Copied!"); }
     </script>
 </body>
