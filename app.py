@@ -1,17 +1,17 @@
 # ==========================================
-# Project: EuroMoscow Shield (Production Fixed)
+# Project: EuroMoscow Shield (Portable Stable)
 # Developer: EuroMoscow
 # ==========================================
 
 from flask import Flask, render_template, request, jsonify, send_file
-import base64, zlib, binascii, ast, random, io, marshal, codecs, re
+import base64, zlib, binascii, ast, random, io, codecs, re
 
 app = Flask(__name__)
 
 # --- Configuration ---
 BRAND_HEADER = f"# Protected by EuroMoscow Shield\n# https://euromoscow.com\n\n"
 
-# --- 1. Obfuscation Logic (Renaming) ---
+# --- 1. Renaming Logic (Robust) ---
 def random_var_name(length=8):
     return '_' + ''.join(random.choices('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', k=length))
 
@@ -36,8 +36,10 @@ class SafeObfuscator(ast.NodeTransformer):
         self.ignore_list = ignore_list
 
     def get_new_name(self, original_name):
+        # الحفاظ على الأسماء الخاصة ومكتبات النظام
         if original_name in self.ignore_list: return original_name
         if original_name.startswith('__'): return original_name
+        
         if original_name not in self.mapping:
             self.mapping[original_name] = random_var_name()
         return self.mapping[original_name]
@@ -70,45 +72,54 @@ def apply_obfuscation(code_str):
     except:
         return code_str
 
-# --- 2. Encryption Methods (FIXED WITH !r) ---
+# --- 2. Encryption Layers (Portable) ---
+
+def encrypt_portable_blob(code_str):
+    """
+    بديل المارشال: يحول الكود إلى مصفوفة أرقام مضغوطة
+    يعمل على جميع نسخ بايثون بلا مشاكل
+    """
+    compressed = zlib.compress(code_str.encode('utf-8'))
+    # تحويل البايتات إلى قائمة أرقام
+    blob = list(compressed) 
+    # الكود الناتج يقوم بإعادة تجميع الأرقام وفك ضغطها وتشغيلها
+    loader = f"import zlib;exec(zlib.decompress(bytes({blob})), globals())"
+    return loader
 
 def encrypt_xor(code_str):
     key = random.randint(1, 255)
     encrypted_chars = [ord(c) ^ key for c in code_str]
-    # استخدام repr لضمان عدم كسر النص
-    inner_code = f"exec(''.join(chr(c^{key})for c in {encrypted_chars}))"
+    # إضافة globals() لضمان عمل الكود في نفس النطاق
+    inner_code = f"exec(''.join(chr(c^{key})for c in {encrypted_chars}), globals())"
     return inner_code
 
 def encrypt_rot13(code_str):
     encoded = codecs.encode(code_str, 'rot13')
-    # التصحيح هنا: استخدام {encoded!r} بدلاً من '{encoded}'
-    return f"import codecs;exec(codecs.decode({encoded!r}, 'rot13'))"
+    return f"import codecs;exec(codecs.decode({encoded!r}, 'rot13'), globals())"
 
 def process_encrypt(code, methods):
     result = code
     
-    # الترتيب مهم: التسمية أولاً
+    # 1. Rename
     if 'rename' in methods: result = apply_obfuscation(result)
     
-    if 'marshal' in methods:
-        try:
-            dumped = marshal.dumps(compile(result, '<EuroMoscow>', 'exec'))
-            # استخدام !r هنا أيضاً للحماية
-            result = f"import marshal;exec(marshal.loads({dumped!r}))"
-        except: pass
+    # 2. Portable Blob (New Marshal Replacement)
+    if 'marshal' in methods: 
+        result = encrypt_portable_blob(result)
         
+    # 3. Zlib
     if 'zlib' in methods:
         enc = base64.b64encode(zlib.compress(result.encode())).decode()
-        # التصحيح هنا: !r
-        result = f"import zlib,base64;exec(zlib.decompress(base64.b64decode({enc!r})))"
+        result = f"import zlib,base64;exec(zlib.decompress(base64.b64decode({enc!r})), globals())"
         
+    # 4. Rot13 & XOR
     if 'rot13' in methods: result = encrypt_rot13(result)
     if 'xor' in methods: result = encrypt_xor(result)
     
+    # 5. Base64
     if 'base64' in methods:
         enc = base64.b64encode(result.encode()).decode()
-        # التصحيح هنا: !r
-        result = f"import base64;exec(base64.b64decode({enc!r}))"
+        result = f"import base64;exec(base64.b64decode({enc!r}), globals())"
     
     return BRAND_HEADER + result
 
@@ -117,26 +128,23 @@ def smart_auto_decrypt(code):
     current_code = code
     max_layers = 25 
     
-    # تم تحديث الأنماط لتتعامل مع repr (علامات ' أو ")
     patterns = {
         'base64': r"base64\.b64decode\((['\"].*?['\"])\)",
         'zlib': r"zlib\.decompress\((?:base64\.b64decode\((['\"].*?['\"])\)|(['\"].*?['\"]))\)",
-        'hex': r"binascii\.unhexlify\((['\"].*?['\"])\)",
         'rot13': r"codecs\.decode\((['\"].*?['\"]),\s*['\"]rot13['\"]\)",
         'xor': r"c\^(\d+).*?in\s+(\[.*?\])",
-        'marshal': r"marshal\.loads\((.*?)\)"
+        'blob': r"zlib\.decompress\(bytes\(\[(.*?)\]\)\)" # New Pattern for Blob
     }
+
+    def safe_eval_str(s):
+        try: return ast.literal_eval(s)
+        except: return s.strip("'").strip('"')
 
     for _ in range(max_layers):
         decoded = False
         clean_code = '\n'.join([l for l in current_code.split('\n') if not l.strip().startswith('#')]).strip()
         
-        # Helper to safely unquote strings detected by regex
-        def safe_eval_str(s):
-            try: return ast.literal_eval(s)
-            except: return s.strip("'").strip('"')
-
-        # 2. Check for Base64
+        # Check Base64
         match = re.search(patterns['base64'], clean_code)
         if match:
             try:
@@ -145,7 +153,7 @@ def smart_auto_decrypt(code):
                 decoded = True
             except: pass
 
-        # 3. Check for Zlib
+        # Check Zlib
         if not decoded:
             match = re.search(patterns['zlib'], clean_code)
             if match:
@@ -156,7 +164,7 @@ def smart_auto_decrypt(code):
                     decoded = True
                 except: pass
 
-        # 4. Check for Rot13
+        # Check Rot13
         if not decoded:
             match = re.search(patterns['rot13'], clean_code)
             if match:
@@ -166,7 +174,7 @@ def smart_auto_decrypt(code):
                     decoded = True
                 except: pass
 
-        # 5. Check for XOR
+        # Check XOR
         if not decoded:
             match = re.search(patterns['xor'], clean_code)
             if match:
@@ -176,10 +184,16 @@ def smart_auto_decrypt(code):
                     current_code = ''.join(chr(c ^ key) for c in char_list)
                     decoded = True
                 except: pass
-        
-        if not decoded and "marshal.loads" in clean_code:
-            current_code = "# [STOP] Code is compiled to Python Bytecode (Marshal).\n# Logic intact but unreadable.\n" + current_code
-            break
+
+        # Check Portable Blob
+        if not decoded:
+            match = re.search(patterns['blob'], clean_code)
+            if match:
+                try:
+                    num_list = eval(f"[{match.group(1)}]")
+                    current_code = zlib.decompress(bytes(num_list)).decode('utf-8')
+                    decoded = True
+                except: pass
 
         if not decoded: break
 
