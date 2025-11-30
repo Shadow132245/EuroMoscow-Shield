@@ -1,5 +1,5 @@
 # ==========================================
-# Project: EuroMoscow Shield (Python + JS Edition)
+# Project: EuroMoscow Shield (Final Ultimate V9)
 # Developer: EuroMoscow
 # ==========================================
 
@@ -13,13 +13,15 @@ BRAND_HEADER = f"# Protected by EuroMoscow Shield\n# https://euro-moscow-shield.
 JS_HEADER = f"/* Protected by EuroMoscow Shield */\n"
 
 # ==========================================
-# PART 1: PYTHON ENGINE (نفس الكود السابق)
+# PART 1: PYTHON ENGINE (SAFE MODE)
 # ==========================================
+
 def random_var_name(length=8):
     return '_' + ''.join(random.choices('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', k=length))
 
 class ImportScanner(ast.NodeVisitor):
-    def __init__(self): self.ignore_list = set(dir(__builtins__))
+    def __init__(self):
+        self.ignore_list = set(dir(__builtins__))
     def visit_Import(self, node):
         for alias in node.names:
             self.ignore_list.add(alias.name)
@@ -33,52 +35,66 @@ class ImportScanner(ast.NodeVisitor):
         self.generic_visit(node)
 
 class SafeObfuscator(ast.NodeTransformer):
+    """
+    Ultra-Safe Renaming: Only renames defined functions and classes.
+    Ignores internal variables to prevent NameError logic bugs.
+    """
     def __init__(self, ignore_list):
-        self.mapping = {}; self.ignore = ignore_list | {'self', 'args', 'kwargs', 'main'}
+        self.mapping = {}
+        self.ignore = ignore_list | {'self', 'args', 'kwargs', 'main', '__name__', '__init__'}
+
     def get_new_name(self, name):
         if name in self.ignore or name.startswith('__'): return name
-        if name not in self.mapping: self.mapping[name] = random_var_name()
+        if name in self.mapping: return self.mapping[name]
+        self.mapping[name] = random_var_name()
         return self.mapping[name]
+
     def visit_FunctionDef(self, node):
         if node.name not in self.ignore: node.name = self.get_new_name(node.name)
-        for arg in node.args.args:
-            if arg.arg not in self.ignore: arg.arg = self.get_new_name(arg.arg)
         self.generic_visit(node)
         return node
+
     def visit_ClassDef(self, node):
         if node.name not in self.ignore: node.name = self.get_new_name(node.name)
+        self.generic_visit(node)
         return node
+    
     def visit_Name(self, node):
+        # Update usage if defined previously
         if isinstance(node.ctx, (ast.Load, ast.Store, ast.Del)):
             if node.id in self.mapping: node.id = self.mapping[node.id]
         return node
 
-def apply_obfuscation(code_str):
+def apply_py_obfuscation(code_str):
     try:
-        tree = ast.parse(code_str); scanner = ImportScanner(); scanner.visit(tree)
+        tree = ast.parse(code_str)
+        scanner = ImportScanner(); scanner.visit(tree)
         transformer = SafeObfuscator(scanner.ignore_list); new_tree = transformer.visit(tree)
         ast.fix_missing_locations(new_tree); return ast.unparse(new_tree)
     except: return code_str
 
-def encrypt_portable_blob(code_str):
+def encrypt_py_blob(code_str):
+    # Portable Blob (No Marshal version issues)
     compressed = zlib.compress(code_str.encode('utf-8')); blob = list(compressed)
     return f"import zlib;exec(zlib.decompress(bytes({blob})), globals())"
-def encrypt_xor(code_str):
+
+def encrypt_py_xor(code_str):
     key = random.randint(1, 255); encrypted_chars = [ord(c) ^ key for c in code_str]
     return f"exec(''.join(chr(c^{key})for c in {encrypted_chars}), globals())"
-def encrypt_rot13(code_str):
+
+def encrypt_py_rot13(code_str):
     encoded = codecs.encode(code_str, 'rot13')
     return f"import codecs;exec(codecs.decode({encoded!r}, 'rot13'), globals())"
 
 def process_python(code, methods):
     result = code
-    if 'rename' in methods: result = apply_obfuscation(result)
-    if 'marshal' in methods: result = encrypt_portable_blob(result)
+    if 'rename' in methods: result = apply_py_obfuscation(result)
+    if 'marshal' in methods: result = encrypt_py_blob(result) # Portable Blob
     if 'zlib' in methods:
         enc = base64.b64encode(zlib.compress(result.encode())).decode()
         result = f"import zlib,base64;exec(zlib.decompress(base64.b64decode({enc!r})), globals())"
-    if 'rot13' in methods: result = encrypt_rot13(result)
-    if 'xor' in methods: result = encrypt_xor(result)
+    if 'rot13' in methods: result = encrypt_py_rot13(result)
+    if 'xor' in methods: result = encrypt_py_xor(result)
     if 'base64' in methods:
         enc = base64.b64encode(result.encode()).decode()
         result = f"import base64;exec(base64.b64decode({enc!r}), globals())"
@@ -127,95 +143,66 @@ def smart_py_decrypt(code):
     return current
 
 # ==========================================
-# PART 2: JAVASCRIPT ENGINE (الجديد)
+# PART 2: JAVASCRIPT ENGINE
 # ==========================================
 
 def js_encrypt_hex(code):
-    # تحويل الكود إلى \xNN
     hex_code = "".join([f"\\x{ord(c):02x}" for c in code])
     return f"eval('{hex_code}')"
 
 def js_encrypt_base64(code):
-    # تشفير Base64 قياسي في المتصفح
     b64 = base64.b64encode(code.encode()).decode()
     return f"eval(atob('{b64}'))"
 
 def js_encrypt_url(code):
-    # تشفير URL Encode
     quoted = urllib.parse.quote(code)
     return f"eval(decodeURIComponent('{quoted}'))"
 
 def js_encrypt_charcode(code):
-    # تحويل الكود لمصفوفة أرقام
     chars = ",".join([str(ord(c)) for c in code])
     return f"eval(String.fromCharCode({chars}))"
 
 def process_js_code(code, methods):
     result = code
-    # الترتيب: نبدأ من الداخل للخارج
-    
-    # 1. Hex Encoding
     if 'hex' in methods: result = js_encrypt_hex(result)
-    
-    # 2. CharCode (Number Array)
     if 'charcode' in methods: result = js_encrypt_charcode(result)
-    
-    # 3. URL Encode
     if 'url' in methods: result = js_encrypt_url(result)
-    
-    # 4. Base64 (الطبقة الأخيرة)
     if 'base64' in methods: result = js_encrypt_base64(result)
-
     return JS_HEADER + result
 
 def smart_js_decrypt(code):
     current = code; max_l = 25
-    
-    # أنماط فك تشفير JS
     patterns = {
         'base64': r"eval\(atob\(['\"](.*?)['\"]\)\)",
         'url': r"eval\(decodeURIComponent\(['\"](.*?)['\"]\)\)",
         'hex': r"eval\(['\"](\\x[0-9a-fA-F]{2}.*?)['\"]\)",
         'charcode': r"eval\(String\.fromCharCode\((.*?)\)\)"
     }
-
     for _ in range(max_l):
         decoded = False; clean = '\n'.join([l for l in current.split('\n') if not l.strip().startswith('/*')]).strip()
-        
-        # Base64
         m = re.search(patterns['base64'], clean)
         if m:
             try: current = base64.b64decode(m.group(1)).decode(); decoded = True
             except: pass
-            
-        # URL
         if not decoded:
             m = re.search(patterns['url'], clean)
             if m:
                 try: current = urllib.parse.unquote(m.group(1)); decoded = True
                 except: pass
-                
-        # Hex
         if not decoded:
             m = re.search(patterns['hex'], clean)
             if m:
                 try: 
-                    # تحويل \xNN لنص عادي
                     hex_str = m.group(1).replace('\\x', '')
-                    current = bytes.fromhex(hex_str).decode('utf-8')
-                    decoded = True
+                    current = bytes.fromhex(hex_str).decode('utf-8'); decoded = True
                 except: pass
-        
-        # CharCode
         if not decoded:
             m = re.search(patterns['charcode'], clean)
             if m:
                 try:
                     nums = [int(x) for x in m.group(1).split(',')]
-                    current = "".join([chr(n) for n in nums])
-                    decoded = True
+                    current = "".join([chr(n) for n in nums]); decoded = True
                 except: pass
-                
         if not decoded: break
     return current
 
@@ -224,13 +211,16 @@ def smart_js_decrypt(code):
 # ==========================================
 
 @app.route('/')
-def home(): return render_template('index.html') # Python Page
-
-@app.route('/js-shield')
-def js_page(): return render_template('js_encrypt.html') # JS Page (New)
+def home(): return render_template('index.html') # Python Encrypt
 
 @app.route('/decryptor')
-def decrypt_page(): return render_template('decrypt.html') # General Decryptor
+def py_decrypt_page(): return render_template('decrypt.html') # Python Decrypt
+
+@app.route('/js-shield')
+def js_encrypt_page(): return render_template('js_encrypt.html') # JS Encrypt
+
+@app.route('/js-decryptor')
+def js_decrypt_page(): return render_template('js_decrypt.html') # JS Decrypt
 
 @app.route('/docs')
 def api_docs(): return render_template('api_docs.html')
@@ -240,24 +230,28 @@ def process():
     data = request.json
     code = data.get('code')
     action = data.get('action')
-    lang = data.get('lang', 'python') # Default to Python
+    lang = data.get('lang', 'python') # Default
     options = data.get('options', [])
 
-    if lang == 'python':
-        if action == 'encrypt': result = process_python(code, options)
-        else: result = smart_py_decrypt(code)
-    elif lang == 'javascript':
-        if action == 'encrypt': result = process_js_code(code, options)
-        else: result = smart_js_decrypt(code)
-    else:
-        result = "Unsupported Language"
+    result = ""
+    
+    if action == 'encrypt':
+        if lang == 'javascript':
+            result = process_js_code(code, options)
+        else:
+            result = process_python(code, options)
+    else: # Decrypt
+        if lang == 'javascript':
+            result = smart_js_decrypt(code)
+        else:
+            result = smart_py_decrypt(code)
 
     return jsonify({'result': result})
 
 @app.route('/download', methods=['POST'])
 def download_file():
     code = request.form['code']
-    file_type = request.form.get('type', 'py') # py or js
+    file_type = request.form.get('type', 'py')
     
     fname = "EuroMoscow_Protected.py" if file_type == 'py' else "EuroMoscow_Secure.js"
     mime = "text/x-python" if file_type == 'py' else "application/javascript"
