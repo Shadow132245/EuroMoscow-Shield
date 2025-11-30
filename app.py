@@ -1,5 +1,5 @@
 # ==========================================
-# Project: EuroMoscow Shield (V10.1 Stable Fix)
+# Project: EuroMoscow Shield (V10.2 Lua Fix)
 # Developer: EuroMoscow
 # ==========================================
 
@@ -14,11 +14,10 @@ JS_HEADER = f"/* Protected by EuroMoscow Shield */\n"
 LUA_HEADER = f"-- Protected by EuroMoscow Shield\n"
 
 # ==========================================
-# PART 1: PYTHON ENGINE
+# PART 1: PYTHON ENGINE (SAFE MODE)
 # ==========================================
 
 def inject_dead_code(tree):
-    """Safe Dead Code Injection"""
     try:
         class DeadCodeInjector(ast.NodeTransformer):
             def visit_FunctionDef(self, node):
@@ -35,13 +34,11 @@ def inject_dead_code(tree):
                     node.body.insert(0, useless_op)
                 except: pass
                 return node
-        
         transformer = DeadCodeInjector()
         new_tree = transformer.visit(tree)
         ast.fix_missing_locations(new_tree)
         return new_tree
-    except:
-        return tree
+    except: return tree
 
 def random_var_name(length=8):
     return '_' + ''.join(random.choices('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', k=length))
@@ -50,23 +47,19 @@ class SafeObfuscator(ast.NodeTransformer):
     def __init__(self, ignore_list):
         self.mapping = {}
         self.ignore = ignore_list | {'self', 'args', 'kwargs', 'main', '__name__', '__init__'}
-
     def get_new_name(self, name):
         if name in self.ignore or name.startswith('__'): return name
         if name in self.mapping: return self.mapping[name]
         self.mapping[name] = random_var_name()
         return self.mapping[name]
-
     def visit_FunctionDef(self, node):
         if node.name not in self.ignore: node.name = self.get_new_name(node.name)
         self.generic_visit(node)
         return node
-
     def visit_ClassDef(self, node):
         if node.name not in self.ignore: node.name = self.get_new_name(node.name)
         self.generic_visit(node)
         return node
-    
     def visit_Name(self, node):
         if isinstance(node.ctx, (ast.Load, ast.Store, ast.Del)):
             if node.id in self.mapping: node.id = self.mapping[node.id]
@@ -74,33 +67,16 @@ class SafeObfuscator(ast.NodeTransformer):
 
 def process_python(code, methods):
     result = code
-    
-    # AST Operations (Rename & DeadCode)
     if 'rename' in methods or 'deadcode' in methods:
         try:
             tree = ast.parse(result)
-            
-            if 'deadcode' in methods:
-                tree = inject_dead_code(tree)
-            
+            if 'deadcode' in methods: tree = inject_dead_code(tree)
             if 'rename' in methods:
-                # Basic ignore list
-                ignore = set(dir(__builtins__))
-                transformer = SafeObfuscator(ignore)
+                transformer = SafeObfuscator(set(dir(__builtins__)))
                 tree = transformer.visit(tree)
-            
-            # Safe Unparse check
-            if hasattr(ast, 'unparse'):
-                result = ast.unparse(tree)
-            else:
-                # Fallback for older python versions if runtime.txt fails
-                pass 
-        except Exception as e:
-            print(f"AST Error: {e}")
-            # If AST fails, continue with original code to prevent crash
-            pass
+            if hasattr(ast, 'unparse'): result = ast.unparse(tree)
+        except: pass
 
-    # Encryption Layers
     if 'marshal' in methods: 
         compressed = zlib.compress(result.encode('utf-8')); blob = list(compressed)
         result = f"import zlib;exec(zlib.decompress(bytes({blob})), globals())"
@@ -116,26 +92,16 @@ def process_python(code, methods):
     if 'base64' in methods:
         enc = base64.b64encode(result.encode()).decode()
         result = f"import base64;exec(base64.b64decode({enc!r}), globals())"
-    
     return BRAND_HEADER + result
 
 def smart_py_decrypt(code):
     current = code; max_l = 25
-    patterns = {
-        'b64': r"base64\.b64decode\((['\"].*?['\"])\)",
-        'zlib': r"zlib\.decompress\((?:base64\.b64decode\((['\"].*?['\"])\)|(['\"].*?['\"]))\)",
-        'rot13': r"codecs\.decode\((['\"].*?['\"]),\s*['\"]rot13['\"]\)",
-        'xor': r"c\^(\d+).*?in\s+(\[.*?\])",
-        'blob': r"zlib\.decompress\(bytes\(\[(.*?)\]\)\)"
-    }
-    
+    patterns = { 'b64': r"base64\.b64decode\((['\"].*?['\"])\)", 'zlib': r"zlib\.decompress\((?:base64\.b64decode\((['\"].*?['\"])\)|(['\"].*?['\"]))\)", 'rot13': r"codecs\.decode\((['\"].*?['\"]),\s*['\"]rot13['\"]\)", 'xor': r"c\^(\d+).*?in\s+(\[.*?\])", 'blob': r"zlib\.decompress\(bytes\(\[(.*?)\]\)\)" }
     def safe_eval(s):
         try: return ast.literal_eval(s)
         except: return s.strip("'").strip('"')
-    
     for _ in range(max_l):
         decoded = False; clean = '\n'.join([l for l in current.split('\n') if not l.strip().startswith('#')]).strip()
-        
         m = re.search(patterns['b64'], clean)
         if m: 
             try: current = base64.b64decode(safe_eval(m.group(1))).decode(); decoded = True
@@ -164,9 +130,8 @@ def smart_py_decrypt(code):
     return current
 
 # ==========================================
-# PART 2: JS & LUA ENGINE (Safe)
+# PART 2: JS ENGINE
 # ==========================================
-
 def process_js_code(code, methods):
     result = code
     if 'hex' in methods: result = f"eval('{''.join([f'\\\\x{ord(c):02x}' for c in result])}')"
@@ -202,19 +167,55 @@ def smart_js_decrypt(code):
         if not decoded: break
     return current
 
+# ==========================================
+# PART 3: LUA ENGINE (FIXED FOR REPLIT/ROBLOX)
+# ==========================================
+
+def lua_encrypt_byte(code):
+    # الطريقة الجديدة: String Stream (آمنة جداً ولا تسبب انهيار)
+    # نحول الكود لأرقام مفصولة بمسافات ونضعها في متغير نصي
+    byte_str = " ".join([str(ord(c)) for c in code])
+    
+    # كود فك التشفير بلغة Lua (يدعم Lua 5.1 و 5.3)
+    loader = f"""
+local _b="{byte_str}"
+local _t={{}}
+for w in string.gmatch(_b,"%d+")do
+table.insert(_t,string.char(tonumber(w)))
+end
+load(table.concat(_t))()
+"""
+    return loader.strip()
+
+def lua_encrypt_hex(code):
+    # نفس فكرة البايت، نستخدم نص طويل و Loop
+    hex_code = "".join([f"{ord(c):02X}" for c in code])
+    loader = f"""
+local _h="{hex_code}"
+local _c=""
+for i=1, #_h, 2 do
+    _c=_c..string.char(tonumber(string.sub(_h,i,i+1),16))
+end
+load(_c)()
+"""
+    return loader.strip()
+
+def lua_encrypt_reverse(code):
+    rev = code[::-1]
+    # الهروب من علامات الاقتباس
+    safe_rev = rev.replace('"', '\\"').replace("'", "\\'")
+    return f"load(string.reverse('{safe_rev}'))()"
+
 def process_lua_code(code, methods):
     result = code
-    if 'reverse' in methods: result = f"load(string.reverse('{result[::-1]}'))()"
-    if 'hex' in methods: 
-        hex_c = "".join([f"\\x{ord(c):02X}" for c in result])
-        result = f"load('{hex_c}')()"
-    if 'byte' in methods: 
-        chars = ",".join([str(ord(c)) for c in result])
-        result = f"load(string.char({chars}))()"
+    if 'reverse' in methods: result = lua_encrypt_reverse(result)
+    # Hex & Byte should be last as they wrap the code
+    if 'hex' in methods: result = lua_encrypt_hex(result)
+    if 'byte' in methods: result = lua_encrypt_byte(result)
     return LUA_HEADER + result
 
 # ==========================================
-# ROUTES & ZIP HANDLER
+# ROUTES
 # ==========================================
 
 @app.route('/')
@@ -295,4 +296,3 @@ def upload_zip():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
-
