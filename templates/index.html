@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EuroMoscow Shield | Py Encryptor</title>
+    <meta name="description" content="Secure your Python code with EuroMoscow Shield. Features Rename, Portable Blob, XOR, and Zlib encryption.">
+    <meta property="og:title" content="EuroMoscow Shield | Python Obfuscator">
+    <meta property="og:image" content="{{ url_for('static', filename='logo.png') }}">
+    
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -14,7 +18,11 @@
         :root { --bg-core: #050505; --bg-panel: #111111; --accent: #00e1ff; --accent-glow: rgba(0, 225, 255, 0.35); --text-main: #eeeeee; }
         * { box-sizing: border-box; }
         body { margin: 0; background-color: var(--bg-core); color: var(--text-main); font-family: 'Rajdhani', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; } ::-webkit-scrollbar-track { background: var(--bg-core); } ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; } ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-core); }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
         nav { height: 70px; background: rgba(10, 10, 10, 0.95); border-bottom: 2px solid var(--accent); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; flex-shrink: 0; }
         .brand { font-size: 22px; font-weight: 800; letter-spacing: 1px; color: #fff; text-transform: uppercase; display: flex; align-items: center; gap: 10px; text-decoration: none;}
@@ -122,23 +130,17 @@
             try { const res = await fetch('/process', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ code, action, options }) }); const data = await res.json(); editorOut.setValue(data.result); } catch(e) { editorOut.setValue("Error: " + e); } finally { document.getElementById('loader').style.display = 'none'; }
         }
 
-        // --- NEW CLIENT-SIDE DOWNLOAD FUNCTION ---
+        // CLIENT-SIDE DOWNLOAD
         function downloadResult() {
             const code = editorOut.getValue();
             if(!code) return alert("No result to download!");
-            
-            // Create Blob locally
             const blob = new Blob([code], { type: "text/x-python" });
             const url = URL.createObjectURL(blob);
-            
-            // Create temporary link and click it
             const a = document.createElement("a");
             a.href = url;
             a.download = "EuroMoscow_Protected.py";
             document.body.appendChild(a);
             a.click();
-            
-            // Cleanup
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
