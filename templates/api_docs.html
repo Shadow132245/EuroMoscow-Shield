@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EuroMoscow API | Documentation</title>
+    <title>EuroMoscow Shield | API Docs</title>
     
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
-
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -15,7 +14,7 @@
             --bg-core: #050505; 
             --accent: #ff003c; 
             --text-main: #eeeeee; 
-            --code-bg: #1a1a1a;
+            --code-bg: #111;
         }
         
         body { 
@@ -23,101 +22,148 @@
             color: var(--text-main); 
             font-family: 'Rajdhani', sans-serif; 
             margin: 0; 
+            overflow-x: hidden; /* لمنع الحركة العرضية في الموبايل */
         }
-        
-        nav { 
-            height: 70px; 
-            background: rgba(17, 17, 17, 0.95); 
-            border-bottom: 2px solid var(--accent); 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            padding: 0 40px; 
-        }
-        
-        .brand { 
-            font-size: 24px; 
-            font-weight: 700; 
-            color: #fff; 
-            text-decoration: none; 
-            text-transform: uppercase;
-        }
-        .brand span { color: var(--accent); }
-        
-        .back-link { 
-            color: #888; 
-            text-decoration: none; 
-            font-weight: 600; 
-            padding: 8px 16px; 
-            border: 1px solid #333; 
-            border-radius: 4px; 
-            transition: 0.3s;
-        }
-        .back-link:hover { color: #fff; border-color: var(--accent); }
 
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-core); }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+        
+        /* Navbar */
+        nav { 
+            height: 70px; background: rgba(10, 10, 10, 0.95); border-bottom: 2px solid var(--accent); 
+            display: flex; align-items: center; justify-content: space-between; padding: 0 40px; 
+            position: sticky; top: 0; z-index: 100; 
+        }
+        .brand { font-size: 24px; font-weight: 800; letter-spacing: 2px; color: #fff; text-transform: uppercase; display: flex; align-items: center; gap: 10px; text-decoration: none;}
+        .brand span { color: var(--accent); text-shadow: 0 0 10px var(--accent); }
+
+        .nav-items { display: flex; gap: 5px; }
+        .nav-link { color: #888; text-decoration: none; font-weight: 600; font-size: 14px; transition: 0.3s; padding: 8px 16px; border-radius: 4px; display: flex; align-items: center; gap: 8px; }
+        .nav-link:hover, .nav-link.active { color: #fff; background: rgba(255, 255, 255, 0.05); border: 1px solid #333; }
+        .nav-link.active { border-color: var(--accent); color: var(--accent); }
+
+        /* Container */
         .container { max-width: 900px; margin: 40px auto; padding: 20px; }
         
-        h1 { color: #fff; border-bottom: 1px solid #333; padding-bottom: 15px; font-size: 2.5rem; }
-        h2 { color: var(--accent); margin-top: 40px; }
+        h1 { color: #fff; border-bottom: 1px solid #333; padding-bottom: 15px; font-size: 2.5rem; margin-top: 0; }
+        h2 { color: var(--accent); margin-top: 40px; border-left: 3px solid var(--accent); padding-left: 15px; }
         p { line-height: 1.6; color: #aaa; font-size: 1.1rem; }
         
         .badge { display: inline-block; padding: 5px 12px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-weight: bold; font-size: 0.9rem; }
         .post { background: var(--accent); color: white; }
         
+        /* Code Blocks */
         pre { 
             background: var(--code-bg); 
             padding: 25px; 
             border-radius: 8px; 
-            border-left: 4px solid var(--accent); 
-            overflow-x: auto; 
+            border: 1px solid #333;
+            overflow-x: auto; /* سكرول داخلي للكود الطويل */
             font-family: 'JetBrains Mono', monospace; 
             color: #ccc; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5); 
+            font-size: 14px;
         }
         
         .keyword { color: var(--accent); } 
-        .string { color: #4af626; }
+        .string { color: #00ff88; }
         .comment { color: #666; font-style: italic; }
+
+        /* Table Responsive */
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; min-width: 500px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #333; color: #ccc; }
+        th { color: var(--accent); text-transform: uppercase; font-size: 0.9rem; }
+        
+        /* Mobile Tweaks */
+        @media (max-width: 600px) {
+            nav { padding: 0 15px; }
+            .nav-link span { display: none; } /* إخفاء النصوص والاكتفاء بالأيقونات في البار */
+            .nav-link i { font-size: 18px; }
+            .container { padding: 15px; margin-top: 10px; }
+            h1 { font-size: 1.8rem; }
+            pre { padding: 15px; font-size: 12px; }
+        }
+
+        footer { text-align: center; margin-top: 80px; padding: 20px; border-top: 1px solid #222; color: #444; font-size: 12px; font-family: 'JetBrains Mono', monospace; }
     </style>
 </head>
 <body>
+
     <nav>
-        <a href="/" class="brand">EUROMOSCOW <span>API</span></a>
-        <a href="/" class="back-link"><i class="fas fa-arrow-left"></i> Return to Tool</a>
+        <a href="/" class="brand"><i class="fas fa-shield-virus"></i> EURO<span>SHIELD</span></a>
+        <div class="nav-items">
+            <a href="/" class="nav-link"><i class="fas fa-lock"></i> <span>ENC</span></a>
+            <a href="/decryptor" class="nav-link"><i class="fas fa-unlock"></i> <span>DEC</span></a>
+            <a href="/docs" class="nav-link active"><i class="fas fa-book"></i> <span>API</span></a>
+        </div>
     </nav>
 
     <div class="container">
         <h1>Developer API Reference</h1>
-        <p>Integrate the powerful <strong>EuroMoscow Shield</strong> obfuscation engine directly into your applications. This API allows you to protect your code remotely.</p>
+        <p>Integrate the powerful <strong>EuroMoscow Shield</strong> obfuscation engine directly into your applications. Protect your Python source code programmatically.</p>
 
         <h2>POST /process</h2>
-        <p>Send Python code to be obfuscated or decrypted using JSON payload.</p>
+        <p>Send Python code to be obfuscated or decrypted using a JSON payload.</p>
         
-        <div style="margin: 20px 0;">
+        <div style="margin: 20px 0; background: #111; padding: 15px; border-radius: 6px; border: 1px solid #333; overflow-x: auto;">
             <span class="badge post">POST</span> 
             <span style="font-family:'JetBrains Mono'; margin-left:10px; color:#fff;">{{ request.url_root }}process</span>
         </div>
 
-        <h3>Python Requests Example</h3>
+        <h3>Request Parameters</h3>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Key</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>code</td>
+                        <td>String</td>
+                        <td>The Python source code.</td>
+                    </tr>
+                    <tr>
+                        <td>action</td>
+                        <td>String</td>
+                        <td>'encrypt' or 'decrypt'</td>
+                    </tr>
+                    <tr>
+                        <td>options</td>
+                        <td>List</td>
+                        <td>['rename', 'marshal', 'zlib', 'rot13', 'xor', 'base64']</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>Python Example</h3>
         <pre>
 <span class="keyword">import</span> requests
 
-<span class="comment"># This URL automatically adapts to your hosting</span>
+<span class="comment"># Auto-detects your current host</span>
 url = <span class="string">"{{ request.url_root }}process"</span>
 
 payload = {
     <span class="keyword">"code"</span>: <span class="string">"print('EuroMoscow System')"</span>,
     <span class="keyword">"action"</span>: <span class="string">"encrypt"</span>,
-    <span class="keyword">"options"</span>: [<span class="string">"rename"</span>, <span class="string">"zlib"</span>, <span class="string">"base64"</span>]
+    <span class="keyword">"options"</span>: [<span class="string">"rename"</span>, <span class="string">"marshal"</span>, <span class="string">"xor"</span>]
 }
 
 response = requests.post(url, json=payload)
 print(response.json()[<span class="string">'result'</span>])
         </pre>
         
-        <p style="text-align: center; margin-top: 80px; font-size: 0.8rem; color: #555; border-top: 1px solid #222; padding-top: 20px;">
-            &copy; 2025 EuroMoscow Development. Built for Professionals.
-        </p>
+        <footer>
+            &copy; 2025 Developed by <span style="color:var(--accent);">EuroMoscow</span>.
+        </footer>
     </div>
+
 </body>
 </html>
