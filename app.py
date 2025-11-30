@@ -1,5 +1,5 @@
 # ==========================================
-# Project: EuroMoscow Shield (Final Stable v7)
+# Project: EuroMoscow Shield (Logic Fixed v8)
 # Developer: EuroMoscow
 # ==========================================
 
@@ -11,66 +11,99 @@ app = Flask(__name__)
 # --- Configuration ---
 BRAND_HEADER = f"# Protected by EuroMoscow Shield\n# https://euro-moscow-shield.vercel.app\n\n"
 
-# --- 1. Renaming Logic (Ultra-Safe Mode) ---
+# --- 1. Renaming Logic (Smart Linking) ---
 def random_var_name(length=8):
     return '_' + ''.join(random.choices('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', k=length))
 
-class SafeObfuscator(ast.NodeTransformer):
-    """
-    مغير أسماء حذر جداً: يغير فقط أسماء الدوال والمتغيرات العالمية الواضحة.
-    يتجاهل أي شيء داخل الدوال المعقدة لتجنب NameError.
-    """
+class ImportScanner(ast.NodeVisitor):
     def __init__(self):
+        self.ignore_list = set(dir(__builtins__))
+    def visit_Import(self, node):
+        for alias in node.names:
+            self.ignore_list.add(alias.name)
+            if alias.asname: self.ignore_list.add(alias.asname)
+        self.generic_visit(node)
+    def visit_ImportFrom(self, node):
+        if node.module: self.ignore_list.add(node.module)
+        for alias in node.names:
+            self.ignore_list.add(alias.name)
+            if alias.asname: self.ignore_list.add(alias.asname)
+        self.generic_visit(node)
+
+class SafeObfuscator(ast.NodeTransformer):
+    def __init__(self, ignore_list):
         self.mapping = {}
-        # قائمة بالكلمات المحظورة (مكتبات، دوال بايثون)
-        self.ignore = set(dir(__builtins__)) | {'self', 'args', 'kwargs'}
+        # إضافة الكلمات المحفوظة للقائمة المحظورة
+        self.ignore = ignore_list | {'self', 'args', 'kwargs', 'main', '__name__', '__main__', '__init__'}
 
     def get_new_name(self, name):
+        # لو الاسم في قائمة التجاهل، رجعه زي ما هو
         if name in self.ignore or name.startswith('__'):
             return name
-        if name not in self.mapping:
-            self.mapping[name] = random_var_name()
+        
+        # لو الاسم ده غيرناه قبل كدة، هات الاسم الجديد بتاعه (عشان التوافق)
+        if name in self.mapping:
+            return self.mapping[name]
+            
+        # لو اسم جديد، اعمل واحد عشوائي وسجله
+        self.mapping[name] = random_var_name()
         return self.mapping[name]
 
     def visit_FunctionDef(self, node):
-        # نغير اسم الدالة فقط، ولا نلمس ما بداخلها (أكثر أماناً)
+        # نغير اسم الدالة
         if node.name not in self.ignore:
             node.name = self.get_new_name(node.name)
-        # ملاحظة: أزلنا self.generic_visit(node) لمنع الدخول في تفاصيل الدالة وتخريبها
+        
+        # نغير أسماء الـ Arguments
+        for arg in node.args.args:
+            if arg.arg not in self.ignore:
+                arg.arg = self.get_new_name(arg.arg)
+                
+        self.generic_visit(node)
         return node
 
     def visit_ClassDef(self, node):
         if node.name not in self.ignore:
             node.name = self.get_new_name(node.name)
+        self.generic_visit(node)
         return node
 
-    # ألغينا زيارة visit_Name و visit_arg لتجنب المشاكل الداخلية
-    # الحماية ستعتمد على التشفير (Blob/XOR) وليس تغيير الأسماء الداخلية
+    def visit_Name(self, node):
+        # هذا هو الجزء الذي كان ناقصاً وتسبب في المشكلة
+        # نغير الاسم فقط إذا كان موجوداً في الخريطة (تم تغييره في التعريف)
+        if isinstance(node.ctx, (ast.Load, ast.Store, ast.Del)):
+            if node.id in self.mapping:
+                node.id = self.mapping[node.id]
+        return node
 
 def apply_obfuscation(code_str):
     try:
         tree = ast.parse(code_str)
-        transformer = SafeObfuscator()
+        # 1. جمع الممنوعات (المكتبات)
+        scanner = ImportScanner()
+        scanner.visit(tree)
+        # 2. تغيير الأسماء مع الربط الذكي
+        transformer = SafeObfuscator(scanner.ignore_list)
         new_tree = transformer.visit(tree)
         ast.fix_missing_locations(new_tree)
         return ast.unparse(new_tree)
     except:
         return code_str
 
-# --- 2. Encryption Layers (The Real Protection) ---
+# --- 2. Encryption Layers (Portable & Safe) ---
 
 def encrypt_portable_blob(code_str):
-    # ضغط الكود وتحويله لأرقام
+    # ضغط الكود وتحويله لأرقام ليعمل على أي نسخة بايثون
     compressed = zlib.compress(code_str.encode('utf-8'))
     blob = list(compressed) 
-    # استخدام globals() ضروري جداً هنا
+    # استخدام globals() لتمرير المتغيرات بشكل صحيح
     loader = f"import zlib;exec(zlib.decompress(bytes({blob})), globals())"
     return loader
 
 def encrypt_xor(code_str):
     key = random.randint(1, 255)
     encrypted_chars = [ord(c) ^ key for c in code_str]
-    # استخدام !r مع globals()
+    # استخدام !r لحماية النصوص
     inner_code = f"exec(''.join(chr(c^{key})for c in {encrypted_chars}), globals())"
     return inner_code
 
@@ -81,11 +114,11 @@ def encrypt_rot13(code_str):
 def process_encrypt(code, methods):
     result = code
     
-    # 1. Rename (Safe Mode Only)
+    # 1. Rename (Smart Linking)
     if 'rename' in methods: 
         result = apply_obfuscation(result)
     
-    # 2. Portable Blob (Main Layer)
+    # 2. Portable Blob
     if 'marshal' in methods: 
         result = encrypt_portable_blob(result)
         
