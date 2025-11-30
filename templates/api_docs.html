@@ -4,204 +4,84 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EuroMoscow Shield | API Docs</title>
+    <meta name="description" content="EuroMoscow Shield API Documentation. Automate Python and JS obfuscation for free.">
+    <meta property="og:title" content="EuroMoscow Shield | API Reference">
+    <meta property="og:image" content="{{ url_for('static', filename='logo.png') }}">
     
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <style>
-        /* --- BLUE THEME --- */
-        :root {
-            --bg-core: #050505; 
-            --accent: #00e1ff; /* Electric Blue */
-            --text-main: #eeeeee; 
-            --code-bg: #111;
-        }
-        
-        body { 
-            background-color: var(--bg-core); 
-            color: var(--text-main); 
-            font-family: 'Rajdhani', sans-serif; 
-            margin: 0; 
-            overflow-x: hidden;
-        }
-
-        /* Custom Scrollbar (Blue) */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg-core); }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
-        
-        /* Navbar */
-        nav { 
-            height: 70px; background: rgba(10, 10, 10, 0.95); border-bottom: 2px solid var(--accent); 
-            display: flex; align-items: center; justify-content: space-between; padding: 0 20px; 
-            position: sticky; top: 0; z-index: 100; 
-        }
+        :root { --bg-core: #050505; --accent: #00e1ff; --text-main: #eeeeee; --code-bg: #111; }
+        body { background-color: var(--bg-core); color: var(--text-main); font-family: 'Rajdhani', sans-serif; margin: 0; overflow-x: hidden; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; } ::-webkit-scrollbar-track { background: var(--bg-core); } ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; } ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+        nav { height: 70px; background: rgba(10, 10, 10, 0.95); border-bottom: 2px solid var(--accent); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; position: sticky; top: 0; z-index: 100; }
         .brand { font-size: 22px; font-weight: 800; letter-spacing: 1px; color: #fff; text-transform: uppercase; display: flex; align-items: center; gap: 10px; text-decoration: none;}
         .brand span { color: var(--accent); text-shadow: 0 0 10px var(--accent); }
-
         .nav-items { display: flex; gap: 5px; }
         .nav-link { color: #888; text-decoration: none; font-weight: 600; font-size: 13px; transition: 0.3s; padding: 8px 10px; border-radius: 4px; display: flex; align-items: center; gap: 6px; }
         .nav-link:hover, .nav-link.active { color: #fff; background: rgba(255, 255, 255, 0.05); border: 1px solid #333; }
-        
-        /* Active Link (Blue) */
         .nav-link.active { border-color: var(--accent); color: var(--accent); }
-
-        /* Container */
+        @media (max-width: 900px) { nav { padding: 0 10px; } .nav-link span { display: none; } .nav-link i { font-size: 18px; } .brand { font-size: 18px; } .container { padding: 15px; margin-top: 10px; } h1 { font-size: 1.8rem; } }
         .container { max-width: 900px; margin: 40px auto; padding: 20px; }
-        
         h1 { color: #fff; border-bottom: 1px solid #333; padding-bottom: 15px; font-size: 2.5rem; margin-top: 0; }
         h2 { color: var(--accent); margin-top: 40px; border-left: 3px solid var(--accent); padding-left: 15px; }
         p { line-height: 1.6; color: #aaa; font-size: 1.1rem; }
-        
         .badge { display: inline-block; padding: 5px 12px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-weight: bold; font-size: 0.9rem; }
         .post { background: var(--accent); color: #000; }
-        
-        /* Code Blocks */
-        pre { 
-            background: var(--code-bg); 
-            padding: 25px; 
-            border-radius: 8px; 
-            border: 1px solid #333;
-            overflow-x: auto; 
-            font-family: 'JetBrains Mono', monospace; 
-            color: #ccc; 
-            font-size: 14px;
-        }
-        
-        .keyword { color: var(--accent); } 
-        .string { color: #00ff88; }
-        .comment { color: #666; font-style: italic; }
-
-        /* Table */
-        .table-wrapper { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; min-width: 500px; }
-        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #333; color: #ccc; }
-        th { color: var(--accent); text-transform: uppercase; font-size: 0.9rem; }
-        
-        /* Mobile Tweaks */
-        @media (max-width: 900px) {
-            nav { padding: 0 10px; }
-            .nav-link span { display: none; } 
-            .nav-link i { font-size: 18px; }
-            .brand { font-size: 18px; }
-            .container { padding: 15px; margin-top: 10px; }
-            h1 { font-size: 1.8rem; }
-        }
-
+        pre { background: var(--code-bg); padding: 25px; border-radius: 8px; border: 1px solid #333; overflow-x: auto; font-family: 'JetBrains Mono', monospace; color: #ccc; font-size: 14px; }
+        .keyword { color: var(--accent); } .string { color: #00ff88; } .comment { color: #666; font-style: italic; }
+        .table-wrapper { overflow-x: auto; } table { width: 100%; border-collapse: collapse; margin-top: 20px; min-width: 500px; } th, td { text-align: left; padding: 12px; border-bottom: 1px solid #333; color: #ccc; } th { color: var(--accent); text-transform: uppercase; font-size: 0.9rem; }
         footer { text-align: center; margin-top: 80px; padding: 20px; border-top: 1px solid #222; color: #444; font-size: 12px; font-family: 'JetBrains Mono', monospace; }
     </style>
 </head>
 <body>
-
     <nav>
         <a href="/" class="brand"><i class="fas fa-shield-virus"></i> EURO<span>SHIELD</span></a>
         <div class="nav-items">
             <a href="/" class="nav-link"><i class="fab fa-python"></i> <span>PY ENC</span></a>
             <a href="/decryptor" class="nav-link"><i class="fas fa-unlock"></i> <span>PY DEC</span></a>
-            
             <span style="color:#333;">|</span>
-            
             <a href="/js-shield" class="nav-link"><i class="fab fa-js"></i> <span>JS ENC</span></a>
             <a href="/js-decryptor" class="nav-link"><i class="fas fa-unlock-alt"></i> <span>JS DEC</span></a>
-            
             <span style="color:#333;">|</span>
-
             <a href="/docs" class="nav-link active"><i class="fas fa-book"></i> <span>API</span></a>
         </div>
     </nav>
-
     <div class="container">
         <h1>Developer API Reference</h1>
-        <p>Integrate the powerful <strong>EuroMoscow Shield</strong> engine directly into your applications. Supports both Python and JavaScript obfuscation.</p>
-
+        <p>Integrate the powerful <strong>EuroMoscow Shield</strong> obfuscation engine directly into your applications.</p>
         <h2>POST /process</h2>
         <p>Send code to be obfuscated or decrypted using a JSON payload.</p>
-        
         <div style="margin: 20px 0; background: #111; padding: 15px; border-radius: 6px; border: 1px solid #333; overflow-x: auto;">
             <span class="badge post">POST</span> 
             <span style="font-family:'JetBrains Mono'; margin-left:10px; color:#fff;">{{ request.url_root }}process</span>
         </div>
-
         <h3>Request Parameters</h3>
         <div class="table-wrapper">
             <table>
-                <thead>
-                    <tr>
-                        <th>Key</th>
-                        <th>Type</th>
-                        <th>Description</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>Key</th><th>Type</th><th>Description</th></tr></thead>
                 <tbody>
-                    <tr>
-                        <td>code</td>
-                        <td>String</td>
-                        <td>The source code to process.</td>
-                    </tr>
-                    <tr>
-                        <td>action</td>
-                        <td>String</td>
-                        <td>'encrypt' or 'decrypt'</td>
-                    </tr>
-                    <tr>
-                        <td>lang</td>
-                        <td>String</td>
-                        <td>'python' or 'javascript' (Important!)</td>
-                    </tr>
-                    <tr>
-                        <td>options</td>
-                        <td>List</td>
-                        <td>['rename', 'marshal', 'zlib', 'rot13', 'xor', 'base64', 'hex', 'url']</td>
-                    </tr>
+                    <tr><td>code</td><td>String</td><td>The source code to process.</td></tr>
+                    <tr><td>action</td><td>String</td><td>'encrypt' or 'decrypt'</td></tr>
+                    <tr><td>lang</td><td>String</td><td>'python' or 'javascript'</td></tr>
+                    <tr><td>options</td><td>List</td><td>['rename', 'marshal', 'zlib', 'rot13', 'xor', 'base64', 'hex', 'url']</td></tr>
                 </tbody>
             </table>
         </div>
-
         <h3>Python Example</h3>
-        <pre>
-<span class="keyword">import</span> requests
-
+        <pre><span class="keyword">import</span> requests
 url = <span class="string">"{{ request.url_root }}process"</span>
-
-<span class="comment"># Example 1: Encrypt Python Code</span>
-payload = {
-    <span class="keyword">"code"</span>: <span class="string">"print('EuroMoscow System')"</span>,
-    <span class="keyword">"action"</span>: <span class="string">"encrypt"</span>,
-    <span class="keyword">"lang"</span>: <span class="string">"python"</span>,
-    <span class="keyword">"options"</span>: [<span class="string">"rename"</span>, <span class="string">"marshal"</span>, <span class="string">"xor"</span>]
-}
-
+payload = { <span class="keyword">"code"</span>: <span class="string">"print('EuroMoscow System')"</span>, <span class="keyword">"action"</span>: <span class="string">"encrypt"</span>, <span class="keyword">"lang"</span>: <span class="string">"python"</span>, <span class="keyword">"options"</span>: [<span class="string">"rename"</span>, <span class="string">"marshal"</span>, <span class="string">"xor"</span>] }
 response = requests.post(url, json=payload)
-print(response.json()[<span class="string">'result'</span>])
-        </pre>
-
-        <h3>JavaScript Example (Node.js)</h3>
-        <pre>
-<span class="keyword">const</span> axios = require(<span class="string">'axios'</span>);
-
-<span class="keyword">async function</span> protectCode() {
-    <span class="keyword">const</span> url = <span class="string">"{{ request.url_root }}process"</span>;
-    
-    <span class="keyword">const</span> payload = {
-        code: <span class="string">"console.log('Hello JS')"</span>,
-        action: <span class="string">"encrypt"</span>,
-        lang: <span class="string">"javascript"</span>,
-        options: [<span class="string">"hex"</span>, <span class="string">"base64"</span>]
-    };
-
-    <span class="keyword">const</span> res = <span class="keyword">await</span> axios.post(url, payload);
+print(response.json()[<span class="string">'result'</span>])</pre>
+        <h3>JavaScript Example</h3>
+        <pre><span class="keyword">const</span> axios = require(<span class="string">'axios'</span>);
+<span class="keyword">async function</span> protect() {
+    <span class="keyword">const</span> res = <span class="keyword">await</span> axios.post(<span class="string">"{{ request.url_root }}process"</span>, { code: <span class="string">"alert('Hi')"</span>, action: <span class="string">"encrypt"</span>, lang: <span class="string">"javascript"</span>, options: [<span class="string">"hex"</span>] });
     console.log(res.data.result);
-}
-
-protectCode();
-        </pre>
-        
-        <footer>
-            &copy; 2025 Developed by <span style="color:var(--accent);">EuroMoscow</span>.
-        </footer>
+}</pre>
+        <footer>&copy; 2025 Developed by <span style="color:var(--accent);">EuroMoscow</span>.</footer>
     </div>
-
 </body>
 </html>
