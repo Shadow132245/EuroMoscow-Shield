@@ -1,113 +1,176 @@
+# ==========================================
+# Project: EuroMoscow Shield (AI Decryptor)
+# Developer: EuroMoscow
+# ==========================================
+
 from flask import Flask, render_template, request, jsonify, send_file
-import base64, zlib, binascii, ast, random, io
+import base64, zlib, binascii, ast, random, io, marshal, codecs, re
 
 app = Flask(__name__)
 
-# --- Branding Configuration ---
-PROJECT_NAME = "EuroMoscow Shield"
-BRAND_HEADER = f"# ==========================================\n# Protected by {PROJECT_NAME}\n# Developed by EuroMoscow\n# ==========================================\n\n"
+# --- Configuration ---
+BRAND_HEADER = f"# Protected by EuroMoscow Shield\n# https://euromoscow.com\n\n"
 
-# --- 1. Logic: Advanced Renaming (Obfuscation) ---
+# --- 1. Obfuscation Logic (Renaming) ---
 def random_var_name(length=8):
-    return '_' + ''.join(random.choices('0123456789abcdef', k=length))
+    return '_' + ''.join(random.choices('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', k=length))
 
-class Obfuscator(ast.NodeTransformer):
+class ImportScanner(ast.NodeVisitor):
     def __init__(self):
+        self.ignore_list = set(dir(__builtins__))
+    def visit_Import(self, node):
+        for alias in node.names:
+            self.ignore_list.add(alias.name)
+            if alias.asname: self.ignore_list.add(alias.asname)
+        self.generic_visit(node)
+    def visit_ImportFrom(self, node):
+        if node.module: self.ignore_list.add(node.module)
+        for alias in node.names:
+            self.ignore_list.add(alias.name)
+            if alias.asname: self.ignore_list.add(alias.asname)
+        self.generic_visit(node)
+
+class SafeObfuscator(ast.NodeTransformer):
+    def __init__(self, ignore_list):
         self.mapping = {}
+        self.ignore_list = ignore_list
 
     def get_new_name(self, original_name):
-        """Helper to manage variable mapping consistency"""
+        if original_name in self.ignore_list: return original_name
+        if original_name.startswith('__'): return original_name
         if original_name not in self.mapping:
-            # استثناء الدوال المحفوظة والكلمات المفتاحية
-            if original_name not in __builtins__:
-                self.mapping[original_name] = random_var_name()
-            else:
-                self.mapping[original_name] = original_name
+            self.mapping[original_name] = random_var_name()
         return self.mapping[original_name]
 
     def visit_Name(self, node):
-        if isinstance(node.ctx, (ast.Load, ast.Store)):
-            new_id = self.get_new_name(node.id)
-            return ast.copy_location(ast.Name(id=new_id, ctx=node.ctx), node)
+        if isinstance(node.ctx, (ast.Load, ast.Store, ast.Del)):
+            node.id = self.get_new_name(node.id)
         return node
-
-    # --- تصحيح الخطأ: التعامل مع وسائط الدوال ---
     def visit_arg(self, node):
-        new_arg = self.get_new_name(node.arg)
-        # نقوم بتحديث اسم الوسيط في مكانه
-        node.arg = new_arg
+        node.arg = self.get_new_name(node.arg)
         return node
-
-    # --- تصحيح إضافي: التعامل مع الكلمات المفتاحية في الدوال ---
     def visit_FunctionDef(self, node):
-        # تغيير اسم الدالة نفسها
         node.name = self.get_new_name(node.name)
-        # استكمال زيارة باقي أجزاء الدالة (الوسائط والكود الداخلي)
+        self.generic_visit(node)
+        return node
+    def visit_ClassDef(self, node):
+        node.name = self.get_new_name(node.name)
         self.generic_visit(node)
         return node
 
-def advanced_obfuscate(code_str):
+def apply_obfuscation(code_str):
     try:
         tree = ast.parse(code_str)
-        transformer = Obfuscator()
+        scanner = ImportScanner()
+        scanner.visit(tree)
+        transformer = SafeObfuscator(scanner.ignore_list)
         new_tree = transformer.visit(tree)
         ast.fix_missing_locations(new_tree)
         return ast.unparse(new_tree)
-    except Exception as e:
-        # في حالة فشل التحليل، أعد الكود الأصلي لتجنب تحطيم البرنامج
-        print(f"Obfuscation Warning: {e}")
+    except:
         return code_str
 
-# --- 2. Logic: Encryption Layers ---
-def encrypt_code(code, methods):
+# --- 2. Encryption Methods ---
+
+def encrypt_xor(code_str):
+    key = random.randint(1, 255)
+    encrypted_chars = [ord(c) ^ key for c in code_str]
+    loader = f"exec(''.join(chr(c^{key})for c in {encrypted_chars}))"
+    return loader
+
+def encrypt_rot13(code_str):
+    encoded = codecs.encode(code_str, 'rot13')
+    return f"import codecs;exec(codecs.decode('{encoded}', 'rot13'))"
+
+def process_encrypt(code, methods):
     result = code
-    
-    # Apply Renaming First
-    if 'rename' in methods:
-        result = advanced_obfuscate(result)
-
-    # Apply Encoding Layers
+    if 'rename' in methods: result = apply_obfuscation(result)
+    if 'marshal' in methods:
+        try:
+            dumped = marshal.dumps(compile(result, '<EuroMoscow>', 'exec'))
+            result = f"import marshal;exec(marshal.loads({dumped!r}))"
+        except: pass
     if 'zlib' in methods:
-        compressed = zlib.compress(result.encode('utf-8'))
-        encoded = base64.b64encode(compressed).decode('utf-8')
-        result = f"import zlib,base64;exec(zlib.decompress(base64.b64decode('{encoded}')))"
-    
+        enc = base64.b64encode(zlib.compress(result.encode())).decode()
+        result = f"import zlib,base64;exec(zlib.decompress(base64.b64decode('{enc}')))"
+    if 'rot13' in methods: result = encrypt_rot13(result)
+    if 'xor' in methods: result = encrypt_xor(result)
     if 'base64' in methods:
-        encoded = base64.b64encode(result.encode('utf-8')).decode('utf-8')
-        result = f"import base64;exec(base64.b64decode('{encoded}'))"
-
-    if 'hex' in methods:
-        encoded = binascii.hexlify(result.encode('utf-8')).decode('utf-8')
-        result = f"import binascii;exec(binascii.unhexlify('{encoded}'))"
-
-    # Add EuroMoscow Branding to the top of the file
+        enc = base64.b64encode(result.encode()).decode()
+        result = f"import base64;exec(base64.b64decode('{enc}'))"
+    
     return BRAND_HEADER + result
 
-# --- 3. Logic: Smart Recursive Decryption ---
-def recursive_decrypt(code):
-    max_loops = 15
+# --- 3. THE AI AUTO-DECRYPTOR (العقل المدبر) ---
+def smart_auto_decrypt(code):
     current_code = code
+    max_layers = 25 # أقصى عدد لطبقات فك التشفير
+    
+    # Regex Patterns for Auto-Detection
+    patterns = {
+        'base64': r"base64\.b64decode\(['\"](.*?)['\"]\)",
+        'zlib': r"zlib\.decompress\((?:base64\.b64decode\(['\"](.*?)['\"]\)|['\"](.*?)['\"])\)",
+        'hex': r"binascii\.unhexlify\(['\"](.*?)['\"]\)",
+        'rot13': r"codecs\.decode\(['\"](.*?)['\"],\s*['\"]rot13['\"]\)",
+        'xor': r"c\^(\d+).*?in\s+(\[.*?\])", # Detects the custom XOR list
+        'marshal': r"marshal\.loads\((.*?)\)"
+    }
 
-    for _ in range(max_loops):
-        try:
-            lines = current_code.split('\n')
-            temp_code = '\n'.join([l for l in lines if not l.strip().startswith('#')]).strip()
-
-            if "base64.b64decode" in temp_code and "zlib" not in temp_code:
-                payload = temp_code.split("'")[1]
+    for _ in range(max_layers):
+        decoded = False
+        
+        # 1. Clean up (remove comments/headers)
+        clean_code = '\n'.join([l for l in current_code.split('\n') if not l.strip().startswith('#')]).strip()
+        
+        # 2. Check for Base64
+        match = re.search(patterns['base64'], clean_code)
+        if match:
+            try:
+                payload = match.group(1)
                 current_code = base64.b64decode(payload).decode('utf-8')
-            elif "binascii.unhexlify" in temp_code:
-                payload = temp_code.split("'")[1]
-                current_code = binascii.unhexlify(payload).decode('utf-8')
-            elif "zlib" in temp_code and "base64" in temp_code:
-                start = temp_code.find("'") + 1
-                end = temp_code.rfind("'")
-                payload = temp_code[start:end]
-                current_code = zlib.decompress(base64.b64decode(payload)).decode('utf-8')
-            else:
-                break
-        except:
+                decoded = True
+            except: pass
+
+        # 3. Check for Zlib (often inside base64)
+        if not decoded:
+            match = re.search(patterns['zlib'], clean_code)
+            if match:
+                try:
+                    payload = match.group(1) or match.group(2)
+                    current_code = zlib.decompress(base64.b64decode(payload)).decode('utf-8')
+                    decoded = True
+                except: pass
+
+        # 4. Check for Rot13
+        if not decoded:
+            match = re.search(patterns['rot13'], clean_code)
+            if match:
+                try:
+                    payload = match.group(1)
+                    current_code = codecs.decode(payload, 'rot13')
+                    decoded = True
+                except: pass
+
+        # 5. Check for EuroMoscow XOR
+        if not decoded:
+            match = re.search(patterns['xor'], clean_code)
+            if match:
+                try:
+                    key = int(match.group(1))
+                    char_list = eval(match.group(2))
+                    current_code = ''.join(chr(c ^ key) for c in char_list)
+                    decoded = True
+                except: pass
+        
+        # 6. Check for Marshal (Cannot fully reverse to source, but can warn)
+        if not decoded and "marshal.loads" in clean_code:
+            current_code = "# [STOP] Code is compiled to Python Bytecode (Marshal).\n# Full source recovery is not possible without a Decompiler tool.\n# However, the logic is structurally intact.\n" + current_code
             break
+
+        # If no pattern matched, we reached the core code
+        if not decoded:
+            break
+
     return current_code
 
 # --- Routes ---
@@ -127,9 +190,9 @@ def process():
     options = data.get('options', [])
 
     if action == 'encrypt':
-        result = encrypt_code(code, options)
+        result = process_encrypt(code, options)
     else:
-        result = recursive_decrypt(code)
+        result = smart_auto_decrypt(code)
 
     return jsonify({'result': result})
 
