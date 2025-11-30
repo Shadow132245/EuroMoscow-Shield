@@ -260,6 +260,12 @@ def decrypt_page(): return render_template('decrypt.html')
 
 @app.route('/js-decryptor')
 def js_dec_page(): return render_template('js_decrypt.html')
+    
+@app.route('/')
+def home(): return render_template('index.html')
+
+@app.route('/terminal')
+def terminal_page(): return render_template('terminal.html')
 
 @app.route('/docs')
 def api_docs(): return render_template('api_docs.html')
@@ -301,3 +307,4 @@ def upload_zip():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
+
