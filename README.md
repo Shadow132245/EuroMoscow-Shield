@@ -49,3 +49,13 @@ payload = {
 
 response = requests.post(url, json=payload)
 print(response.json()['result'])
+
+## ⚠️ Legal Disclaimer
+
+**EuroMoscow Shield** is developed strictly for educational purposes and for the protection of intellectual property (IP) of legitimate developers.
+
+- The developer (**EuroMoscow**) is not responsible for any misuse of this tool.
+- Do not use this tool to obfuscate malicious code (malware, viruses, spyware).
+- Usage of this tool for illegal activities is strictly prohibited.
+
+By using this software, you agree to these terms and hold the developer harmless from any legal consequences.
