@@ -1,5 +1,5 @@
 # ==========================================
-# Project: EuroMoscow Shield (Portable Stable)
+# Project: EuroMoscow Shield (Final Stable v7)
 # Developer: EuroMoscow
 # ==========================================
 
@@ -9,87 +9,68 @@ import base64, zlib, binascii, ast, random, io, codecs, re
 app = Flask(__name__)
 
 # --- Configuration ---
-BRAND_HEADER = f"# Protected by EuroMoscow Shield\n# https://euromoscow.com\n\n"
+BRAND_HEADER = f"# Protected by EuroMoscow Shield\n# https://euro-moscow-shield.vercel.app\n\n"
 
-# --- 1. Renaming Logic (Robust) ---
+# --- 1. Renaming Logic (Ultra-Safe Mode) ---
 def random_var_name(length=8):
     return '_' + ''.join(random.choices('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', k=length))
 
-class ImportScanner(ast.NodeVisitor):
-    def __init__(self):
-        self.ignore_list = set(dir(__builtins__))
-    def visit_Import(self, node):
-        for alias in node.names:
-            self.ignore_list.add(alias.name)
-            if alias.asname: self.ignore_list.add(alias.asname)
-        self.generic_visit(node)
-    def visit_ImportFrom(self, node):
-        if node.module: self.ignore_list.add(node.module)
-        for alias in node.names:
-            self.ignore_list.add(alias.name)
-            if alias.asname: self.ignore_list.add(alias.asname)
-        self.generic_visit(node)
-
 class SafeObfuscator(ast.NodeTransformer):
-    def __init__(self, ignore_list):
+    """
+    مغير أسماء حذر جداً: يغير فقط أسماء الدوال والمتغيرات العالمية الواضحة.
+    يتجاهل أي شيء داخل الدوال المعقدة لتجنب NameError.
+    """
+    def __init__(self):
         self.mapping = {}
-        self.ignore_list = ignore_list
+        # قائمة بالكلمات المحظورة (مكتبات، دوال بايثون)
+        self.ignore = set(dir(__builtins__)) | {'self', 'args', 'kwargs'}
 
-    def get_new_name(self, original_name):
-        # الحفاظ على الأسماء الخاصة ومكتبات النظام
-        if original_name in self.ignore_list: return original_name
-        if original_name.startswith('__'): return original_name
-        
-        if original_name not in self.mapping:
-            self.mapping[original_name] = random_var_name()
-        return self.mapping[original_name]
+    def get_new_name(self, name):
+        if name in self.ignore or name.startswith('__'):
+            return name
+        if name not in self.mapping:
+            self.mapping[name] = random_var_name()
+        return self.mapping[name]
 
-    def visit_Name(self, node):
-        if isinstance(node.ctx, (ast.Load, ast.Store, ast.Del)):
-            node.id = self.get_new_name(node.id)
-        return node
-    def visit_arg(self, node):
-        node.arg = self.get_new_name(node.arg)
-        return node
     def visit_FunctionDef(self, node):
-        node.name = self.get_new_name(node.name)
-        self.generic_visit(node)
+        # نغير اسم الدالة فقط، ولا نلمس ما بداخلها (أكثر أماناً)
+        if node.name not in self.ignore:
+            node.name = self.get_new_name(node.name)
+        # ملاحظة: أزلنا self.generic_visit(node) لمنع الدخول في تفاصيل الدالة وتخريبها
         return node
+
     def visit_ClassDef(self, node):
-        node.name = self.get_new_name(node.name)
-        self.generic_visit(node)
+        if node.name not in self.ignore:
+            node.name = self.get_new_name(node.name)
         return node
+
+    # ألغينا زيارة visit_Name و visit_arg لتجنب المشاكل الداخلية
+    # الحماية ستعتمد على التشفير (Blob/XOR) وليس تغيير الأسماء الداخلية
 
 def apply_obfuscation(code_str):
     try:
         tree = ast.parse(code_str)
-        scanner = ImportScanner()
-        scanner.visit(tree)
-        transformer = SafeObfuscator(scanner.ignore_list)
+        transformer = SafeObfuscator()
         new_tree = transformer.visit(tree)
         ast.fix_missing_locations(new_tree)
         return ast.unparse(new_tree)
     except:
         return code_str
 
-# --- 2. Encryption Layers (Portable) ---
+# --- 2. Encryption Layers (The Real Protection) ---
 
 def encrypt_portable_blob(code_str):
-    """
-    بديل المارشال: يحول الكود إلى مصفوفة أرقام مضغوطة
-    يعمل على جميع نسخ بايثون بلا مشاكل
-    """
+    # ضغط الكود وتحويله لأرقام
     compressed = zlib.compress(code_str.encode('utf-8'))
-    # تحويل البايتات إلى قائمة أرقام
     blob = list(compressed) 
-    # الكود الناتج يقوم بإعادة تجميع الأرقام وفك ضغطها وتشغيلها
+    # استخدام globals() ضروري جداً هنا
     loader = f"import zlib;exec(zlib.decompress(bytes({blob})), globals())"
     return loader
 
 def encrypt_xor(code_str):
     key = random.randint(1, 255)
     encrypted_chars = [ord(c) ^ key for c in code_str]
-    # إضافة globals() لضمان عمل الكود في نفس النطاق
+    # استخدام !r مع globals()
     inner_code = f"exec(''.join(chr(c^{key})for c in {encrypted_chars}), globals())"
     return inner_code
 
@@ -100,10 +81,11 @@ def encrypt_rot13(code_str):
 def process_encrypt(code, methods):
     result = code
     
-    # 1. Rename
-    if 'rename' in methods: result = apply_obfuscation(result)
+    # 1. Rename (Safe Mode Only)
+    if 'rename' in methods: 
+        result = apply_obfuscation(result)
     
-    # 2. Portable Blob (New Marshal Replacement)
+    # 2. Portable Blob (Main Layer)
     if 'marshal' in methods: 
         result = encrypt_portable_blob(result)
         
@@ -133,7 +115,7 @@ def smart_auto_decrypt(code):
         'zlib': r"zlib\.decompress\((?:base64\.b64decode\((['\"].*?['\"])\)|(['\"].*?['\"]))\)",
         'rot13': r"codecs\.decode\((['\"].*?['\"]),\s*['\"]rot13['\"]\)",
         'xor': r"c\^(\d+).*?in\s+(\[.*?\])",
-        'blob': r"zlib\.decompress\(bytes\(\[(.*?)\]\)\)" # New Pattern for Blob
+        'blob': r"zlib\.decompress\(bytes\(\[(.*?)\]\)\)"
     }
 
     def safe_eval_str(s):
@@ -144,7 +126,6 @@ def smart_auto_decrypt(code):
         decoded = False
         clean_code = '\n'.join([l for l in current_code.split('\n') if not l.strip().startswith('#')]).strip()
         
-        # Check Base64
         match = re.search(patterns['base64'], clean_code)
         if match:
             try:
@@ -153,7 +134,6 @@ def smart_auto_decrypt(code):
                 decoded = True
             except: pass
 
-        # Check Zlib
         if not decoded:
             match = re.search(patterns['zlib'], clean_code)
             if match:
@@ -164,7 +144,6 @@ def smart_auto_decrypt(code):
                     decoded = True
                 except: pass
 
-        # Check Rot13
         if not decoded:
             match = re.search(patterns['rot13'], clean_code)
             if match:
@@ -174,7 +153,6 @@ def smart_auto_decrypt(code):
                     decoded = True
                 except: pass
 
-        # Check XOR
         if not decoded:
             match = re.search(patterns['xor'], clean_code)
             if match:
@@ -185,7 +163,6 @@ def smart_auto_decrypt(code):
                     decoded = True
                 except: pass
 
-        # Check Portable Blob
         if not decoded:
             match = re.search(patterns['blob'], clean_code)
             if match:
