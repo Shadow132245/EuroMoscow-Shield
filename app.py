@@ -15,13 +15,35 @@ class Obfuscator(ast.NodeTransformer):
     def __init__(self):
         self.mapping = {}
 
+    def get_new_name(self, original_name):
+        """Helper to manage variable mapping consistency"""
+        if original_name not in self.mapping:
+            # استثناء الدوال المحفوظة والكلمات المفتاحية
+            if original_name not in __builtins__:
+                self.mapping[original_name] = random_var_name()
+            else:
+                self.mapping[original_name] = original_name
+        return self.mapping[original_name]
+
     def visit_Name(self, node):
         if isinstance(node.ctx, (ast.Load, ast.Store)):
-            if node.id not in self.mapping:
-                if node.id not in __builtins__: 
-                    self.mapping[node.id] = random_var_name()
-            if node.id in self.mapping:
-                return ast.copy_location(ast.Name(id=self.mapping[node.id], ctx=node.ctx), node)
+            new_id = self.get_new_name(node.id)
+            return ast.copy_location(ast.Name(id=new_id, ctx=node.ctx), node)
+        return node
+
+    # --- تصحيح الخطأ: التعامل مع وسائط الدوال ---
+    def visit_arg(self, node):
+        new_arg = self.get_new_name(node.arg)
+        # نقوم بتحديث اسم الوسيط في مكانه
+        node.arg = new_arg
+        return node
+
+    # --- تصحيح إضافي: التعامل مع الكلمات المفتاحية في الدوال ---
+    def visit_FunctionDef(self, node):
+        # تغيير اسم الدالة نفسها
+        node.name = self.get_new_name(node.name)
+        # استكمال زيارة باقي أجزاء الدالة (الوسائط والكود الداخلي)
+        self.generic_visit(node)
         return node
 
 def advanced_obfuscate(code_str):
@@ -31,7 +53,9 @@ def advanced_obfuscate(code_str):
         new_tree = transformer.visit(tree)
         ast.fix_missing_locations(new_tree)
         return ast.unparse(new_tree)
-    except:
+    except Exception as e:
+        # في حالة فشل التحليل، أعد الكود الأصلي لتجنب تحطيم البرنامج
+        print(f"Obfuscation Warning: {e}")
         return code_str
 
 # --- 2. Logic: Encryption Layers ---
@@ -66,7 +90,6 @@ def recursive_decrypt(code):
 
     for _ in range(max_loops):
         try:
-            # Clean comments and headers
             lines = current_code.split('\n')
             temp_code = '\n'.join([l for l in lines if not l.strip().startswith('#')]).strip()
 
