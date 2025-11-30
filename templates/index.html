@@ -16,6 +16,28 @@
         * { box-sizing: border-box; }
         body { margin: 0; background-color: var(--bg-core); color: var(--text-main); font-family: 'Rajdhani', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
+        /* --- CUSTOM SCROLLBAR (التعديل الجديد) --- */
+        /* لمتصفحات كروم وإيدج */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-core); 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent); /* يصبح أحمر عند اللمس */
+        }
+        /* لمتصفح فايرفوكس */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #333 var(--bg-core);
+        }
+
         /* Navbar Updated */
         nav { height: 70px; background: rgba(10, 10, 10, 0.95); border-bottom: 2px solid var(--accent); display: flex; align-items: center; justify-content: space-between; padding: 0 40px; box-shadow: 0 0 25px var(--accent-glow); z-index: 10; flex-shrink: 0; }
         .brand { font-size: 26px; font-weight: 800; letter-spacing: 2px; color: #fff; text-transform: uppercase; display: flex; align-items: center; gap: 10px; text-decoration: none;}
@@ -28,7 +50,20 @@
 
         /* Layout */
         .workspace { display: flex; flex: 1; height: calc(100vh - 100px); overflow: hidden; }
-        .sidebar { width: 320px; background: var(--bg-panel); border-right: 1px solid #222; padding: 25px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; flex-shrink: 0; z-index: 5; }
+        
+        .sidebar { 
+            width: 320px; 
+            background: var(--bg-panel); 
+            border-right: 1px solid #222; 
+            padding: 25px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 20px; 
+            overflow-y: auto; /* هنا سيظهر السكرول بار الجديد */
+            flex-shrink: 0; 
+            z-index: 5; 
+        }
+
         .section-title { color: var(--accent); text-transform: uppercase; font-weight: bold; font-size: 14px; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 8px; }
         
         .checkbox-wrapper { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px; background: #1a1a1a; border-radius: 6px; transition: 0.3s; border: 1px solid #333; }
