@@ -1,5 +1,5 @@
 # ==========================================
-# Project: EuroMoscow Shield (AI Decryptor)
+# Project: EuroMoscow Shield (Production Fixed)
 # Developer: EuroMoscow
 # ==========================================
 
@@ -70,73 +70,88 @@ def apply_obfuscation(code_str):
     except:
         return code_str
 
-# --- 2. Encryption Methods ---
+# --- 2. Encryption Methods (FIXED WITH !r) ---
 
 def encrypt_xor(code_str):
     key = random.randint(1, 255)
     encrypted_chars = [ord(c) ^ key for c in code_str]
-    loader = f"exec(''.join(chr(c^{key})for c in {encrypted_chars}))"
-    return loader
+    # استخدام repr لضمان عدم كسر النص
+    inner_code = f"exec(''.join(chr(c^{key})for c in {encrypted_chars}))"
+    return inner_code
 
 def encrypt_rot13(code_str):
     encoded = codecs.encode(code_str, 'rot13')
-    return f"import codecs;exec(codecs.decode('{encoded}', 'rot13'))"
+    # التصحيح هنا: استخدام {encoded!r} بدلاً من '{encoded}'
+    return f"import codecs;exec(codecs.decode({encoded!r}, 'rot13'))"
 
 def process_encrypt(code, methods):
     result = code
+    
+    # الترتيب مهم: التسمية أولاً
     if 'rename' in methods: result = apply_obfuscation(result)
+    
     if 'marshal' in methods:
         try:
             dumped = marshal.dumps(compile(result, '<EuroMoscow>', 'exec'))
+            # استخدام !r هنا أيضاً للحماية
             result = f"import marshal;exec(marshal.loads({dumped!r}))"
         except: pass
+        
     if 'zlib' in methods:
         enc = base64.b64encode(zlib.compress(result.encode())).decode()
-        result = f"import zlib,base64;exec(zlib.decompress(base64.b64decode('{enc}')))"
+        # التصحيح هنا: !r
+        result = f"import zlib,base64;exec(zlib.decompress(base64.b64decode({enc!r})))"
+        
     if 'rot13' in methods: result = encrypt_rot13(result)
     if 'xor' in methods: result = encrypt_xor(result)
+    
     if 'base64' in methods:
         enc = base64.b64encode(result.encode()).decode()
-        result = f"import base64;exec(base64.b64decode('{enc}'))"
+        # التصحيح هنا: !r
+        result = f"import base64;exec(base64.b64decode({enc!r}))"
     
     return BRAND_HEADER + result
 
-# --- 3. THE AI AUTO-DECRYPTOR (العقل المدبر) ---
+# --- 3. Smart Auto-Decrypt ---
 def smart_auto_decrypt(code):
     current_code = code
-    max_layers = 25 # أقصى عدد لطبقات فك التشفير
+    max_layers = 25 
     
-    # Regex Patterns for Auto-Detection
+    # تم تحديث الأنماط لتتعامل مع repr (علامات ' أو ")
     patterns = {
-        'base64': r"base64\.b64decode\(['\"](.*?)['\"]\)",
-        'zlib': r"zlib\.decompress\((?:base64\.b64decode\(['\"](.*?)['\"]\)|['\"](.*?)['\"])\)",
-        'hex': r"binascii\.unhexlify\(['\"](.*?)['\"]\)",
-        'rot13': r"codecs\.decode\(['\"](.*?)['\"],\s*['\"]rot13['\"]\)",
-        'xor': r"c\^(\d+).*?in\s+(\[.*?\])", # Detects the custom XOR list
+        'base64': r"base64\.b64decode\((['\"].*?['\"])\)",
+        'zlib': r"zlib\.decompress\((?:base64\.b64decode\((['\"].*?['\"])\)|(['\"].*?['\"]))\)",
+        'hex': r"binascii\.unhexlify\((['\"].*?['\"])\)",
+        'rot13': r"codecs\.decode\((['\"].*?['\"]),\s*['\"]rot13['\"]\)",
+        'xor': r"c\^(\d+).*?in\s+(\[.*?\])",
         'marshal': r"marshal\.loads\((.*?)\)"
     }
 
     for _ in range(max_layers):
         decoded = False
-        
-        # 1. Clean up (remove comments/headers)
         clean_code = '\n'.join([l for l in current_code.split('\n') if not l.strip().startswith('#')]).strip()
         
+        # Helper to safely unquote strings detected by regex
+        def safe_eval_str(s):
+            try: return ast.literal_eval(s)
+            except: return s.strip("'").strip('"')
+
         # 2. Check for Base64
         match = re.search(patterns['base64'], clean_code)
         if match:
             try:
-                payload = match.group(1)
+                payload = safe_eval_str(match.group(1))
                 current_code = base64.b64decode(payload).decode('utf-8')
                 decoded = True
             except: pass
 
-        # 3. Check for Zlib (often inside base64)
+        # 3. Check for Zlib
         if not decoded:
             match = re.search(patterns['zlib'], clean_code)
             if match:
                 try:
-                    payload = match.group(1) or match.group(2)
+                    raw = match.group(1) or match.group(2)
+                    payload = safe_eval_str(raw)
                     current_code = zlib.decompress(base64.b64decode(payload)).decode('utf-8')
                     decoded = True
                 except: pass
@@ -146,12 +161,12 @@ def smart_auto_decrypt(code):
             match = re.search(patterns['rot13'], clean_code)
             if match:
                 try:
-                    payload = match.group(1)
+                    payload = safe_eval_str(match.group(1))
                     current_code = codecs.decode(payload, 'rot13')
                     decoded = True
                 except: pass
 
-        # 5. Check for EuroMoscow XOR
+        # 5. Check for XOR
         if not decoded:
             match = re.search(patterns['xor'], clean_code)
             if match:
@@ -162,14 +177,11 @@ def smart_auto_decrypt(code):
                     decoded = True
                 except: pass
         
-        # 6. Check for Marshal (Cannot fully reverse to source, but can warn)
         if not decoded and "marshal.loads" in clean_code:
-            current_code = "# [STOP] Code is compiled to Python Bytecode (Marshal).\n# Full source recovery is not possible without a Decompiler tool.\n# However, the logic is structurally intact.\n" + current_code
+            current_code = "# [STOP] Code is compiled to Python Bytecode (Marshal).\n# Logic intact but unreadable.\n" + current_code
             break
 
-        # If no pattern matched, we reached the core code
-        if not decoded:
-            break
+        if not decoded: break
 
     return current_code
 
