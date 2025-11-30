@@ -1,5 +1,5 @@
 # ==========================================
-# Project: EuroMoscow Shield (V10.3 Lua Fix)
+# Project: EuroMoscow Shield (V10.4 UTF-8 Fix)
 # Developer: EuroMoscow
 # ==========================================
 
@@ -167,12 +167,14 @@ def smart_js_decrypt(code):
     return current
 
 # ==========================================
-# PART 3: LUA ENGINE (FIXED COMPATIBILITY)
+# PART 3: LUA ENGINE (UTF-8 SAFE FIX)
 # ==========================================
 
 def lua_encrypt_byte(code):
-    # استخدام Loop + Smart Loader لضمان العمل على Roblox/Replit
-    byte_str = " ".join([str(ord(c)) for c in code])
+    # FIX: Encode to UTF-8 bytes first to ensure range 0-255
+    # This prevents "bad argument #1 to char (value out of range)"
+    byte_str = " ".join([str(b) for b in code.encode('utf-8')])
+    
     loader = f"""
 local _b="{byte_str}"
 local _t={{}}
@@ -185,8 +187,9 @@ _f(table.concat(_t))()
     return loader.strip()
 
 def lua_encrypt_hex(code):
-    # استخدام Smart Loader
-    hex_code = "".join([f"{ord(c):02X}" for c in code])
+    # FIX: Encode to UTF-8 bytes first
+    hex_code = "".join([f"{b:02X}" for b in code.encode('utf-8')])
+    
     loader = f"""
 local _h="{hex_code}"
 local _c=""
@@ -199,9 +202,9 @@ _f(_c)()
     return loader.strip()
 
 def lua_encrypt_reverse(code):
+    # For reverse, we rely on basic string, but escape quotes
     rev = code[::-1]
     safe_rev = rev.replace('"', '\\"').replace("'", "\\'")
-    # استخدام Smart Loader
     return f"local _f=loadstring or load;_f(string.reverse('{safe_rev}'))()"
 
 def process_lua_code(code, methods):
