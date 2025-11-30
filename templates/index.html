@@ -11,23 +11,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
     
     <style>
-        /* --- BLUE THEME CHANGE HERE --- */
-        :root { 
-            --bg-core: #050505; 
-            --bg-panel: #111111; 
-            --accent: #00e1ff; /* أزرق نيوني */
-            --accent-glow: rgba(0, 225, 255, 0.35); 
-            --text-main: #eeeeee; 
-        }
-        
+        :root { --bg-core: #050505; --bg-panel: #111111; --accent: #00e1ff; --accent-glow: rgba(0, 225, 255, 0.35); --text-main: #eeeeee; }
         * { box-sizing: border-box; }
         body { margin: 0; background-color: var(--bg-core); color: var(--text-main); font-family: 'Rajdhani', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        
-        /* Scrollbar Blue */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: var(--bg-core); }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+        ::-webkit-scrollbar { width: 6px; height: 6px; } ::-webkit-scrollbar-track { background: var(--bg-core); } ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; } ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
         nav { height: 70px; background: rgba(10, 10, 10, 0.95); border-bottom: 2px solid var(--accent); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; flex-shrink: 0; }
         .brand { font-size: 22px; font-weight: 800; letter-spacing: 1px; color: #fff; text-transform: uppercase; display: flex; align-items: center; gap: 10px; text-decoration: none;}
@@ -35,10 +22,7 @@
         .nav-items { display: flex; gap: 5px; }
         .nav-link { color: #888; text-decoration: none; font-weight: 600; font-size: 13px; transition: 0.3s; padding: 8px 10px; border-radius: 4px; display: flex; align-items: center; gap: 6px; }
         .nav-link:hover, .nav-link.active { color: #fff; background: rgba(255, 255, 255, 0.05); border: 1px solid #333; }
-        
-        /* Active Link Blue */
         .nav-link.active { border-color: var(--accent); color: var(--accent); }
-        
         @media (max-width: 600px) { .nav-link span { display: none; } .nav-link i { font-size: 16px; } }
 
         .workspace { display: flex; flex: 1; height: calc(100vh - 100px); overflow: hidden; }
@@ -60,7 +44,7 @@
         .checkbox-wrapper:hover { background: #222; border-color: var(--accent); }
         input[type="checkbox"] { accent-color: var(--accent); transform: scale(1.2); }
         .btn { padding: 14px; border: none; border-radius: 6px; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 16px; cursor: pointer; text-transform: uppercase; transition: 0.3s; width: 100%; letter-spacing: 1px; }
-        .btn-encrypt { background: var(--accent); color: #000; box-shadow: 0 4px 15px var(--accent-glow); }
+        .btn-encrypt { background: var(--accent); color: white; box-shadow: 0 4px 15px var(--accent-glow); }
         .btn-file { background: #1a1a1a; color: #ccc; font-size: 14px; border: 1px dashed #444; }
         .btn-download { background: transparent; border: 1px solid var(--accent); color: var(--accent); margin-top: 10px; }
         
@@ -101,12 +85,10 @@
             <div class="section-title" style="margin-top:20px;">File Manager</div>
             <input type="file" id="fileInput" style="display:none" accept=".py">
             <button class="btn btn-file" onclick="document.getElementById('fileInput').click()"><i class="fas fa-upload"></i> Upload .py File</button>
+            
             <div style="margin-top: auto; display:flex; flex-direction:column; gap:12px;">
                 <button class="btn btn-encrypt" onclick="runProcess('encrypt')"><i class="fas fa-lock"></i> Obfuscate Code</button>
-                <form action="/download" method="POST" id="downloadForm" target="_blank">
-                    <input type="hidden" name="code" id="downloadCode">
-                    <button type="button" class="btn btn-download" onclick="downloadResult()"><i class="fas fa-download"></i> Download Result</button>
-                </form>
+                <button type="button" class="btn btn-download" onclick="downloadResult()"><i class="fas fa-download"></i> Download Result</button>
             </div>
         </div>
         <div class="editor-container">
@@ -126,6 +108,7 @@
         var editorIn = CodeMirror.fromTextArea(document.getElementById("code-input"), { mode: "python", theme: "dracula", lineNumbers: true, lineWrapping: true });
         var editorOut = CodeMirror.fromTextArea(document.getElementById("code-output"), { mode: "python", theme: "dracula", lineNumbers: true, lineWrapping: true, readOnly: true });
         document.getElementById('fileInput').addEventListener('change', function(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { editorIn.setValue(e.target.result); }; reader.readAsText(file); });
+        
         async function runProcess(action) {
             const code = editorIn.getValue(); if(!code.trim()) return alert("Please enter Python code first.");
             let options = [];
@@ -138,7 +121,28 @@
             document.getElementById('loader').style.display = 'flex';
             try { const res = await fetch('/process', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ code, action, options }) }); const data = await res.json(); editorOut.setValue(data.result); } catch(e) { editorOut.setValue("Error: " + e); } finally { document.getElementById('loader').style.display = 'none'; }
         }
-        function downloadResult() { const code = editorOut.getValue(); if(!code) return alert("No result to download!"); document.getElementById('downloadCode').value = code; document.getElementById('downloadForm').submit(); }
+
+        // --- NEW CLIENT-SIDE DOWNLOAD FUNCTION ---
+        function downloadResult() {
+            const code = editorOut.getValue();
+            if(!code) return alert("No result to download!");
+            
+            // Create Blob locally
+            const blob = new Blob([code], { type: "text/x-python" });
+            const url = URL.createObjectURL(blob);
+            
+            // Create temporary link and click it
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "EuroMoscow_Protected.py";
+            document.body.appendChild(a);
+            a.click();
+            
+            // Cleanup
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
         function copyToClipboard() { navigator.clipboard.writeText(editorOut.getValue()); alert("Copied!"); }
     </script>
 </body>
