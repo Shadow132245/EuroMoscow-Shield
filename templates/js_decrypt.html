@@ -8,10 +8,8 @@
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
     
@@ -51,7 +49,7 @@
             .brand { font-size: 18px; }
         }
 
-        /* Workspace Layout (Copy of Python Decryptor) */
+        /* Workspace Layout */
         .workspace { display: flex; flex: 1; height: calc(100vh - 100px); overflow: hidden; }
         
         /* Sidebar on RIGHT */
@@ -64,7 +62,7 @@
         /* Editor Area on LEFT */
         .editor-area { 
             flex: 1; display: flex; flex-direction: column; order: 1; 
-            min-width: 0; /* Important for responsiveness */
+            min-width: 0; 
         }
         
         .editor-container { 
@@ -78,14 +76,12 @@
             font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #666; flex-shrink: 0; 
         }
         
-        /* CodeMirror Override to match theme */
         .CodeMirror { flex: 1; font-family: 'JetBrains Mono', monospace; font-size: 14px; height: auto !important; }
 
         /* Mobile Responsiveness */
         @media (max-width: 900px) {
             body { height: auto; overflow-y: auto; }
             .workspace { flex-direction: column; height: auto; overflow: visible; }
-            /* Sidebar moves to bottom */
             .sidebar { width: 100%; border-left: none; border-top: 2px solid var(--accent); order: 3; height: auto; }
             .editor-area { order: 1; height: auto; }
             .editor-container { width: 100%; height: 350px; border-right: none; border-bottom: 1px solid #333; }
@@ -132,9 +128,15 @@
         <div class="nav-items">
             <a href="/" class="nav-link"><i class="fab fa-python"></i> <span>PY ENC</span></a>
             <a href="/decryptor" class="nav-link"><i class="fas fa-unlock"></i> <span>PY DEC</span></a>
+            
             <span style="color:#333;">|</span>
+            
             <a href="/js-shield" class="nav-link" style="color:#f7df1e;"><i class="fab fa-js"></i> <span>JS ENC</span></a>
             <a href="/js-decryptor" class="nav-link active" style="color:#f7df1e; border-color:#f7df1e;"><i class="fas fa-unlock-alt"></i> <span>JS DEC</span></a>
+            
+            <span style="color:#333;">|</span>
+
+            <a href="/docs" class="nav-link"><i class="fas fa-book"></i> <span>API</span></a>
         </div>
     </nav>
 
@@ -160,7 +162,7 @@
         </div>
 
         <div class="sidebar">
-            <div class="section-title">JS Console</div>
+            <div class="section-title">JS Decrypt Console</div>
             <div class="log-panel" id="logPanel">
                 <div class="log-entry"><span class="log-time">[SYS]</span> <span class="log-msg">JS Engine Ready...</span></div>
             </div>
@@ -182,7 +184,6 @@
     <footer>&copy; 2025 EuroMoscow.</footer>
 
     <script>
-        // تهيئة المحرر ليكون شكله احترافي (Dracula Theme)
         var editorIn = CodeMirror.fromTextArea(document.getElementById("code-input"), { 
             mode: "javascript", 
             theme: "dracula", 
@@ -220,7 +221,6 @@
                 const res = await fetch('/process', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    // نحدد اللغة JS للسيرفر
                     body: JSON.stringify({ code, action: 'decrypt', lang: 'javascript' })
                 });
                 const data = await res.json();
