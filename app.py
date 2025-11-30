@@ -212,7 +212,13 @@ def smart_auto_decrypt(code):
 # --- Routes ---
 @app.route('/')
 def home():
+    # صفحة التشفير (الرئيسية)
     return render_template('index.html')
+
+@app.route('/decryptor')
+def decrypt_page():
+    # صفحة فك التشفير (الجديدة)
+    return render_template('decrypt.html')
 
 @app.route('/docs')
 def api_docs():
@@ -242,3 +248,4 @@ def download_file():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
+
