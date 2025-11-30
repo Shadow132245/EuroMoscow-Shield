@@ -25,13 +25,57 @@
         .nav-link:hover, .nav-link.active { color: #fff; background: rgba(255, 255, 255, 0.05); border: 1px solid #333; }
         .nav-link.active { border-color: var(--accent); color: var(--accent); }
 
-        /* Decrypt Layout (Reversed) */
-        .workspace { display: flex; flex: 1; height: calc(100vh - 100px); overflow: hidden; }
+        /* --- Layout Fixes start here --- */
+        .workspace { 
+            display: flex; 
+            flex: 1; 
+            height: calc(100vh - 100px); 
+            overflow: hidden; 
+        }
         
-        /* Sidebar on RIGHT now */
-        .sidebar { width: 350px; background: var(--bg-panel); border-left: 1px solid #222; padding: 25px; display: flex; flex-direction: column; gap: 20px; flex-shrink: 0; z-index: 5; order: 2; }
+        /* Sidebar (Right Side) */
+        .sidebar { 
+            width: 350px; 
+            background: var(--bg-panel); 
+            border-left: 1px solid #222; 
+            padding: 25px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 20px; 
+            flex-shrink: 0; /* هام جداً: يمنع القائمة من الانكماش */
+            z-index: 5; 
+            order: 2; /* يضع القائمة على اليمين */
+        }
 
-        /* Log Panel Style */
+        /* Editor Area (Left Side) */
+        .editor-area { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            order: 1; 
+            min-width: 0; /* هام جداً: يسمح للنصوص الطويلة بالنزول لسطر جديد بدلاً من توسيع الصفحة */
+        }
+
+        .editor-container { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            border-right: 1px solid #333; 
+            position: relative; 
+            min-height: 0; /* لمنع التمدد الرأسي */
+        }
+        
+        .editor-toolbar { height: 40px; background: #151515; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid #333; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #666; flex-shrink: 0; }
+        
+        /* CodeMirror Fixes */
+        .CodeMirror { 
+            flex: 1; 
+            font-family: 'JetBrains Mono', monospace; 
+            font-size: 14px; 
+            height: auto !important;
+        }
+
+        /* Log Panel */
         .log-panel {
             background: #000; border: 1px solid #333; padding: 15px; border-radius: 6px;
             font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #666;
@@ -41,11 +85,7 @@
         .log-time { color: #444; }
         .log-msg { color: #aaa; }
         .log-success { color: var(--success); }
-
-        .editor-area { flex: 1; display: flex; flex-direction: column; order: 1; }
-        .editor-container { flex: 1; display: flex; flex-direction: column; border-right: 1px solid #333; position: relative; min-width: 0; }
-        .editor-toolbar { height: 40px; background: #151515; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid #333; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #666; flex-shrink: 0; }
-        .CodeMirror { flex: 1; font-family: 'JetBrains Mono', monospace; font-size: 14px; height: auto !important; }
+        .log-error { color: var(--accent); }
 
         .btn-decrypt { background: #222; border: 1px solid var(--accent); color: var(--accent); padding: 15px; font-weight: bold; cursor: pointer; transition: 0.3s; width: 100%; border-radius: 6px; font-size: 16px; letter-spacing: 1px; }
         .btn-decrypt:hover { background: var(--accent); color: #fff; box-shadow: 0 0 20px var(--accent-glow); }
@@ -103,13 +143,30 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
 
     <script>
-        var editorIn = CodeMirror.fromTextArea(document.getElementById("code-input"), { mode: "python", theme: "dracula", lineNumbers: true, lineWrapping: true, placeholder: "Paste encrypted code here..." });
-        var editorOut = CodeMirror.fromTextArea(document.getElementById("code-output"), { mode: "python", theme: "dracula", lineNumbers: true, lineWrapping: true, readOnly: true });
+        // تفعيل التفاف النصوص الطويلة (Line Wrapping)
+        var editorIn = CodeMirror.fromTextArea(document.getElementById("code-input"), { 
+            mode: "python", 
+            theme: "dracula", 
+            lineNumbers: true, 
+            lineWrapping: true, // هذا هو الحل!
+            placeholder: "Paste encrypted code here..." 
+        });
+
+        var editorOut = CodeMirror.fromTextArea(document.getElementById("code-output"), { 
+            mode: "python", 
+            theme: "dracula", 
+            lineNumbers: true, 
+            lineWrapping: true, // هذا هو الحل!
+            readOnly: true 
+        });
 
         function log(msg, type='info') {
             const panel = document.getElementById('logPanel');
             const time = new Date().toLocaleTimeString().split(' ')[0];
-            const colorClass = type === 'success' ? 'log-success' : 'log-msg';
+            let colorClass = 'log-msg';
+            if (type === 'success') colorClass = 'log-success';
+            if (type === 'error') colorClass = 'log-error';
+            
             panel.innerHTML += `<div class="log-entry"><span class="log-time">[${time}]</span> <span class="${colorClass}">${msg}</span></div>`;
             panel.scrollTop = panel.scrollHeight;
         }
@@ -121,8 +178,7 @@
             document.getElementById('loader').style.display = 'flex';
             log("Analyzing payload structure...");
             
-            // محاكاة لعملية الفحص لإعطاء شكل جمالي
-            setTimeout(() => log("Detecting layers: Base64, Zlib, XOR..."), 500);
+            setTimeout(() => log("Detecting layers..."), 500);
 
             try {
                 const res = await fetch('/process', {
@@ -137,7 +193,7 @@
                     editorOut.setValue(data.result);
                     log("Decryption Successful!", "success");
                     log("Source code recovered.", "success");
-                }, 1000); // تأخير بسيط للأنيميشن
+                }, 1000);
 
             } catch(e) {
                 document.getElementById('loader').style.display = 'none';
