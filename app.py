@@ -1,5 +1,5 @@
 # ==========================================
-# Project: EuroMoscow Shield (V10.2 Lua Fix)
+# Project: EuroMoscow Shield (V10.3 Lua Fix)
 # Developer: EuroMoscow
 # ==========================================
 
@@ -14,9 +14,8 @@ JS_HEADER = f"/* Protected by EuroMoscow Shield */\n"
 LUA_HEADER = f"-- Protected by EuroMoscow Shield\n"
 
 # ==========================================
-# PART 1: PYTHON ENGINE (SAFE MODE)
+# PART 1: PYTHON ENGINE
 # ==========================================
-
 def inject_dead_code(tree):
     try:
         class DeadCodeInjector(ast.NodeTransformer):
@@ -168,27 +167,25 @@ def smart_js_decrypt(code):
     return current
 
 # ==========================================
-# PART 3: LUA ENGINE (FIXED FOR REPLIT/ROBLOX)
+# PART 3: LUA ENGINE (FIXED COMPATIBILITY)
 # ==========================================
 
 def lua_encrypt_byte(code):
-    # الطريقة الجديدة: String Stream (آمنة جداً ولا تسبب انهيار)
-    # نحول الكود لأرقام مفصولة بمسافات ونضعها في متغير نصي
+    # استخدام Loop + Smart Loader لضمان العمل على Roblox/Replit
     byte_str = " ".join([str(ord(c)) for c in code])
-    
-    # كود فك التشفير بلغة Lua (يدعم Lua 5.1 و 5.3)
     loader = f"""
 local _b="{byte_str}"
 local _t={{}}
 for w in string.gmatch(_b,"%d+")do
 table.insert(_t,string.char(tonumber(w)))
 end
-load(table.concat(_t))()
+local _f=loadstring or load
+_f(table.concat(_t))()
 """
     return loader.strip()
 
 def lua_encrypt_hex(code):
-    # نفس فكرة البايت، نستخدم نص طويل و Loop
+    # استخدام Smart Loader
     hex_code = "".join([f"{ord(c):02X}" for c in code])
     loader = f"""
 local _h="{hex_code}"
@@ -196,20 +193,21 @@ local _c=""
 for i=1, #_h, 2 do
     _c=_c..string.char(tonumber(string.sub(_h,i,i+1),16))
 end
-load(_c)()
+local _f=loadstring or load
+_f(_c)()
 """
     return loader.strip()
 
 def lua_encrypt_reverse(code):
     rev = code[::-1]
-    # الهروب من علامات الاقتباس
     safe_rev = rev.replace('"', '\\"').replace("'", "\\'")
-    return f"load(string.reverse('{safe_rev}'))()"
+    # استخدام Smart Loader
+    return f"local _f=loadstring or load;_f(string.reverse('{safe_rev}'))()"
 
 def process_lua_code(code, methods):
     result = code
     if 'reverse' in methods: result = lua_encrypt_reverse(result)
-    # Hex & Byte should be last as they wrap the code
+    # Hex & Byte should be last
     if 'hex' in methods: result = lua_encrypt_hex(result)
     if 'byte' in methods: result = lua_encrypt_byte(result)
     return LUA_HEADER + result
