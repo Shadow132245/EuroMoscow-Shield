@@ -1,46 +1,48 @@
 # ==========================================
-# Project: EuroMoscow Shield (V10 Ultimate - Lua & ZIP Support)
+# Project: EuroMoscow Shield (V10.1 Stable Fix)
 # Developer: EuroMoscow
 # ==========================================
 
-from flask import Flask, render_template, request, jsonify, send_file, make_response
+from flask import Flask, render_template, request, jsonify, send_file
 import base64, zlib, binascii, ast, random, io, codecs, re, urllib.parse, zipfile, os
 
 app = Flask(__name__)
 
 # --- Configuration ---
-BRAND_HEADER = f"# Protected by EuroMoscow Shield\n# https://euro-moscow-shield.vercel.app\n\n"
+BRAND_HEADER = f"# Protected by EuroMoscow Shield\n# https://euromoscow.com\n\n"
 JS_HEADER = f"/* Protected by EuroMoscow Shield */\n"
 LUA_HEADER = f"-- Protected by EuroMoscow Shield\n"
 
 # ==========================================
-# PART 1: PYTHON ENGINE (+ DEAD CODE)
+# PART 1: PYTHON ENGINE
 # ==========================================
 
 def inject_dead_code(tree):
-    """Adds useless code/logic to confuse readers"""
-    class DeadCodeInjector(ast.NodeTransformer):
-        def visit_FunctionDef(self, node):
-            # Create a fake random operation
-            useless_op = ast.If(
-                test=ast.Constant(value=False),
-                body=[ast.Expr(value=ast.Call(
-                    func=ast.Name(id='print', ctx=ast.Load()),
-                    args=[ast.Constant(value="EuroMoscow Logic Check")],
-                    keywords=[]
-                ))],
-                orelse=[]
-            )
-            # Insert at the beginning of the function
-            node.body.insert(0, useless_op)
-            return node
-    
-    transformer = DeadCodeInjector()
-    new_tree = transformer.visit(tree)
-    ast.fix_missing_locations(new_tree)
-    return new_tree
+    """Safe Dead Code Injection"""
+    try:
+        class DeadCodeInjector(ast.NodeTransformer):
+            def visit_FunctionDef(self, node):
+                try:
+                    useless_op = ast.If(
+                        test=ast.Constant(value=False),
+                        body=[ast.Expr(value=ast.Call(
+                            func=ast.Name(id='print', ctx=ast.Load()),
+                            args=[ast.Constant(value="EuroMoscow Check")],
+                            keywords=[]
+                        ))],
+                        orelse=[]
+                    )
+                    node.body.insert(0, useless_op)
+                except: pass
+                return node
+        
+        transformer = DeadCodeInjector()
+        new_tree = transformer.visit(tree)
+        ast.fix_missing_locations(new_tree)
+        return new_tree
+    except:
+        return tree
 
-# ... (Previous renaming logic kept simple for stability) ...
 def random_var_name(length=8):
     return '_' + ''.join(random.choices('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', k=length))
 
@@ -48,15 +50,23 @@ class SafeObfuscator(ast.NodeTransformer):
     def __init__(self, ignore_list):
         self.mapping = {}
         self.ignore = ignore_list | {'self', 'args', 'kwargs', 'main', '__name__', '__init__'}
+
     def get_new_name(self, name):
         if name in self.ignore or name.startswith('__'): return name
         if name in self.mapping: return self.mapping[name]
         self.mapping[name] = random_var_name()
         return self.mapping[name]
+
     def visit_FunctionDef(self, node):
         if node.name not in self.ignore: node.name = self.get_new_name(node.name)
         self.generic_visit(node)
         return node
+
+    def visit_ClassDef(self, node):
+        if node.name not in self.ignore: node.name = self.get_new_name(node.name)
+        self.generic_visit(node)
+        return node
+    
     def visit_Name(self, node):
         if isinstance(node.ctx, (ast.Load, ast.Store, ast.Del)):
             if node.id in self.mapping: node.id = self.mapping[node.id]
@@ -65,22 +75,30 @@ class SafeObfuscator(ast.NodeTransformer):
 def process_python(code, methods):
     result = code
     
-    # Dead Code Injection (New!)
-    if 'deadcode' in methods:
+    # AST Operations (Rename & DeadCode)
+    if 'rename' in methods or 'deadcode' in methods:
         try:
             tree = ast.parse(result)
-            tree = inject_dead_code(tree)
-            result = ast.unparse(tree)
-        except: pass
-
-    # Renaming
-    if 'rename' in methods:
-        try:
-            tree = ast.parse(result)
-            transformer = SafeObfuscator(set(dir(__builtins__)))
-            tree = transformer.visit(tree)
-            result = ast.unparse(tree)
-        except: pass
+            
+            if 'deadcode' in methods:
+                tree = inject_dead_code(tree)
+            
+            if 'rename' in methods:
+                # Basic ignore list
+                ignore = set(dir(__builtins__))
+                transformer = SafeObfuscator(ignore)
+                tree = transformer.visit(tree)
+            
+            # Safe Unparse check
+            if hasattr(ast, 'unparse'):
+                result = ast.unparse(tree)
+            else:
+                # Fallback for older python versions if runtime.txt fails
+                pass 
+        except Exception as e:
+            print(f"AST Error: {e}")
+            # If AST fails, continue with original code to prevent crash
+            pass
 
     # Encryption Layers
     if 'marshal' in methods: 
@@ -102,14 +120,22 @@ def process_python(code, methods):
     return BRAND_HEADER + result
 
 def smart_py_decrypt(code):
-    # ... (Same logic as before) ...
     current = code; max_l = 25
-    patterns = { 'b64': r"base64\.b64decode\((['\"].*?['\"])\)", 'zlib': r"zlib\.decompress\((?:base64\.b64decode\((['\"].*?['\"])\)|(['\"].*?['\"]))\)", 'rot13': r"codecs\.decode\((['\"].*?['\"]),\s*['\"]rot13['\"]\)", 'xor': r"c\^(\d+).*?in\s+(\[.*?\])", 'blob': r"zlib\.decompress\(bytes\(\[(.*?)\]\)\)" }
+    patterns = {
+        'b64': r"base64\.b64decode\((['\"].*?['\"])\)",
+        'zlib': r"zlib\.decompress\((?:base64\.b64decode\((['\"].*?['\"])\)|(['\"].*?['\"]))\)",
+        'rot13': r"codecs\.decode\((['\"].*?['\"]),\s*['\"]rot13['\"]\)",
+        'xor': r"c\^(\d+).*?in\s+(\[.*?\])",
+        'blob': r"zlib\.decompress\(bytes\(\[(.*?)\]\)\)"
+    }
+    
     def safe_eval(s):
         try: return ast.literal_eval(s)
         except: return s.strip("'").strip('"')
+    
     for _ in range(max_l):
         decoded = False; clean = '\n'.join([l for l in current.split('\n') if not l.strip().startswith('#')]).strip()
+        
         m = re.search(patterns['b64'], clean)
         if m: 
             try: current = base64.b64decode(safe_eval(m.group(1))).decode(); decoded = True
@@ -138,24 +164,18 @@ def smart_py_decrypt(code):
     return current
 
 # ==========================================
-# PART 2: JS ENGINE (Same as before)
+# PART 2: JS & LUA ENGINE (Safe)
 # ==========================================
-# ... (Standard JS functions kept for brevity, they are the same as V9) ...
-def js_encrypt_hex(code): return f"eval('{''.join([f'\\\\x{ord(c):02x}' for c in code])}')"
-def js_encrypt_base64(code): return f"eval(atob('{base64.b64encode(code.encode()).decode()}'))"
-def js_encrypt_url(code): return f"eval(decodeURIComponent('{urllib.parse.quote(code)}'))"
-def js_encrypt_charcode(code): return f"eval(String.fromCharCode({','.join([str(ord(c)) for c in code])}))"
 
 def process_js_code(code, methods):
     result = code
-    if 'hex' in methods: result = js_encrypt_hex(result)
-    if 'charcode' in methods: result = js_encrypt_charcode(result)
-    if 'url' in methods: result = js_encrypt_url(result)
-    if 'base64' in methods: result = js_encrypt_base64(result)
+    if 'hex' in methods: result = f"eval('{''.join([f'\\\\x{ord(c):02x}' for c in result])}')"
+    if 'charcode' in methods: result = f"eval(String.fromCharCode({','.join([str(ord(c)) for c in result])}))"
+    if 'url' in methods: result = f"eval(decodeURIComponent('{urllib.parse.quote(result)}'))"
+    if 'base64' in methods: result = f"eval(atob('{base64.b64encode(result.encode()).decode()}'))"
     return JS_HEADER + result
 
 def smart_js_decrypt(code):
-    # ... (Same as V9) ...
     current = code; max_l = 25
     patterns = { 'base64': r"eval\(atob\(['\"](.*?)['\"]\)\)", 'url': r"eval\(decodeURIComponent\(['\"](.*?)['\"]\)\)", 'hex': r"eval\(['\"](\\x[0-9a-fA-F]{2}.*?)['\"]\)", 'charcode': r"eval\(String\.fromCharCode\((.*?)\)\)" }
     for _ in range(max_l):
@@ -182,68 +202,19 @@ def smart_js_decrypt(code):
         if not decoded: break
     return current
 
-# ==========================================
-# PART 3: LUA ENGINE (NEW!)
-# ==========================================
-
-def lua_encrypt_byte(code):
-    # تحويل لـ String.char
-    chars = ",".join([str(ord(c)) for c in code])
-    return f"load(string.char({chars}))()"
-
-def lua_encrypt_hex(code):
-    hex_code = "".join([f"\\x{ord(c):02X}" for c in code])
-    return f"load('{hex_code}')()"
-
-def lua_encrypt_reverse(code):
-    rev = code[::-1]
-    return f"load(string.reverse('{rev}'))()"
-
 def process_lua_code(code, methods):
     result = code
-    if 'reverse' in methods: result = lua_encrypt_reverse(result)
-    if 'hex' in methods: result = lua_encrypt_hex(result)
-    if 'byte' in methods: result = lua_encrypt_byte(result)
+    if 'reverse' in methods: result = f"load(string.reverse('{result[::-1]}'))()"
+    if 'hex' in methods: 
+        hex_c = "".join([f"\\x{ord(c):02X}" for c in result])
+        result = f"load('{hex_c}')()"
+    if 'byte' in methods: 
+        chars = ",".join([str(ord(c)) for c in result])
+        result = f"load(string.char({chars}))()"
     return LUA_HEADER + result
 
 # ==========================================
-# PART 4: ZIP PROCESSOR (NEW!)
-# ==========================================
-def process_zip_file(file_storage, methods):
-    in_memory_zip = io.BytesIO()
-    
-    with zipfile.ZipFile(file_storage, 'r') as z_in:
-        with zipfile.ZipFile(in_memory_zip, 'w', zipfile.ZIP_DEFLATED) as z_out:
-            for item in z_in.infolist():
-                file_data = z_in.read(item.filename)
-                
-                # Check extension
-                if item.filename.endswith('.py'):
-                    # Obfuscate Python
-                    try:
-                        code_str = file_data.decode('utf-8')
-                        obfuscated = process_python(code_str, methods)
-                        z_out.writestr(item.filename, obfuscated)
-                    except:
-                        z_out.writestr(item, file_data) # Keep original if fail
-                        
-                elif item.filename.endswith('.js'):
-                    # Obfuscate JS
-                    try:
-                        code_str = file_data.decode('utf-8')
-                        obfuscated = process_js_code(code_str, methods)
-                        z_out.writestr(item.filename, obfuscated)
-                    except:
-                        z_out.writestr(item, file_data)
-                else:
-                    # Keep other files (images, configs) as is
-                    z_out.writestr(item, file_data)
-    
-    in_memory_zip.seek(0)
-    return in_memory_zip
-
-# ==========================================
-# ROUTES
+# ROUTES & ZIP HANDLER
 # ==========================================
 
 @app.route('/')
@@ -252,7 +223,7 @@ def home(): return render_template('index.html')
 @app.route('/js-shield')
 def js_page(): return render_template('js_encrypt.html')
 
-@app.route('/lua-shield') # New Lua Page
+@app.route('/lua-shield')
 def lua_page(): return render_template('lua_encrypt.html')
 
 @app.route('/decryptor')
@@ -260,9 +231,6 @@ def decrypt_page(): return render_template('decrypt.html')
 
 @app.route('/js-decryptor')
 def js_dec_page(): return render_template('js_decrypt.html')
-    
-@app.route('/')
-def home(): return render_template('index.html')
 
 @app.route('/terminal')
 def terminal_page(): return render_template('terminal.html')
@@ -272,39 +240,58 @@ def api_docs(): return render_template('api_docs.html')
 
 @app.route('/process', methods=['POST'])
 def process():
-    data = request.json
-    code = data.get('code')
-    action = data.get('action')
-    lang = data.get('lang', 'python')
-    options = data.get('options', [])
+    try:
+        data = request.json
+        code = data.get('code', '')
+        action = data.get('action')
+        lang = data.get('lang', 'python')
+        options = data.get('options', [])
 
-    result = ""
-    if action == 'encrypt':
-        if lang == 'python': result = process_python(code, options)
-        elif lang == 'javascript': result = process_js_code(code, options)
-        elif lang == 'lua': result = process_lua_code(code, options)
-    else:
-        if lang == 'javascript': result = smart_js_decrypt(code)
-        else: result = smart_py_decrypt(code) # Lua decrypt not auto yet
+        result = ""
+        if action == 'encrypt':
+            if lang == 'python': result = process_python(code, options)
+            elif lang == 'javascript': result = process_js_code(code, options)
+            elif lang == 'lua': result = process_lua_code(code, options)
+        else:
+            if lang == 'javascript': result = smart_js_decrypt(code)
+            else: result = smart_py_decrypt(code)
 
-    return jsonify({'result': result})
+        return jsonify({'result': result})
+    except Exception as e:
+        return jsonify({'result': f"Server Error: {str(e)}"}), 500
 
-# New Route for ZIP Upload
 @app.route('/upload-zip', methods=['POST'])
 def upload_zip():
-    if 'file' not in request.files: return "No file", 400
-    file = request.files['file']
-    options = request.form.get('options', '').split(',')
-    
-    processed_zip = process_zip_file(file, options)
-    
-    return send_file(
-        processed_zip,
-        mimetype='application/zip',
-        as_attachment=True,
-        download_name='EuroMoscow_Project_Protected.zip'
-    )
+    try:
+        if 'file' not in request.files: return "No file", 400
+        file = request.files['file']
+        options = request.form.get('options', '').split(',')
+        
+        in_memory_zip = io.BytesIO()
+        
+        with zipfile.ZipFile(file, 'r') as z_in:
+            with zipfile.ZipFile(in_memory_zip, 'w', zipfile.ZIP_DEFLATED) as z_out:
+                for item in z_in.infolist():
+                    file_data = z_in.read(item.filename)
+                    if item.filename.endswith('.py'):
+                        try:
+                            code_str = file_data.decode('utf-8')
+                            obfuscated = process_python(code_str, options)
+                            z_out.writestr(item.filename, obfuscated)
+                        except: z_out.writestr(item, file_data)
+                    elif item.filename.endswith('.js'):
+                        try:
+                            code_str = file_data.decode('utf-8')
+                            obfuscated = process_js_code(code_str, options)
+                            z_out.writestr(item.filename, obfuscated)
+                        except: z_out.writestr(item, file_data)
+                    else:
+                        z_out.writestr(item, file_data)
+        
+        in_memory_zip.seek(0)
+        return send_file(in_memory_zip, mimetype='application/zip', as_attachment=True, download_name='EuroMoscow_Project.zip')
+    except Exception as e:
+        return str(e), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
-
