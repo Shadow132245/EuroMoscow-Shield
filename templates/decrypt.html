@@ -4,20 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EuroMoscow Shield | Py Decryptor</title>
+    <meta name="description" content="Decrypt Python code automatically. AI Auto-Detect for Base64, Zlib, Rot13, and XOR.">
+    <meta property="og:title" content="EuroMoscow Shield | Python Decryptor">
+    <meta property="og:image" content="{{ url_for('static', filename='logo.png') }}">
+    
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
     <style>
-        /* --- BLUE THEME CHANGE HERE --- */
-        :root { 
-            --bg-core: #050505; 
-            --bg-panel: #111111; 
-            --accent: #00e1ff; /* أزرق نيوني */
-            --text-main: #eeeeee; 
-            --success: #00ff88; 
-        }
+        :root { --bg-core: #050505; --bg-panel: #111111; --accent: #00e1ff; --text-main: #eeeeee; --success: #00ff88; }
         * { box-sizing: border-box; }
         body { margin: 0; background-color: var(--bg-core); color: var(--text-main); font-family: 'Rajdhani', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         ::-webkit-scrollbar { width: 6px; height: 6px; } ::-webkit-scrollbar-track { background: var(--bg-core); } ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; } ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
