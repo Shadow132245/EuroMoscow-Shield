@@ -1,5 +1,5 @@
 # ==========================================
-# Project: EuroMoscow Shield (V11 Final - Full Suite)
+# Project: EuroMoscow Shield (V12 Restored Ultimate)
 # Developer: EuroMoscow
 # ==========================================
 
@@ -19,7 +19,7 @@ def inject_dead_code(tree):
         class DeadCodeInjector(ast.NodeTransformer):
             def visit_FunctionDef(self, node):
                 try:
-                    useless = ast.If(test=ast.Constant(value=False), body=[ast.Expr(value=ast.Call(func=ast.Name(id='print', ctx=ast.Load()), args=[ast.Constant(value="EM Shield")], keywords=[]))], orelse=[])
+                    useless = ast.If(test=ast.Constant(value=False), body=[ast.Expr(value=ast.Call(func=ast.Name(id='print', ctx=ast.Load()), args=[ast.Constant(value="EuroMoscow Check")], keywords=[]))], orelse=[])
                     node.body.insert(0, useless)
                 except: pass
                 return node
@@ -206,7 +206,7 @@ def js_enc(): return render_template('js_encrypt.html')
 def js_dec(): return render_template('js_decrypt.html')
 @app.route('/lua-shield')
 def lua_enc(): return render_template('lua_encrypt.html')
-@app.route('/lua-decryptor') # NEW
+@app.route('/lua-decryptor') 
 def lua_dec(): return render_template('lua_decrypt.html')
 @app.route('/terminal')
 def term(): return render_template('terminal.html')
@@ -231,17 +231,20 @@ def process():
 
 @app.route('/upload-zip', methods=['POST'])
 def upload_zip():
-    # Zip handling logic same as before (shortened for brevity but keep original logic)
     try:
         f = request.files['file']; m = io.BytesIO()
+        options = request.form.get('options', '').split(',')
         with zipfile.ZipFile(f,'r') as zin, zipfile.ZipFile(m,'w',zipfile.ZIP_DEFLATED) as zout:
             for item in zin.infolist():
                 data = zin.read(item.filename)
                 if item.filename.endswith('.py'):
-                    try: zout.writestr(item.filename, process_python(data.decode(), ['rename','marshal']))
+                    try: zout.writestr(item.filename, process_python(data.decode(), options))
+                    except: zout.writestr(item, data)
+                elif item.filename.endswith('.js'):
+                    try: zout.writestr(item.filename, process_js_code(data.decode(), options))
                     except: zout.writestr(item, data)
                 else: zout.writestr(item, data)
-        m.seek(0); return send_file(m, mimetype='application/zip', as_attachment=True, download_name='Protected.zip')
+        m.seek(0); return send_file(m, mimetype='application/zip', as_attachment=True, download_name='Protected_Project.zip')
     except Exception as e: return str(e), 500
 
 if __name__ == '__main__':
