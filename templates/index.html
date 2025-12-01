@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EuroMoscow | Py Encryptor</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@600;700;800&display=swap" rel="stylesheet">
@@ -13,30 +14,28 @@
         * { box-sizing: border-box; }
         body { margin:0; background:var(--bg-core); color:var(--text-main); font-family:'Rajdhani'; height:100vh; display:flex; flex-direction:column; overflow:hidden; }
         ::-webkit-scrollbar { width:6px; } ::-webkit-scrollbar-thumb { background:#333; border-radius:4px; } ::-webkit-scrollbar-thumb:hover { background:var(--accent); }
+        
+        /* Navbar 6 Buttons */
         nav { height:70px; background:rgba(10,10,10,0.98); border-bottom:2px solid var(--accent); display:flex; align-items:center; justify-content:space-between; padding:0 20px; z-index:100; flex-shrink:0; }
         .brand { font-size:22px; font-weight:800; color:#fff; text-decoration:none; display:flex; gap:10px; align-items:center; } .brand span { color:var(--accent); text-shadow:0 0 15px var(--accent); }
         .nav-items { display:flex; gap:5px; }
         .nav-link { color:#888; text-decoration:none; font-weight:700; font-size:11px; padding:6px 8px; border-radius:4px; display:flex; align-items:center; gap:4px; border:1px solid transparent; transition:0.3s; }
         .nav-link:hover, .nav-link.active { color:#fff; background:rgba(255,255,255,0.08); border-color:#444; }
         .nav-link.active { border-color:var(--accent); color:var(--accent); }
-        @media (max-width:1200px) { .nav-link span { display:none; } .nav-link i { font-size:16px; } nav { padding:0 10px; } }
+        @media (max-width:1000px) { .nav-link span { display:none; } .nav-link i { font-size:16px; } nav { padding:0 10px; } }
+
         .workspace { display:flex; flex:1; overflow:hidden; }
-        .sidebar { width:320px; background:var(--bg-panel); border-right:1px solid #222; display:flex; flex-direction:column; flex-shrink:0; z-index:5; }
-        .sidebar-tabs { display:flex; border-bottom:1px solid #222; background:#080808; }
-        .tab-btn { flex:1; padding:12px; background:transparent; border:none; color:#666; cursor:pointer; font-family:'Rajdhani'; font-weight:800; border-bottom:2px solid transparent; }
-        .tab-btn.active { color:var(--accent); border-bottom-color:var(--accent); background:rgba(0,225,255,0.05); }
-        .tab-content { display:none; padding:20px; overflow-y:auto; flex:1; } .tab-content.active { display:block; }
+        .sidebar { width:320px; background:var(--bg-panel); border-right:1px solid #222; padding:20px; display:flex; flex-direction:column; flex-shrink:0; z-index:5; overflow-y:auto; }
         .editor-container { flex:1; display:flex; flex-direction:column; border-right:1px solid #333; min-width:0; }
         .editor-toolbar { height:40px; background:#151515; display:flex; align-items:center; justify-content:space-between; padding:0 15px; border-bottom:1px solid #333; font-size:12px; font-weight:700; color:#666; }
         .CodeMirror { flex:1; font-size:14px; height:auto!important; font-family:'JetBrains Mono'; }
         @media (max-width:900px) { .workspace { flex-direction:column; overflow-y:auto; } .sidebar { width:100%; height:auto; border-right:none; border-top:2px solid var(--accent); order:2; } .editor-container { width:100%; height:400px; order:1; } nav { position:sticky; top:0; } }
+        
         .checkbox-wrapper { display:flex; gap:10px; align-items:center; padding:8px; background:#1a1a1a; margin-bottom:5px; border-radius:4px; cursor:pointer; border:1px solid #333; }
         .checkbox-wrapper:hover { border-color:var(--accent); } input[type="checkbox"] { accent-color:var(--accent); }
         .btn { padding:12px; width:100%; background:var(--accent); color:#000; border:none; border-radius:4px; font-weight:800; cursor:pointer; margin-top:10px; }
         .btn-file { background:#1a1a1a; border:1px dashed #444; color:#aaa; font-size:12px; margin-top:5px; }
         .btn-dl { background:transparent; border:1px solid var(--accent); color:var(--accent); margin-top:10px; }
-        .history-item { background:#151515; border:1px solid #333; padding:8px; margin-bottom:8px; font-size:11px; cursor:pointer; font-family:'JetBrains Mono'; }
-        .history-item:hover { border-color:var(--accent); color:#fff; }
         .loader-overlay { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:none; justify-content:center; align-items:center; z-index:50; }
         .spinner { border:4px solid #333; border-top:4px solid var(--accent); border-radius:50%; width:50px; height:50px; animation:spin 1s linear infinite; }
         @keyframes spin { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }
@@ -57,32 +56,22 @@
             <a href="/docs" class="nav-link"><i class="fas fa-book"></i> API</a>
         </div>
     </nav>
-
     <div class="workspace">
         <div class="sidebar">
-            <div class="sidebar-tabs">
-                <button class="tab-btn active" onclick="switchTab('settings')">OPTIONS</button>
-                <button class="tab-btn" onclick="switchTab('history')">HISTORY</button>
-            </div>
-            <div id="tab-settings" class="tab-content active">
-                <h4 style="color:var(--accent); margin:0 0 10px 0;">LAYERS</h4>
-                <label class="checkbox-wrapper"><input type="checkbox" id="opt-rename" checked> Variable Renaming</label>
-                <label class="checkbox-wrapper"><input type="checkbox" id="opt-marshal" checked> Portable Blob</label>
-                <label class="checkbox-wrapper"><input type="checkbox" id="opt-deadcode" checked> Dead Code</label>
-                <label class="checkbox-wrapper"><input type="checkbox" id="opt-xor" checked> XOR</label>
-                <label class="checkbox-wrapper"><input type="checkbox" id="opt-rot13" checked> Rot13</label>
-                <h4 style="color:var(--accent); margin:15px 0 10px 0;">FILES</h4>
-                <input type="file" id="fileInput" style="display:none" accept=".py">
-                <button class="btn btn-file" onclick="document.getElementById('fileInput').click()">Upload .py</button>
-                <input type="file" id="zipInput" style="display:none" accept=".zip">
-                <button class="btn btn-file" onclick="document.getElementById('zipInput').click()">Upload Project .zip</button>
-                <button class="btn" onclick="runProcess()">OBFUSCATE</button>
-                <button class="btn btn-dl" onclick="downloadResult()">DOWNLOAD</button>
-            </div>
-            <div id="tab-history" class="tab-content">
-                <div id="historyList" style="color:#666; font-size:12px; text-align:center;">No history yet.</div>
-                <button class="btn btn-dl" style="border-color:#f00; color:#f00;" onclick="localStorage.removeItem('ems_h'); renderHistory();">CLEAR</button>
-            </div>
+            <h4 style="color:var(--accent); margin:0 0 10px 0;">LAYERS</h4>
+            <label class="checkbox-wrapper"><input type="checkbox" id="opt-rename" checked> Variable Renaming</label>
+            <label class="checkbox-wrapper"><input type="checkbox" id="opt-marshal" checked> Portable Blob</label>
+            <label class="checkbox-wrapper"><input type="checkbox" id="opt-deadcode" checked> Dead Code</label>
+            <label class="checkbox-wrapper"><input type="checkbox" id="opt-xor" checked> XOR</label>
+            <label class="checkbox-wrapper"><input type="checkbox" id="opt-rot13" checked> Rot13</label>
+            <label class="checkbox-wrapper"><input type="checkbox" id="opt-base64" checked> Base64</label>
+            <h4 style="color:var(--accent); margin:15px 0 10px 0;">FILES</h4>
+            <input type="file" id="fileInput" style="display:none" accept=".py">
+            <button class="btn btn-file" onclick="document.getElementById('fileInput').click()">Upload .py File</button>
+            <input type="file" id="zipInput" style="display:none" accept=".zip">
+            <button class="btn btn-file" onclick="document.getElementById('zipInput').click()">Upload Project .zip</button>
+            <button class="btn" onclick="runProcess()">OBFUSCATE</button>
+            <button class="btn btn-dl" onclick="downloadResult()">DOWNLOAD</button>
         </div>
         <div class="editor-container">
             <div class="editor-toolbar"><span>INPUT</span> <i class="fas fa-eraser" onclick="editorIn.setValue('')" style="cursor:pointer"></i></div>
@@ -100,14 +89,15 @@
     <script>
         var editorIn = CodeMirror.fromTextArea(document.getElementById("in"), { mode: "python", theme: "dracula", lineNumbers: true, lineWrapping: true });
         var editorOut = CodeMirror.fromTextArea(document.getElementById("out"), { mode: "python", theme: "dracula", lineNumbers: true, lineWrapping: true, readOnly: true });
-        function saveHistory(code) { let h = JSON.parse(localStorage.getItem('ems_h')||'[]'); h.unshift({t: new Date().toLocaleTimeString(), c: code}); if(h.length>10) h.pop(); localStorage.setItem('ems_h', JSON.stringify(h)); renderHistory(); }
-        function renderHistory() { const l = document.getElementById('historyList'); l.innerHTML=''; const h = JSON.parse(localStorage.getItem('ems_h')||'[]'); if(!h.length) l.innerHTML='No history.'; h.forEach(i => { const d = document.createElement('div'); d.className='history-item'; d.innerText = `[${i.t}] ` + i.c.substring(0,20)+'...'; d.onclick = () => editorIn.setValue(i.c); l.appendChild(d); }); }
-        renderHistory();
-        window.switchTab = function(t) { document.querySelectorAll('.tab-content').forEach(e=>e.style.display='none'); document.querySelectorAll('.tab-btn').forEach(e=>e.classList.remove('active')); document.getElementById('tab-'+t).style.display='block'; event.currentTarget.classList.add('active'); }
         document.getElementById('fileInput').addEventListener('change', e => { const f = e.target.files[0]; if(f) { const r = new FileReader(); r.onload = e => editorIn.setValue(e.target.result); r.readAsText(f); } });
-        async function runProcess() { const code = editorIn.getValue(); if(!code.trim()) return alert("No Code!"); let opts = []; document.querySelectorAll('input[type=checkbox]:checked').forEach(c => opts.push(c.id.replace('opt-',''))); document.getElementById('loader').style.display = 'flex'; saveHistory(code); try { const res = await fetch('/process', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code, action:'encrypt', lang:'python', options:opts}) }); const d = await res.json(); editorOut.setValue(d.result); } catch(e) { editorOut.setValue("Error: "+e); } finally { document.getElementById('loader').style.display = 'none'; } }
-        function downloadResult() { const code = editorOut.getValue(); if(!code) return alert("No result!"); const blob = new Blob([code], {type:'text/x-python'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'Protected.py'; a.click(); }
-        document.getElementById('zipInput').addEventListener('change', async function(e) { const file = e.target.files[0]; if(!file) return; if(!confirm("Encrypt ZIP?")) return; const fd = new FormData(); fd.append('file', file); let opts = ['rename','marshal','xor']; fd.append('options', opts.join(',')); document.getElementById('loader').style.display = 'flex'; try { const res = await fetch('/upload-zip', {method:'POST', body:fd}); const blob = await res.blob(); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'Project_Protected.zip'; a.click(); alert("Done!"); } catch(e) { alert("Error"); } finally { document.getElementById('loader').style.display = 'none'; } });
+        async function runProcess() {
+            const code = editorIn.getValue(); if(!code.trim()) return alert("No Code!");
+            let opts = []; document.querySelectorAll('input[type=checkbox]:checked').forEach(c => opts.push(c.id.replace('opt-','')));
+            document.getElementById('loader').style.display = 'flex';
+            try { const res = await fetch('/process', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code, action:'encrypt', lang:'python', options:opts}) }); const d = await res.json(); editorOut.setValue(d.result); } catch(e) { editorOut.setValue("Error: "+e); } finally { document.getElementById('loader').style.display = 'none'; }
+        }
+        function downloadResult() { const code = editorOut.getValue(); if(!code) return alert("No result!"); const blob = new Blob([code], {type:'text/x-python'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'Protected.py'; a.click(); URL.revokeObjectURL(url); }
+        document.getElementById('zipInput').addEventListener('change', async function(e) { const file = e.target.files[0]; if(!file) return; if(!confirm("Encrypt ZIP?")) return; const fd = new FormData(); fd.append('file', file); let opts = ['rename','marshal','xor']; fd.append('options', opts.join(',')); document.getElementById('loader').style.display = 'flex'; try { const res = await fetch('/upload-zip', {method:'POST', body:fd}); const blob = await res.blob(); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'Project_Encrypted.zip'; a.click(); alert("Done!"); } catch(e) { alert("Error"); } finally { document.getElementById('loader').style.display = 'none'; } });
         function copy() { navigator.clipboard.writeText(editorOut.getValue()); alert("Copied!"); }
     </script>
 </body>
