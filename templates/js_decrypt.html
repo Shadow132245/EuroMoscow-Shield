@@ -2,43 +2,44 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EuroMoscow | JS Decryptor</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
     <style>
-        /* YELLOW ACCENT */
         :root { --bg-core: #050505; --bg-panel: #111111; --accent: #f7df1e; --text-main: #eeeeee; --success: #00ff88; }
         * { box-sizing: border-box; } body { margin:0; background:var(--bg-core); color:var(--text-main); font-family:'Rajdhani'; height:100vh; display:flex; flex-direction:column; overflow:hidden; }
         ::-webkit-scrollbar { width:6px; } ::-webkit-scrollbar-thumb { background:#333; border-radius:4px; } ::-webkit-scrollbar-thumb:hover { background:var(--accent); }
         
-        /* Navbar (Unified) */
         nav { height:70px; background:rgba(10,10,10,0.98); border-bottom:2px solid var(--accent); display:flex; align-items:center; justify-content:space-between; padding:0 20px; z-index:100; flex-shrink:0; }
-        .brand { font-size:22px; font-weight:800; color:#fff; text-decoration:none; display:flex; gap:10px; } .brand span { color:var(--accent); text-shadow:0 0 15px var(--accent); }
-        .nav-items { display:flex; gap:5px; } .nav-link { color:#888; text-decoration:none; font-weight:700; font-size:11px; padding:6px 8px; border-radius:4px; display:flex; align-items:center; gap:4px; border:1px solid transparent; transition:0.3s; }
+        .brand { font-size:22px; font-weight:800; color:#fff; text-decoration:none; display:flex; gap:10px; align-items:center; } .brand span { color:var(--accent); text-shadow:0 0 15px var(--accent); }
+        .nav-items { display:flex; gap:5px; } .nav-link { color:#888; text-decoration:none; font-weight:700; font-size:11px; padding:6px 8px; border-radius:4px; display:flex; align-items:center; gap:4px; border:1px solid transparent; transition:0.3s; text-transform: uppercase; }
         .nav-link:hover, .nav-link.active { color:#fff; background:rgba(255,255,255,0.08); border-color:#444; } .nav-link.active { border-color:var(--accent); color:var(--accent); }
         @media (max-width:1200px) { .nav-link span { display:none; } .nav-link i { font-size:18px; } }
-
+        
         .workspace { display:flex; flex:1; overflow:hidden; }
-        /* Sidebar Right */
         .sidebar { width:320px; background:var(--bg-panel); border-left:1px solid #222; padding:20px; order:2; flex-shrink:0; display:flex; flex-direction:column; }
         .editor-area { flex:1; display:flex; flex-direction:column; order:1; min-width:0; }
         .editor-container { flex:1; display:flex; flex-direction:column; border-right:1px solid #333; min-width:0; }
-        .editor-toolbar { height:40px; background:#151515; display:flex; align-items:center; justify-content:space-between; padding:0 15px; border-bottom:1px solid #333; font-size:12px; font-weight:700; color:#666; }
+        .editor-toolbar { height:45px; background:#151515; display:flex; align-items:center; justify-content:space-between; padding:0 15px; border-bottom:1px solid #333; font-size:12px; font-weight:700; color:#666; }
         .CodeMirror { flex:1; height:auto!important; font-size:14px; }
-        @media (max-width:900px) { .workspace { flex-direction:column; overflow-y:auto; } .sidebar { width:100%; height:auto; border-left:none; border-top:2px solid var(--accent); order:3; } .editor-container { width:100%; height:400px; } }
+        @media (max-width:900px) { .workspace { flex-direction:column; overflow-y:auto; } .sidebar { width:100%; height:auto; border-left:none; border-top:2px solid var(--accent); order:3; } .editor-area { order:1; height:400px; } }
         
         .log-panel { background:#151515; border:1px solid #333; padding:10px; font-family:'JetBrains Mono'; font-size:11px; color:#aaa; height:100%; overflow-y:auto; }
         .log-entry { margin-bottom:5px; border-bottom:1px solid #222; }
+        .auto-detect-box { background:rgba(255,255,255,0.03); border:1px solid #333; border-left:4px solid var(--accent); padding:12px; display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+        .auto-detect-box i { font-size:20px; color:var(--accent); }
         .btn { padding:12px; width:100%; background:var(--accent); color:#000; border:none; border-radius:4px; font-weight:800; cursor:pointer; margin-top:auto; }
-        .btn:hover { background:var(--accent); color:#000; }
+        .btn:hover { background:var(--accent); color:#000; box-shadow: 0 0 20px var(--accent); }
         .loader-overlay { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:none; justify-content:center; align-items:center; z-index:50; }
         .spinner { border:4px solid #333; border-top:4px solid var(--accent); border-radius:50%; width:50px; height:50px; animation:spin 1s linear infinite; }
         @keyframes spin { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }
-        footer { height:30px; background:#080808; display:flex; align-items:center; justify-content:center; font-size:11px; color:#444; border-top:1px solid #222; }
+        footer { height:35px; background:#080808; display:flex; align-items:center; justify-content:center; font-size:11px; color:#444; border-top:1px solid #222; }
     </style>
 </head>
 <body>
@@ -49,15 +50,16 @@
             <a href="/decryptor" class="nav-link"><i class="fas fa-unlock"></i> PY DEC</a>
             <span style="color:#333">|</span>
             <a href="/js-shield" class="nav-link"><i class="fab fa-js"></i> JS ENC</a>
-            <a href="/js-decryptor" class="nav-link active"><i class="fas fa-unlock-alt"></i> JS DEC</a>
+            <a href="/js-decryptor" class="nav-link active" style="color:var(--accent); border-color:var(--accent);"><i class="fas fa-unlock-alt"></i> JS DEC</a>
             <span style="color:#333">|</span>
-            <a href="/lua-shield" class="nav-link" style="color:#00ff88"><i class="fas fa-gamepad"></i> LUA ENC</a>
-            <a href="/lua-decryptor" class="nav-link" style="color:#00ff88"><i class="fas fa-key"></i> LUA DEC</a>
+            <a href="/lua-shield" class="nav-link" style="color:#00ff88; border-color:transparent;"><i class="fas fa-gamepad"></i> LUA ENC</a>
+            <a href="/lua-decryptor" class="nav-link" style="color:#00ff88; border-color:transparent;"><i class="fas fa-key"></i> LUA DEC</a>
             <span style="color:#333">|</span>
-            <a href="/terminal" class="nav-link" style="color:#0f0"><i class="fas fa-terminal"></i> TERM</a>
+            <a href="/terminal" class="nav-link" style="color:#0f0; border-color:transparent;"><i class="fas fa-terminal"></i> TERM</a>
             <a href="/docs" class="nav-link"><i class="fas fa-book"></i> API</a>
         </div>
     </nav>
+
     <div class="workspace">
         <div class="editor-area">
             <div class="editor-container">
@@ -67,24 +69,43 @@
                 <textarea id="out"></textarea>
             </div>
         </div>
+
         <div class="sidebar">
-            <h4 style="color:var(--accent); margin:0 0 10px 0;">CONSOLE</h4>
-            <div class="log-panel" id="logPanel"><div class="log-entry">[SYS] Ready for JS...</div></div>
+            <h4 style="color:var(--accent); margin:0 0 10px 0;">DECRYPTION CONSOLE</h4>
+            <div class="log-panel" id="logPanel">
+                <div class="log-entry">[SYS] Ready for JS...</div>
+            </div>
+            <div class="auto-detect-box" style="margin-top:10px;">
+                <i class="fas fa-robot"></i> <div><strong>AI Auto-Detect</strong><br><span style="font-size:10px; color:#666">Hex, URL, CharCode, Base64</span></div>
+            </div>
             <button class="btn" onclick="runDecrypt()">START DECRYPTION</button>
         </div>
-        <div class="loader-overlay" id="loader"><div class="spinner"></div></div>
     </div>
     <footer>&copy; 2025 EuroMoscow.</footer>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+
     <script>
         var editorIn = CodeMirror.fromTextArea(document.getElementById("in"), { mode: "javascript", theme: "dracula", lineNumbers: true, lineWrapping: true });
         var editorOut = CodeMirror.fromTextArea(document.getElementById("out"), { mode: "javascript", theme: "dracula", lineNumbers: true, lineWrapping: true, readOnly: true });
-        function log(msg) { document.getElementById('logPanel').innerHTML += `<div class="log-entry">> ${msg}</div>`; }
+        
+        function log(msg, type='info') {
+            const p = document.getElementById('logPanel');
+            let color = type === 'success' ? 'var(--success)' : (type === 'error' ? '#ff3333' : '#aaa');
+            p.innerHTML += `<div class="log-entry">> <span style="color:${color}">${msg}</span></div>`;
+            p.scrollTop = p.scrollHeight;
+        }
+
         async function runDecrypt() {
             const code = editorIn.getValue(); if(!code.trim()) return alert("No Code!");
             document.getElementById('loader').style.display = 'flex'; log("Scanning...");
-            try { const res = await fetch('/process', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code, action:'decrypt', lang:'javascript'}) }); const d = await res.json(); setTimeout(() => { document.getElementById('loader').style.display = 'none'; editorOut.setValue(d.result); log("Success!"); }, 500); } catch(e) { document.getElementById('loader').style.display = 'none'; log("Error"); }
+            try {
+                const res = await fetch('/process', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code, action:'decrypt', lang:'javascript'}) });
+                const d = await res.json();
+                setTimeout(() => {
+                    document.getElementById('loader').style.display = 'none';
+                    editorOut.setValue(d.result);
+                    log("Decryption Complete.", 'success');
+                }, 500);
+            } catch(e) { document.getElementById('loader').style.display = 'none'; log("Error.", 'error'); }
         }
         function copy() { navigator.clipboard.writeText(editorOut.getValue()); alert("Copied!"); }
     </script>
