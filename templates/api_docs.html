@@ -3,83 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EuroMoscow Shield | API Docs</title>
+    <title>EuroMoscow V13 | API Docs</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        :root { --bg-core: #050505; --accent: #00e1ff; --text-main: #eeeeee; --code-bg: #111; }
-        body { background-color: var(--bg-core); color: var(--text-main); font-family: 'Rajdhani', sans-serif; margin: 0; overflow-x: hidden; }
-        ::-webkit-scrollbar { width: 8px; height: 8px; } ::-webkit-scrollbar-track { background: var(--bg-core); } ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; } ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
-        nav { height: 70px; background: rgba(10, 10, 10, 0.95); border-bottom: 2px solid var(--accent); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; position: sticky; top: 0; z-index: 100; }
-        .brand { font-size: 22px; font-weight: 800; letter-spacing: 1px; color: #fff; text-transform: uppercase; display: flex; align-items: center; gap: 10px; text-decoration: none;}
-        .brand span { color: var(--accent); text-shadow: 0 0 10px var(--accent); }
-        .nav-items { display: flex; gap: 5px; align-items: center; }
-        .nav-link { color: #888; text-decoration: none; font-weight: 600; font-size: 13px; transition: 0.3s; padding: 8px 10px; border-radius: 4px; display: flex; align-items: center; gap: 6px; border: 1px solid transparent; }
-        .nav-link:hover, .nav-link.active { color: #fff; background: rgba(255, 255, 255, 0.05); border: 1px solid #333; }
-        .nav-link.active { border-color: var(--accent); color: var(--accent); }
-        @media (max-width: 900px) { nav { padding: 0 10px; } .nav-link span { display: none; } .nav-link i { font-size: 18px; } .brand span { display: none; } .container { padding: 15px; margin-top: 10px; } h1 { font-size: 1.8rem; } }
-        .container { max-width: 900px; margin: 40px auto; padding: 20px; }
-        h1 { color: #fff; border-bottom: 1px solid #333; padding-bottom: 15px; font-size: 2.5rem; margin-top: 0; }
-        h2 { color: var(--accent); margin-top: 40px; border-left: 3px solid var(--accent); padding-left: 15px; }
-        p { line-height: 1.6; color: #aaa; font-size: 1.1rem; }
-        .badge { display: inline-block; padding: 5px 12px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-weight: bold; font-size: 0.9rem; }
-        .post { background: var(--accent); color: #000; }
-        pre { background: var(--code-bg); padding: 25px; border-radius: 8px; border: 1px solid #333; overflow-x: auto; font-family: 'JetBrains Mono', monospace; color: #ccc; font-size: 14px; }
-        .keyword { color: var(--accent); } .string { color: #00ff88; } .comment { color: #666; font-style: italic; }
-        .table-wrapper { overflow-x: auto; } table { width: 100%; border-collapse: collapse; margin-top: 20px; min-width: 500px; } th, td { text-align: left; padding: 12px; border-bottom: 1px solid #333; color: #ccc; } th { color: var(--accent); text-transform: uppercase; font-size: 0.9rem; }
-        footer { text-align: center; margin-top: 80px; padding: 20px; border-top: 1px solid #222; color: #444; font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+        :root {
+            --bg: #0a0a0f;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.08);
+            --primary: #00e1ff;
+            --text: #e0e0e0;
+            --code-bg: rgba(0,0,0,0.3);
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0; background: var(--bg); color: var(--text);
+            font-family: 'Rajdhani', sans-serif; min-height: 100vh;
+            background-image: radial-gradient(circle at 50% 0%, rgba(0, 225, 255, 0.1), transparent 70%);
+            overflow-x: hidden;
+        }
+
+        /* Navbar Glass */
+        nav {
+            height: 70px; display: flex; align-items: center; justify-content: space-between;
+            padding: 0 30px; border-bottom: 1px solid var(--border);
+            background: rgba(10, 10, 15, 0.8); backdrop-filter: blur(10px);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .brand { font-size: 24px; font-weight: 700; color: #fff; letter-spacing: 2px; text-decoration:none; }
+        .brand span { color: var(--primary); text-shadow: 0 0 15px var(--primary); }
+        .back-btn {
+            background: var(--glass); border: 1px solid var(--primary); color: var(--primary);
+            padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px;
+            transition: 0.3s;
+        }
+        .back-btn:hover { background: var(--primary); color: #000; box-shadow: 0 0 15px var(--primary); }
+
+        /* Content */
+        .container { max-width: 900px; margin: 50px auto; padding: 20px; }
+        
+        h1 { font-size: 3rem; margin-bottom: 10px; background: linear-gradient(to right, #fff, #888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        h2 { color: var(--primary); margin-top: 40px; border-left: 4px solid var(--primary); padding-left: 15px; }
+        p { color: #888; line-height: 1.6; font-size: 1.1rem; }
+
+        /* Code Blocks */
+        pre {
+            background: var(--code-bg); border: 1px solid var(--border);
+            padding: 20px; border-radius: 12px; overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #ccc;
+            backdrop-filter: blur(5px);
+        }
+        .keyword { color: #ff79c6; } .string { color: #f1fa8c; } .func { color: #50fa7b; }
+
+        /* Endpoint Box */
+        .endpoint {
+            display: inline-flex; align-items: center; gap: 15px;
+            background: var(--glass); border: 1px solid var(--border);
+            padding: 10px 20px; border-radius: 8px; margin: 20px 0;
+        }
+        .badge { background: var(--primary); color: #000; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-family: 'JetBrains Mono'; }
+        .url { font-family: 'JetBrains Mono'; color: #fff; }
+
+        /* Table */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: var(--glass); border-radius: 8px; overflow: hidden; }
+        th, td { text-align: left; padding: 15px; border-bottom: 1px solid var(--border); }
+        th { color: var(--primary); text-transform: uppercase; font-size: 0.9rem; background: rgba(0,0,0,0.2); }
+        td { color: #ccc; font-family: 'JetBrains Mono'; font-size: 0.9rem; }
+
+        footer { text-align: center; margin-top: 80px; padding: 20px; border-top: 1px solid var(--border); color: #444; }
     </style>
 </head>
 <body>
+
     <nav>
-        <a href="/" class="brand"><i class="fas fa-shield-virus"></i> EURO<span>SHIELD</span></a>
-        <div class="nav-items">
-            <a href="/" class="nav-link"><i class="fab fa-python"></i> <span>PY ENC</span></a>
-            <a href="/decryptor" class="nav-link"><i class="fas fa-unlock"></i> <span>PY DEC</span></a>
-            <span style="color:#333;">|</span>
-            <a href="/js-shield" class="nav-link"><i class="fab fa-js"></i> <span>JS ENC</span></a>
-            <a href="/js-decryptor" class="nav-link"><i class="fas fa-unlock-alt"></i> <span>DEC</span></a>
-            <span style="color:#333;">|</span>
-            <a href="/lua-shield" class="nav-link" style="color:#00ff88;"><i class="fas fa-gamepad"></i> <span>LUA</span></a>
-            <a href="/terminal" class="nav-link" style="color:#0f0; border-color:#0f0;"><i class="fas fa-terminal"></i> <span>TERM</span></a>
-            <a href="/docs" class="nav-link active"><i class="fas fa-book"></i> <span>API</span></a>
-        </div>
+        <a href="/" class="brand"><i class="fas fa-shield-halved"></i> EURO<span>SHIELD</span> API</a>
+        <a href="/" class="back-link back-btn"><i class="fas fa-arrow-left"></i> BACK TO TOOL</a>
     </nav>
+
     <div class="container">
         <h1>Developer API Reference</h1>
-        <p>Integrate the powerful <strong>EuroMoscow Shield</strong> obfuscation engine directly into your applications.</p>
-        <h2>POST /process</h2>
-        <p>Send code to be obfuscated or decrypted using a JSON payload.</p>
-        <div style="margin: 20px 0; background: #111; padding: 15px; border-radius: 6px; border: 1px solid #333; overflow-x: auto;">
-            <span class="badge post">POST</span> 
-            <span style="font-family:'JetBrains Mono'; margin-left:10px; color:#fff;">{{ request.url_root }}process</span>
+        <p>Automate your code protection workflow using the V13 Engine. Supports Python, JavaScript, Lua, PHP, and HTML.</p>
+
+        <h2>Endpoint</h2>
+        <div class="endpoint">
+            <span class="badge">POST</span> 
+            <span class="url">{{ request.url_root }}process</span>
         </div>
-        <h3>Request Parameters</h3>
-        <div class="table-wrapper">
-            <table>
-                <thead><tr><th>Key</th><th>Type</th><th>Description</th></tr></thead>
-                <tbody>
-                    <tr><td>code</td><td>String</td><td>The source code to process.</td></tr>
-                    <tr><td>action</td><td>String</td><td>'encrypt' or 'decrypt'</td></tr>
-                    <tr><td>lang</td><td>String</td><td>'python' or 'javascript' or 'lua'</td></tr>
-                    <tr><td>options</td><td>List</td><td>['rename', 'marshal', 'zlib', 'rot13', 'xor', 'base64', 'hex', 'url']</td></tr>
-                </tbody>
-            </table>
-        </div>
-        <h3>Python Example</h3>
-        <pre><span class="keyword">import</span> requests
+
+        <h3>Request Body (JSON)</h3>
+        <table>
+            <thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td>code</td><td>String</td><td>Source code to obfuscate.</td></tr>
+                <tr><td>lang</td><td>String</td><td>'python', 'javascript', 'lua', 'php', 'html'</td></tr>
+                <tr><td>level</td><td>String</td><td>'fast', 'balanced', 'max'</td></tr>
+            </tbody>
+        </table>
+
+        <h2>Example Usage (Python)</h2>
+        <pre>
+<span class="keyword">import</span> requests
+
 url = <span class="string">"{{ request.url_root }}process"</span>
-payload = { <span class="keyword">"code"</span>: <span class="string">"print('EuroMoscow System')"</span>, <span class="keyword">"action"</span>: <span class="string">"encrypt"</span>, <span class="keyword">"lang"</span>: <span class="string">"python"</span>, <span class="keyword">"options"</span>: [<span class="string">"rename"</span>, <span class="string">"marshal"</span>, <span class="string">"xor"</span>] }
-response = requests.post(url, json=payload)
-print(response.json()[<span class="string">'result'</span>])</pre>
-        <h3>JavaScript Example</h3>
-        <pre><span class="keyword">const</span> axios = require(<span class="string">'axios'</span>);
-<span class="keyword">async function</span> protect() {
-    <span class="keyword">const</span> res = <span class="keyword">await</span> axios.post(<span class="string">"{{ request.url_root }}process"</span>, { code: <span class="string">"alert('Hi')"</span>, action: <span class="string">"encrypt"</span>, lang: <span class="string">"javascript"</span>, options: [<span class="string">"hex"</span>] });
-    console.log(res.data.result);
-}</pre>
-        <footer>&copy; 2025 Developed by <span style="color:var(--accent);">EuroMoscow</span>.</footer>
+
+payload = {
+    <span class="keyword">"code"</span>: <span class="string">"print('Hello V13')"</span>,
+    <span class="keyword">"lang"</span>: <span class="string">"python"</span>,
+    <span class="keyword">"level"</span>: <span class="string">"max"</span>
+}
+
+res = requests.post(url, json=payload)
+<span class="func">print</span>(res.json()[<span class="string">'result'</span>])
+        </pre>
+
+        <h2>Example Usage (Node.js)</h2>
+        <pre>
+<span class="keyword">const</span> axios = require(<span class="string">'axios'</span>);
+
+axios.post(<span class="string">"{{ request.url_root }}process"</span>, {
+    code: <span class="string">"console.log('Secure')"</span>,
+    lang: <span class="string">"javascript"</span>,
+    level: <span class="string">"balanced"</span>
+}).then(res => console.log(res.data.result));
+        </pre>
+
+        <footer>
+            &copy; 2025 EuroMoscow V13 Architecture.
+        </footer>
     </div>
+
 </body>
 </html>
