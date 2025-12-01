@@ -24,14 +24,13 @@
         .editor-area { flex:1; display:flex; flex-direction:column; order:1; min-width:0; }
         .editor-container { flex:1; display:flex; flex-direction:column; border-right:1px solid #333; min-width:0; }
         .editor-toolbar { height:40px; background:#151515; display:flex; align-items:center; justify-content:space-between; padding:0 15px; border-bottom:1px solid #333; font-size:12px; font-weight:700; color:#666; }
-        .CodeMirror { flex:1; font-size:14px; height:auto!important; font-family:'JetBrains Mono'; }
+        .CodeMirror { flex:1; height:auto!important; font-size:14px; }
         @media (max-width:900px) { .workspace { flex-direction:column; overflow-y:auto; } .sidebar { width:100%; height:auto; border-left:none; border-top:2px solid var(--accent); order:3; } .editor-container { width:100%; height:400px; } }
-        .log-panel { background:#151515; border:1px solid #333; padding:10px; font-family:'JetBrains Mono'; font-size:11px; color:#aaa; height:100%; overflow-y:auto; }
+        .log-panel { background:#151515; border:1px solid #333; padding:15px; font-family:'JetBrains Mono'; font-size:11px; color:#aaa; height:100%; overflow-y:auto; }
         .log-entry { margin-bottom:5px; border-bottom:1px solid #222; }
         .auto-detect-box { background:rgba(255,255,255,0.03); border:1px solid #333; border-left:4px solid var(--accent); padding:12px; display:flex; align-items:center; gap:10px; margin-bottom:10px; }
         .auto-detect-box i { font-size:20px; color:var(--accent); }
         .btn { padding:12px; width:100%; background:var(--accent); color:#000; border:none; border-radius:4px; font-weight:800; cursor:pointer; margin-top:auto; }
-        .btn:hover { background:var(--accent); color:#000; box-shadow: 0 0 20px var(--accent); }
         .loader-overlay { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:none; justify-content:center; align-items:center; z-index:50; }
         .spinner { border:4px solid #333; border-top:4px solid var(--accent); border-radius:50%; width:50px; height:50px; animation:spin 1s linear infinite; }
         @keyframes spin { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }
@@ -46,9 +45,12 @@
             <a href="/decryptor" class="nav-link"><i class="fas fa-unlock"></i> PY DEC</a>
             <span style="color:#333">|</span>
             <a href="/js-shield" class="nav-link"><i class="fab fa-js"></i> JS ENC</a>
-            <a href="/js-decryptor" class="nav-link active"><i class="fas fa-unlock-alt"></i> JS DEC</a>
+            <a href="/js-decryptor" class="nav-link active" style="color:var(--accent); border-color:var(--accent);"><i class="fas fa-unlock-alt"></i> JS DEC</a>
             <span style="color:#333">|</span>
             <a href="/lua-shield" class="nav-link" style="color:#00ff88"><i class="fas fa-gamepad"></i> LUA ENC</a>
+            <a href="/lua-decryptor" class="nav-link" style="color:#00ff88"><i class="fas fa-key"></i> LUA DEC</a>
+            <span style="color:#333">|</span>
+            <a href="/terminal" class="nav-link" style="color:#0f0"><i class="fas fa-terminal"></i> TERM</a>
             <a href="/docs" class="nav-link"><i class="fas fa-book"></i> API</a>
         </div>
     </nav>
@@ -60,10 +62,10 @@
             <textarea id="out"></textarea>
         </div>
         <div class="sidebar">
-            <h4 style="color:var(--accent); margin:0 0 10px 0;">DECRYPT CONSOLE</h4>
-            <div class="log-panel" id="logPanel"><div class="log-entry">[SYS] Ready for JS...</div></div>
+            <h4 style="color:var(--accent); margin:0 0 10px 0;">CONSOLE</h4>
+            <div class="log-panel" id="logPanel"><div class="log-entry">[SYS] Ready...</div></div>
             <div class="auto-detect-box" style="margin-top:10px;">
-                <i class="fas fa-robot"></i> <div><strong>AI Auto-Detect</strong><br><span style="font-size:10px; color:#666">Hex, Base64, URL, CharCode</span></div>
+                <i class="fas fa-robot"></i> <div><strong>AI Auto-Detect</strong><br><span style="font-size:10px; color:#666">Hex, URL, Base64, Char</span></div>
             </div>
             <button class="btn" onclick="runDecrypt()">START DECRYPTION</button>
         </div>
@@ -73,11 +75,11 @@
     <script>
         var editorIn = CodeMirror.fromTextArea(document.getElementById("in"), { mode: "javascript", theme: "dracula", lineNumbers: true, lineWrapping: true });
         var editorOut = CodeMirror.fromTextArea(document.getElementById("out"), { mode: "javascript", theme: "dracula", lineNumbers: true, lineWrapping: true, readOnly: true });
-        function log(msg, type='info') { const p = document.getElementById('logPanel'); let color = type === 'success' ? 'var(--success)' : (type === 'error' ? '#ff3333' : '#aaa'); p.innerHTML += `<div class="log-entry">> <span style="color:${color}">${msg}</span></div>`; p.scrollTop = p.scrollHeight; }
+        function log(msg, type='info') { const panel = document.getElementById('logPanel'); let color = type === 'success' ? 'var(--success)' : (type === 'error' ? '#ff3333' : '#aaa'); panel.innerHTML += `<div class="log-entry">> <span style="color:${color}">${msg}</span></div>`; panel.scrollTop = panel.scrollHeight; }
         async function runDecrypt() {
             const code = editorIn.getValue(); if(!code.trim()) return alert("No Code!");
             document.getElementById('loader').style.display = 'flex'; log("Scanning...");
-            try { const res = await fetch('/process', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code, action:'decrypt', lang:'javascript'}) }); const d = await res.json(); setTimeout(() => { document.getElementById('loader').style.display = 'none'; editorOut.setValue(d.result); log("Decryption Complete.", 'success'); }, 500); } catch(e) { document.getElementById('loader').style.display = 'none'; log("Error", 'error'); }
+            try { const res = await fetch('/process', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code, action:'decrypt', lang:'javascript'}) }); const d = await res.json(); setTimeout(() => { document.getElementById('loader').style.display = 'none'; editorOut.setValue(d.result); log("Done!", 'success'); }, 500); } catch(e) { document.getElementById('loader').style.display = 'none'; log("Error", 'error'); }
         }
         function copy() { navigator.clipboard.writeText(editorOut.getValue()); alert("Copied!"); }
     </script>
