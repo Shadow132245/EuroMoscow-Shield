@@ -2,88 +2,109 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EuroMoscow | Py Encryptor</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
+    
     <style>
+        /* التصميم القديم بالضبط */
         :root { --bg-core: #050505; --bg-panel: #111111; --accent: #00e1ff; --text-main: #eeeeee; }
         * { box-sizing: border-box; }
         body { margin:0; background:var(--bg-core); color:var(--text-main); font-family:'Rajdhani'; height:100vh; display:flex; flex-direction:column; overflow:hidden; }
-        ::-webkit-scrollbar { width:6px; } ::-webkit-scrollbar-thumb { background:#333; border-radius:4px; } ::-webkit-scrollbar-thumb:hover { background:var(--accent); }
         
-        /* Navbar 6 Buttons */
         nav { height:70px; background:rgba(10,10,10,0.98); border-bottom:2px solid var(--accent); display:flex; align-items:center; justify-content:space-between; padding:0 20px; z-index:100; flex-shrink:0; }
         .brand { font-size:22px; font-weight:800; color:#fff; text-decoration:none; display:flex; gap:10px; align-items:center; } .brand span { color:var(--accent); text-shadow:0 0 15px var(--accent); }
         .nav-items { display:flex; gap:5px; }
-        .nav-link { color:#888; text-decoration:none; font-weight:700; font-size:11px; padding:6px 8px; border-radius:4px; display:flex; align-items:center; gap:4px; border:1px solid transparent; transition:0.3s; }
+        /* استعادة شكل الأزرار في الناف بار */
+        .nav-link { color:#888; text-decoration:none; font-weight:700; font-size:12px; padding:8px 10px; border-radius:4px; display:flex; align-items:center; gap:5px; border:1px solid transparent; transition:0.3s; }
         .nav-link:hover, .nav-link.active { color:#fff; background:rgba(255,255,255,0.08); border-color:#444; }
         .nav-link.active { border-color:var(--accent); color:var(--accent); }
-        @media (max-width:1000px) { .nav-link span { display:none; } .nav-link i { font-size:16px; } nav { padding:0 10px; } }
 
         .workspace { display:flex; flex:1; overflow:hidden; }
-        .sidebar { width:320px; background:var(--bg-panel); border-right:1px solid #222; padding:20px; display:flex; flex-direction:column; flex-shrink:0; z-index:5; overflow-y:auto; }
-        .editor-container { flex:1; display:flex; flex-direction:column; border-right:1px solid #333; min-width:0; }
-        .editor-toolbar { height:40px; background:#151515; display:flex; align-items:center; justify-content:space-between; padding:0 15px; border-bottom:1px solid #333; font-size:12px; font-weight:700; color:#666; }
-        .CodeMirror { flex:1; font-size:14px; height:auto!important; font-family:'JetBrains Mono'; }
-        @media (max-width:900px) { .workspace { flex-direction:column; overflow-y:auto; } .sidebar { width:100%; height:auto; border-right:none; border-top:2px solid var(--accent); order:2; } .editor-container { width:100%; height:400px; order:1; } nav { position:sticky; top:0; } }
+        .sidebar { width:320px; background:var(--bg-panel); border-right:1px solid #222; padding:20px; display:flex; flex-direction:column; gap:15px; overflow-y:auto; flex-shrink:0; }
         
-        .checkbox-wrapper { display:flex; gap:10px; align-items:center; padding:8px; background:#1a1a1a; margin-bottom:5px; border-radius:4px; cursor:pointer; border:1px solid #333; }
-        .checkbox-wrapper:hover { border-color:var(--accent); } input[type="checkbox"] { accent-color:var(--accent); }
-        .btn { padding:12px; width:100%; background:var(--accent); color:#000; border:none; border-radius:4px; font-weight:800; cursor:pointer; margin-top:10px; }
-        .btn-file { background:#1a1a1a; border:1px dashed #444; color:#aaa; font-size:12px; margin-top:5px; }
+        .section-title { color:var(--accent); font-weight:800; font-size:14px; margin-bottom:10px; border-bottom:1px solid #333; padding-bottom:8px; letter-spacing:1px; }
+        .checkbox-wrapper { display:flex; gap:10px; align-items:center; padding:10px; background:#161616; margin-bottom:5px; border-radius:4px; cursor:pointer; border:1px solid #333; transition:0.2s; }
+        .checkbox-wrapper:hover { border-color:var(--accent); background:#1a1a1a; }
+        input[type="checkbox"] { accent-color:var(--accent); transform:scale(1.2); }
+        
+        /* استعادة شكل الأزرار الكبيرة */
+        .btn { padding:14px; width:100%; background:var(--accent); color:#000; border:none; border-radius:6px; font-weight:800; font-size:16px; cursor:pointer; text-transform:uppercase; letter-spacing:1px; transition:0.3s; margin-top:10px; }
+        .btn:hover { box-shadow:0 0 20px var(--accent); filter:brightness(1.1); }
+        .btn-file { background:#1a1a1a; border:1px dashed #444; color:#aaa; font-size:13px; margin-top:5px; }
+        .btn-file:hover { border-color:var(--accent); color:#fff; }
         .btn-dl { background:transparent; border:1px solid var(--accent); color:var(--accent); margin-top:10px; }
+        .btn-dl:hover { background:rgba(0, 225, 255, 0.1); color:#fff; }
+
+        .editor-container { flex:1; display:flex; flex-direction:column; border-right:1px solid #333; position:relative; min-width:0; }
+        .editor-toolbar { height:45px; background:#151515; display:flex; align-items:center; justify-content:space-between; padding:0 20px; border-bottom:1px solid #333; font-size:12px; color:#888; font-weight:700; letter-spacing:1px; }
+        .CodeMirror { flex:1; font-size:14px; height:auto!important; font-family:'JetBrains Mono'; }
+
+        /* Mobile */
+        @media (max-width:900px) { 
+            .workspace { flex-direction:column; overflow-y:auto; } 
+            .sidebar { width:100%; height:auto; border-right:none; border-top:2px solid var(--accent); order:2; } 
+            .editor-container { width:100%; height:400px; order:1; } 
+            nav { padding:0 10px; } .nav-link span { display:none; } .nav-link i { font-size:18px; }
+        }
+        
         .loader-overlay { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:none; justify-content:center; align-items:center; z-index:50; }
         .spinner { border:4px solid #333; border-top:4px solid var(--accent); border-radius:50%; width:50px; height:50px; animation:spin 1s linear infinite; }
         @keyframes spin { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }
-        footer { height:30px; background:#080808; display:flex; align-items:center; justify-content:center; font-size:11px; color:#444; border-top:1px solid #222; }
+        footer { height:35px; background:#080808; display:flex; align-items:center; justify-content:center; font-size:12px; color:#444; border-top:1px solid #222; }
     </style>
 </head>
 <body>
     <nav>
         <a href="/" class="brand"><i class="fas fa-shield-virus"></i> EURO<span>SHIELD</span></a>
         <div class="nav-items">
-            <a href="/" class="nav-link active"><i class="fab fa-python"></i> PY ENC</a>
-            <a href="/decryptor" class="nav-link"><i class="fas fa-unlock"></i> PY DEC</a>
+            <a href="/" class="nav-link active"><i class="fab fa-python"></i> <span>PY ENC</span></a>
+            <a href="/decryptor" class="nav-link"><i class="fas fa-unlock"></i> <span>PY DEC</span></a>
             <span style="color:#333">|</span>
-            <a href="/js-shield" class="nav-link" style="color:#f7df1e"><i class="fab fa-js"></i> JS ENC</a>
-            <a href="/js-decryptor" class="nav-link" style="color:#f7df1e"><i class="fas fa-unlock-alt"></i> JS DEC</a>
+            <a href="/js-shield" class="nav-link" style="color:#f7df1e; border-color:transparent;"><i class="fab fa-js"></i> <span>JS ENC</span></a>
+            <a href="/js-decryptor" class="nav-link" style="color:#f7df1e; border-color:transparent;"><i class="fas fa-unlock-alt"></i> <span>JS DEC</span></a>
             <span style="color:#333">|</span>
-            <a href="/lua-shield" class="nav-link" style="color:#00ff88"><i class="fas fa-gamepad"></i> LUA ENC</a>
-            <a href="/docs" class="nav-link"><i class="fas fa-book"></i> API</a>
+            <a href="/lua-shield" class="nav-link" style="color:#00ff88; border-color:transparent;"><i class="fas fa-gamepad"></i> <span>LUA ENC</span></a>
+            <a href="/docs" class="nav-link"><i class="fas fa-book"></i> <span>API</span></a>
         </div>
     </nav>
+
     <div class="workspace">
         <div class="sidebar">
-            <h4 style="color:var(--accent); margin:0 0 10px 0;">LAYERS</h4>
+            <div class="section-title">CORE LAYERS</div>
             <label class="checkbox-wrapper"><input type="checkbox" id="opt-rename" checked> Variable Renaming</label>
             <label class="checkbox-wrapper"><input type="checkbox" id="opt-marshal" checked> Portable Blob</label>
             <label class="checkbox-wrapper"><input type="checkbox" id="opt-deadcode" checked> Dead Code</label>
-            <label class="checkbox-wrapper"><input type="checkbox" id="opt-xor" checked> XOR</label>
-            <label class="checkbox-wrapper"><input type="checkbox" id="opt-rot13" checked> Rot13</label>
-            <label class="checkbox-wrapper"><input type="checkbox" id="opt-base64" checked> Base64</label>
-            <h4 style="color:var(--accent); margin:15px 0 10px 0;">FILES</h4>
+            
+            <div class="section-title" style="margin-top:20px;">ENCRYPTION</div>
+            <label class="checkbox-wrapper"><input type="checkbox" id="opt-zlib" checked> Zlib Compression</label>
+            <label class="checkbox-wrapper"><input type="checkbox" id="opt-rot13" checked> Rot13 Cipher</label>
+            <label class="checkbox-wrapper"><input type="checkbox" id="opt-xor" checked> EuroMoscow XOR</label>
+            <label class="checkbox-wrapper"><input type="checkbox" id="opt-base64" checked> Base64 Encode</label>
+            
+            <div class="section-title" style="margin-top:20px;">FILE MANAGER</div>
             <input type="file" id="fileInput" style="display:none" accept=".py">
             <button class="btn btn-file" onclick="document.getElementById('fileInput').click()">Upload .py File</button>
-            <input type="file" id="zipInput" style="display:none" accept=".zip">
-            <button class="btn btn-file" onclick="document.getElementById('zipInput').click()">Upload Project .zip</button>
-            <button class="btn" onclick="runProcess()">OBFUSCATE</button>
-            <button class="btn btn-dl" onclick="downloadResult()">DOWNLOAD</button>
+            
+            <button class="btn" onclick="runProcess()">OBFUSCATE CODE</button>
+            <button class="btn btn-dl" onclick="downloadResult()">DOWNLOAD RESULT</button>
         </div>
+
         <div class="editor-container">
-            <div class="editor-toolbar"><span>INPUT</span> <i class="fas fa-eraser" onclick="editorIn.setValue('')" style="cursor:pointer"></i></div>
+            <div class="editor-toolbar"><span>INPUT SOURCE</span> <i class="fas fa-eraser" onclick="editorIn.setValue('')" style="cursor:pointer; color:#666;"></i></div>
             <textarea id="in"></textarea>
         </div>
         <div class="editor-container" style="border-right:none; border-left:1px solid #333;">
             <div class="loader-overlay" id="loader"><div class="spinner"></div></div>
-            <div class="editor-toolbar"><span style="color:var(--accent)">OUTPUT</span> <i class="fas fa-copy" onclick="copy()" style="cursor:pointer"></i></div>
+            <div class="editor-toolbar"><span style="color:var(--accent)">OUTPUT RESULT</span> <i class="fas fa-copy" onclick="copy()" style="cursor:pointer; color:var(--accent);"></i></div>
             <textarea id="out"></textarea>
         </div>
     </div>
     <footer>&copy; 2025 EuroMoscow.</footer>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
     <script>
@@ -97,7 +118,6 @@
             try { const res = await fetch('/process', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code, action:'encrypt', lang:'python', options:opts}) }); const d = await res.json(); editorOut.setValue(d.result); } catch(e) { editorOut.setValue("Error: "+e); } finally { document.getElementById('loader').style.display = 'none'; }
         }
         function downloadResult() { const code = editorOut.getValue(); if(!code) return alert("No result!"); const blob = new Blob([code], {type:'text/x-python'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'Protected.py'; a.click(); URL.revokeObjectURL(url); }
-        document.getElementById('zipInput').addEventListener('change', async function(e) { const file = e.target.files[0]; if(!file) return; if(!confirm("Encrypt ZIP?")) return; const fd = new FormData(); fd.append('file', file); let opts = ['rename','marshal','xor']; fd.append('options', opts.join(',')); document.getElementById('loader').style.display = 'flex'; try { const res = await fetch('/upload-zip', {method:'POST', body:fd}); const blob = await res.blob(); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'Project_Encrypted.zip'; a.click(); alert("Done!"); } catch(e) { alert("Error"); } finally { document.getElementById('loader').style.display = 'none'; } });
         function copy() { navigator.clipboard.writeText(editorOut.getValue()); alert("Copied!"); }
     </script>
 </body>
