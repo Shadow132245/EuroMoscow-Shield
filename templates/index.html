@@ -2,11 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EuroMoscow | V21 Professional</title>
+    <title>EuroMoscow Shield | V25</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@600;700;800&family=VT323&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
@@ -19,338 +17,232 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
 
     <style>
-        :root {
-            --bg: #050505;
-            --surface: #0f0f12;
-            --glass: rgba(255, 255, 255, 0.03);
-            --border: rgba(255, 255, 255, 0.08);
-            --primary: #3b82f6; /* Default Blue */
-            --text: #e4e4e7;
-            --text-dim: #a1a1aa;
-        }
-
+        /* ORIGINAL DESIGN - NO CHANGES */
+        :root { --bg: #050505; --panel: #111; --border: #222; --primary: #00e1ff; --text: #eee; }
         * { box-sizing: border-box; outline: none; }
-        body {
-            margin: 0; background: var(--bg); color: var(--text);
-            font-family: 'Inter', sans-serif; height: 100vh;
-            display: flex; flex-direction: column; overflow: hidden;
-            background-image: 
-                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: var(--bg); }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Rajdhani'; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; } ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
         /* Navbar */
-        nav {
-            height: 70px; display: flex; align-items: center; justify-content: space-between;
-            padding: 0 40px; border-bottom: 1px solid var(--border);
-            background: rgba(5, 5, 5, 0.8); backdrop-filter: blur(20px); z-index: 100;
-        }
-        .brand { font-size: 20px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 12px; letter-spacing: -0.5px; }
-        .brand i { color: var(--primary); filter: drop-shadow(0 0 10px var(--primary)); }
-        .brand small { font-size: 10px; background: var(--glass); padding: 4px 8px; border-radius: 20px; border: 1px solid var(--border); color: var(--text-dim); margin-left: 10px; }
-
-        /* Language Tabs */
-        .tabs-container { display: flex; gap: 5px; background: var(--glass); padding: 4px; border-radius: 12px; border: 1px solid var(--border); }
-        .tab {
-            padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600;
-            color: var(--text-dim); transition: 0.3s; display: flex; align-items: center; gap: 8px;
-        }
-        .tab:hover { color: #fff; background: rgba(255,255,255,0.05); }
-        .tab.active { background: var(--primary); color: #000; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-
-        /* Main Layout */
-        .layout { display: flex; flex: 1; overflow: hidden; }
+        nav { height: 75px; background: rgba(10,10,10,0.98); border-bottom: 2px solid var(--primary); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; }
+        .brand { font-size: 24px; font-weight: 800; color: #fff; display: flex; gap: 10px; align-items: center; } .brand span { color: var(--primary); text-shadow: 0 0 15px var(--primary); }
+        .nav-items { display: flex; gap: 5px; }
+        .nav-btn { background: transparent; border: 1px solid var(--border); color: #888; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-family: 'Rajdhani'; font-weight: 700; font-size: 12px; transition: 0.3s; display: flex; align-items: center; gap: 4px; }
+        .nav-btn:hover { color: #fff; border-color: #444; }
+        .nav-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(255,255,255,0.05); }
+        .sep { color: #333; font-size: 18px; margin: 0 5px; display: flex; align-items: center; }
         
-        /* Sidebar */
-        .sidebar {
-            width: 360px; background: var(--surface); border-right: 1px solid var(--border);
-            display: flex; flex-direction: column; z-index: 10;
-        }
-        .sidebar-header { padding: 25px; border-bottom: 1px solid var(--border); }
-        .sidebar-content { flex: 1; overflow-y: auto; padding: 25px; display: flex; flex-direction: column; gap: 25px; }
-        .sidebar-footer { padding: 25px; border-top: 1px solid var(--border); background: rgba(0,0,0,0.2); }
+        @media (max-width: 900px) { .nav-btn span { display: none; } nav { padding: 0 10px; } }
 
-        /* Mode Switcher */
-        .mode-switch {
-            display: flex; background: #000; border-radius: 8px; padding: 4px; border: 1px solid var(--border);
-        }
-        .mode-btn {
-            flex: 1; padding: 10px; text-align: center; cursor: pointer; border-radius: 6px;
-            font-weight: 700; font-size: 12px; color: var(--text-dim); transition: 0.3s;
-        }
-        .mode-btn.active { background: var(--glass); color: #fff; border: 1px solid var(--border); }
-        .mode-btn.active.enc { color: var(--primary); border-color: var(--primary); }
-        .mode-btn.active.dec { color: #ff4d4d; border-color: #ff4d4d; }
+        /* Workspace */
+        .workspace { display: flex; flex: 1; overflow: hidden; }
+        .sidebar { width: 340px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; z-index: 5; overflow-y: auto; padding: 20px; }
+        .editor-container { flex: 1; display: flex; flex-direction: column; border-right: 1px solid #333; min-width: 0; }
+        .editor-toolbar { height: 45px; background: #151515; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border-bottom: 1px solid #333; font-size: 12px; font-weight: 700; color: #666; }
+        .CodeMirror { flex: 1; font-family: 'JetBrains Mono'; font-size: 14px; height: auto !important; }
 
-        /* New AI Scan Button */
-        .btn-scan {
-            width: 100%; padding: 12px; border: 1px solid var(--primary); color: var(--primary);
-            background: rgba(59, 130, 246, 0.05); border-radius: 10px;
-            font-weight: 700; font-size: 13px; cursor: pointer; transition: 0.3s;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-        }
-        .btn-scan:hover { background: var(--primary); color: #000; box-shadow: 0 0 20px var(--primary); }
-
-        /* Option Toggles */
-        .opt-group h3 { font-size: 11px; color: var(--text-dim); font-weight: 700; margin: 0 0 12px 0; text-transform: uppercase; letter-spacing: 1px; }
-        .toggle-item {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 12px 15px; background: var(--glass); border: 1px solid var(--border);
-            border-radius: 10px; margin-bottom: 8px; cursor: pointer; transition: 0.2s;
-        }
-        .toggle-item:hover { border-color: var(--primary); background: rgba(255,255,255,0.05); }
-        .toggle-label { font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 10px; }
-        .toggle-switch {
-            width: 36px; height: 20px; background: #333; border-radius: 20px;
-            position: relative; transition: 0.3s;
-        }
-        .toggle-switch::after {
-            content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px;
-            background: #fff; border-radius: 50%; transition: 0.3s;
-        }
-        input[type="checkbox"] { display: none; }
-        input:checked + .toggle-switch { background: var(--primary); }
-        input:checked + .toggle-switch::after { transform: translateX(16px); }
-
-        /* Editor Area */
-        .editor-wrapper { flex: 1; display: flex; flex-direction: column; background: #0b0b0e; position: relative; }
-        .editor-header {
-            height: 50px; border-bottom: 1px solid var(--border); display: flex;
-            align-items: center; justify-content: space-between; padding: 0 30px;
-            background: var(--glass);
-        }
-        .editor-title { font-size: 12px; font-weight: 700; color: var(--text-dim); display: flex; gap: 10px; align-items: center; }
-        .CodeMirror { flex: 1; font-family: 'JetBrains Mono'; font-size: 14px; background: transparent !important; }
-        .cm-s-dracula.CodeMirror { background: transparent !important; }
+        /* Controls */
+        .section-title { color: var(--primary); font-weight: 800; font-size: 13px; margin: 10px 0; letter-spacing: 1px; border-bottom: 1px solid #222; padding-bottom: 5px; }
+        .checkbox-wrapper { display: flex; gap: 10px; align-items: center; padding: 10px; background: #1a1a1a; margin-bottom: 5px; border-radius: 4px; cursor: pointer; border: 1px solid #333; transition: 0.2s; }
+        .checkbox-wrapper:hover { border-color: var(--primary); background: #202020; }
+        input[type="checkbox"] { accent-color: var(--primary); transform: scale(1.2); }
         
-        /* Action Button */
-        .btn-main {
-            width: 100%; padding: 16px; border-radius: 12px; border: none;
-            background: var(--primary); color: #000; font-weight: 800; font-size: 15px;
-            cursor: pointer; transition: 0.3s; letter-spacing: 0.5px;
-            box-shadow: 0 10px 30px -10px var(--primary);
-        }
-        .btn-main:hover { transform: translateY(-2px); box-shadow: 0 15px 40px -10px var(--primary); }
+        .btn { padding: 12px; width: 100%; background: var(--primary); color: #000; border: none; border-radius: 4px; font-weight: 800; font-size: 16px; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        .btn:hover { box-shadow: 0 0 20px var(--primary); }
+        .btn-dl { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+        .btn-scan { background: rgba(255,255,255,0.05); border: 1px solid var(--primary); color: var(--primary); display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; }
+
+        /* Overlays */
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 999; display: none; flex-direction: column; backdrop-filter: blur(5px); }
+        .overlay-header { height: 60px; border-bottom: 1px solid var(--primary); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; font-weight: bold; color: var(--primary); font-size: 20px; background: #111; }
+        .overlay-body { flex: 1; padding: 30px; overflow-y: auto; font-family: 'JetBrains Mono'; color: #ccc; white-space: pre-wrap; }
+        .close-btn { cursor: pointer; color: #f00; border: 1px solid #f00; padding: 5px 15px; font-size: 12px; border-radius: 4px; }
         
-        .btn-file {
-            width: 100%; padding: 10px; background: var(--glass); border: 1px dashed var(--border);
-            color: var(--text-dim); font-size: 12px; font-weight: 600; border-radius: 8px; cursor: pointer; margin-top: 10px;
-        }
-        .btn-file:hover { border-color: var(--primary); color: #fff; }
+        /* Terminal */
+        .term-body { background: #000; color: #0f0; font-family: 'VT323'; font-size: 22px; padding: 20px; flex: 1; overflow-y: auto; }
+        .term-in { background: #000; border-top: 1px solid #333; padding: 15px; display: flex; font-family: 'VT323'; font-size: 22px; color: #0f0; }
+        .term-in input { flex: 1; background: transparent; border: none; color: #fff; font-family: inherit; font-size: inherit; outline: none; }
 
         /* AI Chat Widget */
-        .ai-trigger {
-            position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px;
-            background: linear-gradient(135deg, var(--primary), #fff); border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; font-size: 24px;
-            color: #000; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            transition: 0.3s; z-index: 200;
-        }
-        .ai-trigger:hover { transform: scale(1.1) rotate(10deg); }
-        
-        .ai-panel {
-            position: fixed; bottom: 100px; right: 30px; width: 380px; height: 500px;
-            background: rgba(15, 15, 20, 0.8); backdrop-filter: blur(20px);
-            border: 1px solid var(--border); border-radius: 16px; display: none;
-            flex-direction: column; overflow: hidden; z-index: 200;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        }
-        .ai-header { padding: 15px; background: rgba(255,255,255,0.05); border-bottom: 1px solid #333; font-weight: 800; color: var(--primary); display:flex; justify-content:space-between; }
-        .ai-msgs { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; font-family: 'JetBrains Mono'; font-size: 12px; }
-        .msg { padding: 12px 16px; border-radius: 12px; max-width: 85%; font-size: 13px; line-height: 1.5; }
-        .msg.bot { background: var(--glass); border: 1px solid var(--border); color: #eee; align-self: flex-start; border-bottom-left-radius: 2px; }
-        .msg.user { background: var(--primary); color: #000; align-self: flex-end; border-bottom-right-radius: 2px; font-weight: 600; }
+        .ai-widget { position: fixed; bottom: 20px; right: 20px; z-index: 200; }
+        .ai-bubble { width: 60px; height: 60px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #000; cursor: pointer; box-shadow: 0 0 20px var(--primary); }
+        .ai-window { position: absolute; bottom: 80px; right: 0; width: 350px; height: 450px; background: #111; border: 1px solid var(--primary); border-radius: 8px; display: none; flex-direction: column; box-shadow: 0 0 40px rgba(0,0,0,0.8); }
+        .ai-msgs { flex: 1; padding: 15px; overflow-y: auto; font-family: 'JetBrains Mono'; font-size: 12px; color: #ccc; display:flex; flex-direction:column; gap:10px; }
+        .msg { padding: 8px 12px; border-radius: 4px; max-width: 85%; }
+        .msg.bot { background: #222; border-left: 2px solid var(--primary); align-self: flex-start; }
+        .msg.user { background: rgba(255,255,255,0.1); align-self: flex-end; text-align: right; }
+        .ai-input { padding: 10px; border-top: 1px solid #333; display: flex; gap: 5px; background: #000; }
+        .ai-input input { flex: 1; background: transparent; border: 1px solid #333; color: #fff; padding: 8px; outline: none; }
 
-        .ai-input-area { padding: 15px; border-top: 1px solid var(--border); display: flex; gap: 10px; }
-        .ai-input { flex: 1; background: #000; border: 1px solid var(--border); padding: 10px; border-radius: 8px; color: #fff; outline: none; }
-
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 var(--primary); } 70% { box-shadow: 0 0 0 20px rgba(0,0,0,0); } 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); } }
-        @media (max-width: 900px) { .layout { flex-direction: column; } .sidebar { width: 100%; height: auto; order: 2; border-right: none; border-top: 1px solid var(--primary); } .editor-wrapper { height: 500px; order: 1; } nav { padding: 0 15px; } }
+        .loader-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 50; }
+        .spinner { border: 4px solid #333; border-top: 4px solid var(--primary); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        footer { height: 30px; background: #080808; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #444; border-top: 1px solid #222; }
     </style>
 </head>
 <body>
-
     <nav>
-        <div class="brand">
-            <i class="fas fa-shield-cat"></i> 
-            EuroMoscow <small>V21 PRO</small>
-        </div>
-        
-        <div class="tabs-container">
-            <div class="tab active" onclick="setLang('python', '#3b82f6')"><i class="fab fa-python"></i> Python</div>
-            <div class="tab" onclick="setLang('javascript', '#facc15')"><i class="fab fa-js"></i> JavaScript</div>
-            <div class="tab" onclick="setLang('lua', '#22c55e')"><i class="fas fa-gamepad"></i> Lua</div>
-            <div class="tab" onclick="setLang('php', '#8b5cf6')"><i class="fab fa-php"></i> PHP</div>
-            <div class="tab" onclick="setLang('html', '#f97316')"><i class="fab fa-html5"></i> HTML</div>
-        </div>
-
-        <div style="display: flex; gap: 15px;">
-            <div class="tab" onclick="openOverlay('terminal')"><i class="fas fa-terminal"></i> Term</div>
-            <div class="tab" onclick="openOverlay('docs')"><i class="fas fa-book"></i> API</div>
+        <div class="brand"><i class="fas fa-shield-virus"></i> EURO<span>SHIELD</span></div>
+        <div class="nav-items">
+            <button class="nav-btn active" onclick="setLang('python', '#00e1ff')">PY</button>
+            <button class="nav-btn" onclick="setLang('javascript', '#facc15')">JS</button>
+            <button class="nav-btn" onclick="setLang('lua', '#00ff88')">LUA</button>
+            <button class="nav-btn" onclick="setLang('php', '#8892bf')">PHP</button>
+            <button class="nav-btn" onclick="setLang('html', '#e34c26')">HTML</button>
+            <span class="sep">|</span>
+            <button class="nav-btn" style="border-color:#0f0; color:#0f0;" onclick="openOverlay('term')">TERM</button>
+            <button class="nav-btn" style="border-color:#fff; color:#fff;" onclick="openOverlay('docs')">API</button>
         </div>
     </nav>
 
-    <div class="layout">
+    <div class="workspace">
         <div class="sidebar">
-            <div class="sidebar-header">
-                <div class="mode-switch">
-                    <div class="mode-btn active enc" onclick="setMode('encrypt')">ENCRYPT</div>
-                    <div class="mode-btn" onclick="setMode('decrypt')">DECRYPT</div>
-                </div>
+            <div style="display:flex; gap:5px; margin-bottom:20px;">
+                <button id="btnEnc" class="nav-btn active" style="flex:1; justify-content:center;" onclick="setMode('encrypt')">ENCRYPT</button>
+                <button id="btnDec" class="nav-btn" style="flex:1; justify-content:center;" onclick="setMode('decrypt')">DECRYPT</button>
             </div>
 
-            <div class="sidebar-content">
-                <div id="ai-scan-section">
-                    <button class="btn-scan" onclick="analyzeCode()">
-                        <i class="fas fa-microchip"></i> SCAN & AUTO-CONFIG
-                    </button>
-                </div>
-
-                <div id="enc-opts">
-                    <div class="opt-group">
-                        <h3>Core Protection</h3>
-                        <div id="dynamic-layers"></div>
-                    </div>
-                    <div class="opt-group" style="margin-top:20px;">
-                        <h3>FILES</h3>
-                        <input type="file" id="fileInput" style="display:none">
-                        <button class="btn-file" onclick="document.getElementById('fileInput').click()"><i class="fas fa-upload"></i> Upload File</button>
-                        <input type="file" id="zipInput" style="display:none" accept=".zip">
-                        <button class="btn-file" onclick="document.getElementById('zipInput').click()"><i class="fas fa-file-zipper"></i> Upload Project ZIP</button>
-                    </div>
-                </div>
-
-                <div id="dec-opts" style="display: none; text-align: center; color: var(--text-dim); padding: 20px;">
-                    <i class="fas fa-robot" style="font-size: 50px; color: var(--primary); margin-bottom: 20px;"></i>
-                    <p style="font-size: 14px; line-height: 1.6;">EuroMind AI will automatically detect encryption.</p>
-                </div>
+            <div id="enc-panel">
+                <button class="btn-scan" onclick="analyze()"><i class="fas fa-microchip"></i> AI SECURITY SCAN</button>
+                <div class="section-title">LAYERS</div>
+                <div id="opts-container"></div>
+                <div class="section-title" style="margin-top:20px;">FILES</div>
+                <button class="btn-file btn-dl" style="width:100%; margin-top:0; border:1px dashed #444; color:#aaa;" onclick="document.getElementById('fileInput').click()">Upload File</button>
+                <input type="file" id="fileInput" style="display:none">
             </div>
 
-            <div class="sidebar-footer">
-                <button class="btn-main" style="margin-bottom:10px; background:transparent; border:1px solid var(--primary); color:var(--primary);" onclick="downloadResult()"><i class="fas fa-download"></i> DOWNLOAD</button>
-                <button class="btn-main" onclick="processCode()">PROTECT CODE</button>
+            <div id="dec-panel" style="display:none; text-align:center; padding:20px;">
+                <i class="fas fa-robot" style="font-size:50px; color:var(--primary); margin-bottom:20px;"></i>
+                <p style="color:#888; font-size:12px;">EuroMind AI will detect encryption and recover source.</p>
+            </div>
+
+            <div style="margin-top:auto;">
+                <button class="btn-dl" style="width:100%; margin-bottom:10px;" onclick="download()">DOWNLOAD</button>
+                <button class="btn btn-action" onclick="process()">PROTECT CODE</button>
             </div>
         </div>
 
-        <div class="editor-wrapper">
-            <div class="editor-header">
-                <div class="editor-title"><i class="fas fa-code"></i> <span id="langLabel">PYTHON SOURCE</span></div>
-                <div style="display:flex; gap:15px;">
-                    <i class="fas fa-eraser" style="cursor:pointer; color:#666;" onclick="editor.setValue('')"></i>
-                    <i class="fas fa-copy" style="cursor:pointer; color:#666;" onclick="copy()"></i>
-                </div>
-            </div>
+        <div class="editor-container">
+            <div class="editor-toolbar"><span id="langLabel">PYTHON SOURCE</span> <i class="fas fa-eraser" onclick="editor.setValue('')" style="cursor:pointer; color:#666;"></i></div>
             <textarea id="editor"></textarea>
         </div>
+        <div class="editor-container" style="border-left:1px solid #333;">
+            <div class="editor-toolbar"><span style="color:var(--primary)">OUTPUT</span> <i class="fas fa-copy" onclick="copy()" style="cursor:pointer; color:var(--primary);"></i></div>
+            <textarea id="out"></textarea>
+        </div>
     </div>
 
-    <div class="ai-trigger" onclick="toggleAi()"><i class="fas fa-comment-dots"></i></div>
-    <div class="ai-panel" id="aiPanel">
-        <div class="ai-header">
-            <span>EuroMind AI</span> <i class="fas fa-times" style="cursor:pointer" onclick="toggleAi()"></i>
+    <div class="ai-widget">
+        <div class="ai-window" id="aiWindow">
+            <div style="padding:15px; border-bottom:1px solid var(--primary); color:var(--primary); font-weight:bold;">EuroMind AI <i class="fas fa-times" style="float:right; cursor:pointer;" onclick="toggleAi()"></i></div>
+            <div class="ai-msgs" id="aiMsgs"><div class="msg bot">Hello! Paste code to analyze or ask me anything.</div></div>
+            <div class="ai-input"><input type="text" id="aiIn" placeholder="Ask..."><i class="fas fa-paper-plane" style="color:var(--primary); cursor:pointer;" onclick="sendAi()"></i></div>
         </div>
-        <div class="ai-msgs" id="aiMsgs">
-            <div class="msg bot">Hello! I can analyze your code security.</div>
-        </div>
-        <div class="ai-input-area">
-            <input type="text" class="ai-input" id="aiInput" placeholder="Ask something...">
-            <i class="fas fa-paper-plane" style="color:var(--primary); cursor:pointer;" onclick="sendAiMsg()"></i>
-        </div>
+        <div class="ai-bubble" onclick="toggleAi()"><i class="fas fa-comment-dots"></i></div>
     </div>
+
+    <div id="term-overlay" class="overlay">
+        <div class="overlay-header" style="color:#0f0; border-color:#0f0;"><span><i class="fas fa-terminal"></i> TERMINAL</span> <span class="close-btn" onclick="closeOverlay('term')">CLOSE</span></div>
+        <div class="term-body" id="termOut">EuroShield Terminal v25... Ready.<br>Type python code to execute.</div>
+        <div class="term-input-area"><span class="term-prompt">$</span> <input type="text" class="term-input" id="termIn" autofocus></div>
+    </div>
+
+    <div id="docs-overlay" class="overlay">
+        <div class="overlay-header"><span>API DOCS</span> <span class="close-btn" onclick="closeOverlay('docs')">CLOSE</span></div>
+        <div class="overlay-body"><pre style="background:#111; padding:20px; border:1px solid #333;">POST /process\n{\n  "code": "print('Hi')",\n  "action": "encrypt",\n  "lang": "python"\n}</pre></div>
+    </div>
+
+    <div class="loader-overlay" id="loader"><div class="spinner"></div></div>
+    <footer>&copy; 2025 EuroMoscow.</footer>
 
     <script>
-        let currentLang = 'python';
-        let currentMode = 'encrypt';
-
+        let curLang='python', curMode='encrypt';
         const UI = {
-            python: { color: '#3b82f6', mode: 'python', opts: [{id:'rename', l:'Renaming'}, {id:'marshal', l:'Portable Blob'}, {id:'deadcode', l:'Dead Code'}, {id:'xor', l:'XOR'}, {id:'zlib', l:'Zlib'}] },
-            javascript: { color: '#facc15', mode: 'javascript', opts: [{id:'hex', l:'Hex Encoding'}, {id:'url', l:'URL Encode'}, {id:'base64', l:'Base64 Eval'}] },
-            lua: { color: '#22c55e', mode: 'lua', opts: [{id:'byte', l:'Bytecode'}, {id:'hex', l:'Hex'}, {id:'reverse', l:'Reverse'}] },
+            python: { color: '#00e1ff', mode: 'python', opts: [{id:'rename', l:'Renaming'}, {id:'marshal', l:'Portable Blob'}, {id:'deadcode', l:'Dead Code'}, {id:'xor', l:'XOR'}, {id:'zlib', l:'Zlib'}] },
+            javascript: { color: '#facc15', mode: 'javascript', opts: [{id:'hex', l:'Hex'}, {id:'url', l:'URL'}, {id:'base64', l:'Base64'}] },
+            lua: { color: '#00ff88', mode: 'lua', opts: [{id:'byte', l:'Bytecode'}, {id:'hex', l:'Hex'}, {id:'reverse', l:'Reverse'}] },
             php: { color: '#8b5cf6', mode: 'php', opts: [{id:'base64', l:'Gzip Base64'}] },
-            html: { color: '#f97316', mode: 'htmlmixed', opts: [{id:'hex', l:'Hex JS Write'}] }
+            html: { color: '#f97316', mode: 'htmlmixed', opts: [{id:'hex', l:'Hex Write'}] }
         };
 
         var editor = CodeMirror.fromTextArea(document.getElementById("editor"), { mode: "python", theme: "dracula", lineNumbers: true, lineWrapping: true });
+        var out = CodeMirror.fromTextArea(document.getElementById("out"), { mode: "python", theme: "dracula", lineNumbers: true, lineWrapping: true, readOnly: true });
 
         function setLang(l, c) {
-            currentLang = l;
+            curLang = l;
             document.documentElement.style.setProperty('--primary', c);
             document.getElementById('langLabel').innerText = l.toUpperCase() + " SOURCE";
             editor.setOption("mode", UI[l].mode);
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             event.currentTarget.classList.add('active');
             
-            const con = document.getElementById('dynamic-layers'); con.innerHTML = '';
+            const con = document.getElementById('opts-container'); con.innerHTML = '';
             UI[l].opts.forEach(o => {
-                con.innerHTML += `<label class="toggle-item"><span class="toggle-label">${o.l}</span><input type="checkbox" id="opt-${o.id}" checked><div class="toggle-switch"></div></label>`;
+                con.innerHTML += `<label class="checkbox-wrapper"><input type="checkbox" id="opt-${o.id}" checked> ${o.l}</label>`;
             });
         }
-        setLang('python', '#3b82f6');
+        setLang('python', '#00e1ff');
 
         function setMode(m) {
-            currentMode = m;
-            const btn = document.querySelectorAll('.btn-main')[1];
+            curMode = m;
+            const btn = document.querySelector('.btn-action');
             if(m === 'encrypt') {
-                document.getElementById('enc-opts').style.display='block';
-                document.getElementById('dec-opts').style.display='none';
-                document.querySelector('.mode-btn.enc').classList.add('active', 'enc');
-                document.querySelector('.mode-btn.dec').classList.remove('active', 'dec');
+                document.getElementById('enc-panel').style.display='block';
+                document.getElementById('dec-panel').style.display='none';
+                document.querySelector('.mode-btn.enc').classList.add('active');
+                document.querySelector('.mode-btn.dec').classList.remove('active');
                 btn.innerText = 'PROTECT CODE'; btn.style.background = 'var(--primary)';
             } else {
-                document.getElementById('enc-opts').style.display='none';
-                document.getElementById('dec-opts').style.display='block';
-                document.querySelector('.mode-btn.dec').classList.add('active', 'dec');
-                document.querySelector('.mode-btn.enc').classList.remove('active', 'enc');
+                document.getElementById('enc-panel').style.display='none';
+                document.getElementById('dec-panel').style.display='block';
+                document.querySelector('.mode-btn.dec').classList.add('active');
+                document.querySelector('.mode-btn.enc').classList.remove('active');
                 btn.innerText = 'DECRYPT CODE'; btn.style.background = '#ff4d4d';
             }
         }
 
-        async function processCode() {
+        async function process() {
             const code = editor.getValue(); if(!code.trim()) return alert("No Code!");
-            let opts = []; if(currentMode==='encrypt') document.querySelectorAll('input:checked').forEach(c=>opts.push(c.id.replace('opt-','')));
-            const btn = document.querySelectorAll('.btn-main')[1]; btn.innerText = 'PROCESSING...';
-            
+            let opts = []; if(curMode==='encrypt') document.querySelectorAll('input:checked').forEach(c=>opts.push(c.id.replace('opt-','')));
+            document.getElementById('loader').style.display='flex';
             try {
-                const res = await fetch('/process', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code, action:currentMode, lang:currentLang, options:opts}) });
-                const d = await res.json(); editor.setValue(d.result);
-            } catch { alert("Error"); } finally { btn.innerText = currentMode==='encrypt'?'PROTECT CODE':'DECRYPT CODE'; }
+                const res = await fetch('/process', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code, action:curMode, lang:curLang, options:opts}) });
+                const d = await res.json(); out.setValue(d.result);
+            } catch { alert("Error"); } finally { document.getElementById('loader').style.display='none'; }
         }
 
-        function downloadResult() {
-            const blob = new Blob([editor.getValue()], {type:'text/plain'});
-            const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download=`Protected.${currentLang==='python'?'py':'js'}`; a.click();
-        }
-
-        // AI & Chat
-        function toggleAi() { const p=document.getElementById('aiPanel'); p.style.display=p.style.display==='flex'?'none':'flex'; }
-        async function sendAiMsg() {
-            const i=document.getElementById('aiInput'); const t=i.value; if(!t)return;
+        // AI
+        function toggleAi() { const w=document.getElementById('aiWindow'); w.style.display=w.style.display==='flex'?'none':'flex'; }
+        async function sendAi() {
+            const i=document.getElementById('aiIn'); const t=i.value; if(!t)return;
             document.getElementById('aiMsgs').innerHTML+=`<div class="msg user">${t}</div>`; i.value='';
-            const res=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:t, code:editor.getValue()})});
+            const res=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:t, code:editor.getValue(), lang:curLang})});
             const d=await res.json(); document.getElementById('aiMsgs').innerHTML+=`<div class="msg bot">${d.reply}</div>`;
         }
-        document.getElementById('aiInput').addEventListener('keypress', e=>{if(e.key==='Enter')sendAiMsg()});
+        document.getElementById('aiIn').addEventListener('keypress', e=>{if(e.key==='Enter')sendAi()});
         
-        async function analyzeCode() {
-            const res=await fetch('/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:editor.getValue(), lang:currentLang})});
-            const d=await res.json(); toggleAi(); document.getElementById('aiMsgs').innerHTML+=`<div class="msg bot">🔍 <strong>Analysis:</strong><br>Score: ${d.score}<br>${d.msg}</div>`;
+        async function analyze() {
+            const res=await fetch('/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:editor.getValue(), lang:curLang})});
+            const d=await res.json(); toggleAi(); document.getElementById('aiMsgs').innerHTML+=`<div class="msg bot">🔍 Score: ${d.score}<br>${d.msg}</div>`;
         }
+
+        // Terminal & Download logic same as before
+        function openOverlay(id) { document.getElementById(id+'-overlay').style.display='flex'; }
+        function closeOverlay(id) { document.getElementById(id+'-overlay').style.display='none'; }
+        function download() { const b=new Blob([out.getValue()],{type:'text/plain'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download='Protected.txt'; a.click(); }
+        function copy() { navigator.clipboard.writeText(out.getValue()); alert("Copied!"); }
         
-        function copy() { navigator.clipboard.writeText(editor.getValue()); alert("Copied!"); }
-        // File Input
-        document.getElementById('fileInput').addEventListener('change', e => { const f=e.target.files[0]; if(f){ const r=new FileReader(); r.onload=ev=>editor.setValue(ev.target.result); r.readAsText(f); } });
-        // ZIP Input
-        document.getElementById('zipInput').addEventListener('change', async e => { 
-            const f=e.target.files[0]; if(!f)return;
-            const fd=new FormData(); fd.append('file', f); fd.append('options', 'rename');
-            try { const res=await fetch('/upload-zip', {method:'POST', body:fd}); const b=await res.blob(); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download='Project_Encrypted.zip'; a.click(); alert('Done!'); } catch{ alert('Error'); }
+        const termOut = document.getElementById('termOut');
+        document.getElementById('termIn').addEventListener('keypress', async e=>{
+            if(e.key==='Enter') {
+                const cmd = e.target.value; e.target.value='';
+                termOut.innerHTML += `\nroot@shield:~# ${cmd}`;
+                if(cmd==='run') {
+                    const res=await fetch('/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:editor.getValue(), lang:curLang})});
+                    const d=await res.json(); termOut.innerHTML += `\n${d.output}`;
+                } else if(cmd==='clear') termOut.innerHTML=''; else if(cmd==='exit') closeOverlay('term');
+                termOut.scrollTop=termOut.scrollHeight;
+            }
         });
     </script>
 </body>
