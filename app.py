@@ -9,7 +9,7 @@ import base64, zlib, binascii, ast, random, io, codecs, re, urllib.parse, zipfil
 app = Flask(__name__)
 
 # --- Configuration ---
-BRAND_HEADER = f"# Protected by EuroMoscow Shield\n# https://euromoscow.com\n\n"
+BRAND_HEADER = f"# Protected by EuroMoscow Shield\n# https://euro-moscow-shield.vercel.app\n\n"
 JS_HEADER = f"/* Protected by EuroMoscow Shield */\n"
 LUA_HEADER = f"-- Protected by EuroMoscow Shield\n"
 
@@ -295,3 +295,4 @@ def upload_zip():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
+
