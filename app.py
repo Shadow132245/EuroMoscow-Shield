@@ -7,41 +7,36 @@ app = Flask(__name__)
 
 BRAND = "# Protected by EuroMoscow Shield V25\n"
 
-# --- 1. EURO-MIND AI (Free Unlimited API) ---
-def ask_ai(msg, code=""):
+# --- 1. REAL AI ENGINE (Free Pollinations API) ---
+def ask_real_ai(prompt, code_context=""):
     try:
-        # تجهيز شخصية الذكاء الاصطناعي
-        system_prompt = "You are EuroMind, an expert cybersecurity assistant created by EuroMoscow. You analyze code security, explain obfuscation, and fix errors. Keep answers concise and professional."
+        system_prompt = "You are EuroMind, a professional coding security assistant created by EuroMoscow. You are helpful, concise, and expert in Python, JS, and Lua obfuscation."
+        full_prompt = f"{system_prompt}\n\nUser Code:\n{code_context}\n\nUser Question: {prompt}"
         
-        # دمج الكود مع السؤال
-        full_prompt = f"Context Code:\n{code}\n\nUser Question: {msg}"
-        
-        # استخدام Pollinations API (مجاني وبدون مفتاح)
+        # استخدام API مجاني قوي (GPT-like)
         response = requests.post('https://text.pollinations.ai/', json={
-            'messages': [
-                {'role': 'system', 'content': system_prompt},
-                {'role': 'user', 'content': full_prompt}
-            ],
-            'seed': random.randint(1, 10000), # عشوائية لضمان عدم تكرار الرد
-            'model': 'openai' # يستخدم نماذج ذكية جداً
-        }, timeout=10) # مهلة 10 ثواني
+            'messages': [{'role': 'user', 'content': full_prompt}],
+            'model': 'openai',
+            'seed': random.randint(1, 99999)
+        }, timeout=15)
         
         if response.status_code == 200:
             return response.text
-        else:
-            return local_ai(msg) # لو حصل ضغط على السيرفر نرجع للمحلي
-            
+        return "AI Server Busy. Try again."
+    except:
+        return "Connection Error. Please check your internet."
+
+# --- 2. TERMINAL ENGINE ---
+def execute_code(code):
+    f = io.StringIO()
+    try:
+        with redirect_stdout(f):
+            exec(code, {'__builtins__': __builtins__}, {})
+        return f.getvalue()
     except Exception as e:
-        return local_ai(msg)
+        return f"Error: {str(e)}"
 
-def local_ai(msg):
-    # الذكاء المحلي الاحتياطي
-    msg = msg.lower()
-    if "analyze" in msg: return "🛡️ Security Scan: Code structure seems valid. Recommend using 'Dead Code' and 'Rename' layers."
-    if "hello" in msg: return "Welcome Commander! EuroMind V25 is online."
-    return "I am EuroMind. I can help you secure your python, js, and lua scripts."
-
-# --- 2. ENCRYPTION ENGINES ---
+# --- 3. ENCRYPTION ENGINES ---
 def random_name(len=8): return '_' + ''.join(random.choices('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', k=len))
 
 def proc_py(code, opts):
@@ -89,10 +84,10 @@ def proc_html(code, opts):
     enc = urllib.parse.quote(code)
     return f"<script>document.write(decodeURIComponent('{enc}'));</script>"
 
-# --- 3. DECRYPTOR ---
+# --- 4. DECRYPTOR ---
 def universal_decrypt(code):
     curr = code
-    pats = [r"base64\.b64decode\(['\"](.*?)['\"]\)", r"atob\(['\"](.*?)['\"]\)", r"zlib\.decompress\(bytes\(\[(.*?)\]\)\)", r"eval\(['\"](\\x[0-9a-fA-F]{2}.*?)['\"]\)", r"string\.reverse\('((?:[^'\\]|\\.)*)'\)", r"base64_decode\('([^']+)'\)", r"decodeURIComponent\('([^']+)'\)"]
+    pats = [r"base64\.b64decode\(['\"](.*?)['\"]\)", r"atob\(['\"](.*?)['\"]\)", r"zlib\.decompress\(bytes\(\[(.*?)\]\)\)", r"eval\(['\"](\\x[0-9a-fA-F]{2}.*?)['\"]\)", r"string\.reverse\('((?:[^'\\]|\\.)*)'\)"]
     for _ in range(15):
         clean = curr.replace('\n',' ').strip(); found=False
         for p in pats:
@@ -100,57 +95,49 @@ def universal_decrypt(code):
             if m:
                 try:
                     payload = m.group(1)
-                    if 'zlib' in p and 'bytes' in p: curr=zlib.decompress(bytes(eval(f"[{payload}]"))).decode()
-                    elif 'zlib' in p: curr=zlib.decompress(base64.b64decode(payload)).decode()
+                    if 'zlib' in p: curr=zlib.decompress(bytes(eval(f"[{payload}]"))).decode()
                     elif 'reverse' in p: curr=payload.replace("\\'","'")[::-1]
                     elif 'hex' in p: curr=bytes.fromhex(payload.replace('\\x','')).decode()
-                    elif 'decodeURIComponent' in p: curr=urllib.parse.unquote(payload)
                     else: curr=base64.b64decode(payload).decode()
                     found=True
                 except: pass
         if not found: break
     return curr
 
-# --- 4. TERMINAL EXECUTION ---
-def execute_code(code):
-    f = io.StringIO()
-    try:
-        with redirect_stdout(f): exec(code, {'__builtins__': __builtins__}, {})
-        return f.getvalue()
-    except Exception as e: return f"Error: {str(e)}"
-
 # --- ROUTES ---
 @app.route('/')
 def home(): return render_template('index.html')
 
+# Fix for API button logic - renders index but can trigger overlay in JS
+@app.route('/docs')
+def docs(): return render_template('index.html')
+
 @app.route('/process', methods=['POST'])
 def process():
-    try:
-        d=request.json; c=d.get('code',''); a=d.get('action'); l=d.get('lang','python'); o=d.get('options',[])
-        if a == 'encrypt':
-            if l=='python': res=proc_py(c,o)
-            elif l=='javascript': res=proc_js(c,o)
-            elif l=='lua': res=proc_lua(c,o)
-            elif l=='php': res=proc_php(c,o)
-            else: res=proc_html(c,o)
-        else: res=universal_decrypt(c)
-        return jsonify({'result':res})
-    except: return jsonify({'result':c})
-
-@app.route('/run', methods=['POST'])
-def run(): return jsonify({'output': execute_code(request.json.get('code',''))})
-
-@app.route('/analyze', methods=['POST'])
-def analyze():
-    code = request.json.get('code','')
-    # الذكاء الاصطناعي يحلل الكود الآن
-    analysis = ask_ai("Analyze the security of this code and give a score out of 100. Be brief.", code)
-    return jsonify({'reply': analysis})
+    d=request.json; c=d.get('code',''); a=d.get('action'); l=d.get('lang','python'); o=d.get('options',[])
+    if a == 'encrypt':
+        if l=='python': res=proc_py(c,o)
+        elif l=='javascript': res=proc_js(c,o)
+        elif l=='lua': res=proc_lua(c,o)
+        elif l=='php': res=proc_php(c,o)
+        else: res=proc_html(c,o)
+    else: res=universal_decrypt(c)
+    return jsonify({'result':res})
 
 @app.route('/chat', methods=['POST'])
 def chat():
     d = request.json
-    return jsonify({'reply': ask_ai(d.get('message',''), d.get('code',''))})
+    return jsonify({'reply': ask_real_ai(d.get('message',''), d.get('code',''))})
+
+@app.route('/analyze', methods=['POST'])
+def analyze():
+    d = request.json
+    analysis = ask_real_ai("Analyze this code security and give a score out of 100. Keep it brief.", d.get('code',''))
+    return jsonify({'reply': analysis})
+
+@app.route('/run', methods=['POST'])
+def run():
+    return jsonify({'output': execute_code(request.json.get('code', ''))})
 
 @app.route('/upload-zip', methods=['POST'])
 def zip_up():
