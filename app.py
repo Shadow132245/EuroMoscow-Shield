@@ -8,12 +8,12 @@ app = Flask(__name__)
 BRAND = "# Protected by EuroMoscow Shield V25\n"
 
 # 🔴 ضع مفتاحك هنا (Google Gemini API)
-GEMINI_API_KEY = "AIzaSyBgR5-Ace1d1DwE6qX6va52Jiq24evr6o4"
+GEMINI_API_KEY = "AIzaSyAS34mpmUNnNbWkWlM5b6_TOqhOEC8Q0Nc"
 
 # --- 1. AI ENGINE (Real Gemini + Fallback) ---
 def ask_gemini(prompt, code_context=""):
     # لو مفيش مفتاح او المفتاح لسه النص الافتراضي، نستخدم الرد المحلي
-    if "ضع_مفتاحك" in GEMINI_API_KEY:
+    if "AIzaSyAS34mpmUNnNbWkWlM5b6_TOqhOEC8Q0Nc" in GEMINI_API_KEY:
         return local_ai_brain(prompt)
         
     try:
@@ -163,3 +163,4 @@ def zip_up():
     except: return "Error", 500
 
 if __name__ == '__main__': app.run(debug=True, port=5000)
+
