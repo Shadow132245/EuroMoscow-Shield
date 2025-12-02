@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EuroMoscow | V25 Professional</title>
+    <title>EuroMoscow | V25</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&family=VT323&display=swap" rel="stylesheet">
@@ -20,11 +20,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
 
     <style>
+        /* CSS (V25 Modern Design) */
         :root {
             --bg: #050505;
             --surface: #0f0f12;
+            --glass: rgba(255, 255, 255, 0.03);
             --border: rgba(255, 255, 255, 0.08);
-            --primary: #3b82f6; /* Blue Default */
+            --primary: #3b82f6; /* Default Blue */
             --text: #e4e4e7;
             --text-dim: #a1a1aa;
         }
@@ -42,7 +44,7 @@
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
-        /* Modern Navbar */
+        /* Navbar */
         nav {
             height: 70px; display: flex; align-items: center; justify-content: space-between;
             padding: 0 30px; border-bottom: 1px solid var(--border);
@@ -59,14 +61,12 @@
         .tab:hover { color: #fff; background: rgba(255,255,255,0.05); }
         .tab.active { background: var(--primary); color: #000; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
 
+        /* API & Terminal Links */
+        .nav-link { text-decoration: none; color: inherit; display: flex; align-items: center; gap: 8px; }
+
         /* Layout */
         .layout { display: flex; flex: 1; overflow: hidden; }
-        
-        /* Sidebar */
-        .sidebar {
-            width: 360px; background: var(--surface); border-right: 1px solid var(--border);
-            display: flex; flex-direction: column; z-index: 10;
-        }
+        .sidebar { width: 360px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 10; }
         .sidebar-content { flex: 1; overflow-y: auto; padding: 25px; display: flex; flex-direction: column; gap: 20px; }
         .sidebar-footer { padding: 25px; border-top: 1px solid var(--border); background: rgba(0,0,0,0.2); }
 
@@ -84,6 +84,7 @@
         .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: 0.3s; }
         input[type="checkbox"] { display: none; } input:checked + .toggle-switch { background: var(--primary); } input:checked + .toggle-switch::after { transform: translateX(16px); }
         
+        /* Buttons */
         .btn-main { width: 100%; padding: 16px; border-radius: 12px; border: none; background: var(--primary); color: #000; font-weight: 800; font-size: 15px; cursor: pointer; transition: 0.3s; letter-spacing: 0.5px; box-shadow: 0 10px 30px -10px var(--primary); }
         .btn-main:hover { transform: translateY(-2px); }
         .btn-scan { width: 100%; background: transparent; border: 1px solid var(--primary); color: var(--primary); padding: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; border-radius: 10px; transition: 0.3s; }
@@ -93,18 +94,15 @@
         .editor-wrapper { flex: 1; display: flex; flex-direction: column; background: #0b0b0e; position: relative; }
         .editor-header { height: 50px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; background: rgba(255, 255, 255, 0.03); }
         .CodeMirror { flex: 1; font-family: 'JetBrains Mono'; font-size: 14px; background: transparent !important; }
+        .cm-s-dracula.CodeMirror { background: transparent !important; }
 
-        /* Overlays */
+        /* Terminal Overlay */
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 900; display: none; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
         .term-window { width: 80%; height: 80%; background: #0a0a0a; border: 1px solid var(--primary); border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 0 50px rgba(0,0,0,0.5); font-family: 'VT323', monospace; font-size: 20px; overflow: hidden; }
         .term-head { padding: 10px 20px; background: #111; border-bottom: 1px solid var(--primary); color: var(--primary); display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
         .term-body { flex: 1; padding: 20px; overflow-y: auto; color: #0f0; }
         .term-input { padding: 15px; border-top: 1px solid #333; background: #000; display: flex; color: #fff; }
         .term-input input { flex: 1; background: transparent; border: none; color: #fff; font-family: inherit; font-size: inherit; outline: none; }
-
-        /* Docs Overlay */
-        .docs-window { width: 800px; max-height: 90vh; background: #111; border: 1px solid var(--primary); border-radius: 12px; padding: 40px; overflow-y: auto; position: relative; }
-        pre { background: #000; padding: 20px; border-radius: 8px; border: 1px solid #333; overflow-x: auto; }
 
         /* AI Chat */
         .ai-widget { position: fixed; bottom: 30px; right: 30px; z-index: 200; }
@@ -115,9 +113,12 @@
         .msg.bot { background: #222; border-left: 2px solid var(--primary); color: #ccc; align-self: flex-start; }
         .msg.user { background: var(--primary); color: #000; align-self: flex-end; font-weight: bold; }
         .ai-input { padding: 10px; border-top: 1px solid #333; display: flex; gap: 5px; background: #000; }
-        .ai-input input { flex: 1; background: transparent; border: none; color: #fff; outline: none; }
+        .ai-input input { flex: 1; background: transparent; border: none; color: #fff; padding: 8px; outline: none; }
 
-        @media (max-width: 1000px) { .layout { flex-direction: column; } .sidebar { width: 100%; order: 2; } .editor-wrapper { height: 500px; order: 1; } .tabs-container { display: none; } }
+        .loader-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 50; }
+        .spinner { border: 4px solid #333; border-top: 4px solid var(--primary); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @media (max-width: 1000px) { .layout { flex-direction: column; } .sidebar { width: 100%; order: 2; border-right: none; border-top: 2px solid var(--primary); height: auto; } .editor-wrapper { height: 500px; order: 1; } .tabs-container { display: none; } }
     </style>
 </head>
 <body>
@@ -132,8 +133,8 @@
             <div class="tab" onclick="setLang('html', '#f97316')"><i class="fab fa-html5"></i> HTML</div>
         </div>
         <div style="display: flex; gap: 10px;">
-            <div class="tab" onclick="openOverlay('term')"><i class="fas fa-terminal"></i> TERM</div>
-            <div class="tab" onclick="openOverlay('docs')"><i class="fas fa-book"></i> API</div>
+            <div class="tab" onclick="openOverlay('term')"><i class="fas fa-terminal"></i> Term</div>
+            <a href="/docs" class="tab" style="text-decoration:none;"><i class="fas fa-book"></i> API</a>
         </div>
     </nav>
 
@@ -158,14 +159,14 @@
                     <div onclick="document.getElementById('zipInput').click()" class="toggle-item" style="justify-content:center; color:var(--text-dim); font-weight:600;"><i class="fas fa-file-zipper"></i> Upload ZIP</div>
                 </div>
                 <div id="dec-panel" style="display:none; text-align:center; padding:20px; color:#666;">
-                    <i class="fas fa-robot" style="font-size:40px; color:var(--primary); margin-bottom:20px;"></i>
-                    <p>EuroMind AI will automatically decrypt.</p>
+                    <i class="fas fa-robot" style="font-size:50px; color:var(--primary); margin-bottom:20px;"></i>
+                    <p>EuroMind AI will automatically detect encryption and recover source.</p>
                 </div>
             </div>
 
             <div class="sidebar-footer">
+                <button class="btn-main" style="margin-bottom:10px; background:transparent; border:1px solid var(--primary); color:var(--primary);" onclick="downloadResult()"><i class="fas fa-download"></i> DOWNLOAD</button>
                 <button class="btn-main" onclick="processCode()">PROTECT CODE</button>
-                <button class="btn-main" style="background:transparent; border:1px solid var(--primary); margin-top:10px; color:var(--primary);" onclick="downloadResult()"><i class="fas fa-download"></i> DOWNLOAD</button>
             </div>
         </div>
 
@@ -184,31 +185,14 @@
     <div id="term-overlay" class="overlay">
         <div class="term-window">
             <div class="term-head"><span>TERMINAL</span> <span style="cursor:pointer; color:#ff4d4d;" onclick="closeOverlay('term')">CLOSE</span></div>
-            <div class="term-body" id="termOut">EuroShield V25 Terminal... Ready.<br>Type python code to run.</div>
+            <div class="term-body" id="termOut">EuroShield Terminal v25... Ready.<br>Type python code to run.</div>
             <div class="term-input"><span style="color:var(--primary); margin-right:10px;">$</span> <input type="text" id="termIn" autofocus></div>
-        </div>
-    </div>
-
-    <div id="docs-overlay" class="overlay">
-        <div class="docs-window">
-            <div style="display:flex; justify-content:space-between; margin-bottom:20px; border-bottom:1px solid #333; padding-bottom:10px;">
-                <h2 style="color:var(--primary); margin:0;">API Documentation</h2>
-                <span style="cursor:pointer; color:#ff4d4d; font-weight:bold;" onclick="closeOverlay('docs')">CLOSE</span>
-            </div>
-            <p style="color:#ccc;">Endpoint: <code>POST /process</code></p>
-            <pre style="color:#0f0;">import requests
-res = requests.post("{{ request.url_root }}process", json={
-    "code": "print('Hi')",
-    "action": "encrypt",
-    "lang": "python"
-})
-print(res.json()['result'])</pre>
         </div>
     </div>
 
     <div class="ai-widget">
         <div class="ai-window" id="aiWindow">
-            <div class="ai-header">EuroMind AI <i class="fas fa-times" style="cursor:pointer" onclick="toggleAi()"></i></div>
+            <div class="ai-header" style="padding:10px; border-bottom:1px solid var(--primary); font-weight:bold; color:var(--primary);">EuroMind AI <i class="fas fa-times" style="float:right; cursor:pointer;" onclick="toggleAi()"></i></div>
             <div class="ai-body" id="aiMsgs"><div class="msg bot">Hello! I can analyze your code security.</div></div>
             <div class="ai-input"><input type="text" id="aiIn" placeholder="Ask..."><i class="fas fa-paper-plane" style="color:var(--primary); cursor:pointer;" onclick="sendAi()"></i></div>
         </div>
@@ -216,7 +200,8 @@ print(res.json()['result'])</pre>
     </div>
 
     <div class="loader-overlay" id="loader"><div class="spinner"></div></div>
-    
+    <footer>&copy; 2025 EuroMoscow.</footer>
+
     <script>
         let curLang = 'python';
         let curMode = 'encrypt';
@@ -224,9 +209,9 @@ print(res.json()['result'])</pre>
         const UI = {
             python: { color: '#3b82f6', mode: 'python', opts: [{id:'rename', l:'Renaming'}, {id:'marshal', l:'Portable Blob'}, {id:'deadcode', l:'Dead Code'}, {id:'xor', l:'XOR Encryption'}, {id:'zlib', l:'Zlib'}] },
             javascript: { color: '#facc15', mode: 'javascript', opts: [{id:'hex', l:'Hex Encoding'}, {id:'url', l:'URL Encode'}, {id:'base64', l:'Base64 Eval'}] },
-            lua: { color: '#22c55e', mode: 'lua', opts: [{id:'byte', l:'Bytecode'}, {id:'hex', l:'Hex Loader'}, {id:'reverse', l:'String Reversal'}] },
-            php: { color: '#8b5cf6', mode: 'php', opts: [{id:'base64', l:'Gzip + Base64'}] },
-            html: { color: '#f97316', mode: 'htmlmixed', opts: [{id:'hex', l:'Hex JS Write'}] }
+            lua: { color: '#00ff88', mode: 'lua', opts: [{id:'byte', l:'Bytecode'}, {id:'hex', l:'Hex Loader'}, {id:'reverse', l:'String Reversal'}] },
+            php: { color: '#8b5cf6', mode: 'php', opts: [{id:'base64', l:'Gzip Base64'}] },
+            html: { color: '#f97316', mode: 'htmlmixed', opts: [{id:'hex', l:'Hex Write'}] }
         };
 
         var editor = CodeMirror.fromTextArea(document.getElementById("editor"), { mode: "python", theme: "dracula", lineNumbers: true, lineWrapping: true });
@@ -244,7 +229,7 @@ print(res.json()['result'])</pre>
                 con.innerHTML += `<label class="toggle-item"><span class="toggle-label">${o.l}</span><input type="checkbox" id="opt-${o.id}" checked><div class="toggle-switch"></div></label>`;
             });
         }
-        setLang('python', '#3b82f6');
+        setLang('python', '#3b82f6'); // Init
 
         function setMode(m) {
             curMode = m;
@@ -274,14 +259,30 @@ print(res.json()['result'])</pre>
             } catch { alert("Error"); } finally { document.getElementById('loader').style.display='none'; }
         }
 
+        // Client Side Download
         function downloadResult() {
             const blob = new Blob([editor.getValue()], {type:'text/plain'});
             const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download=`Protected.${curLang==='python'?'py':'js'}`; a.click();
         }
 
+        // Terminal Logic
         function openOverlay(id) { document.getElementById(id+'-overlay').style.display='flex'; }
         function closeOverlay(id) { document.getElementById(id+'-overlay').style.display='none'; }
+        const termOut = document.getElementById('termOut');
+        document.getElementById('termIn').addEventListener('keypress', async e=>{
+            if(e.key==='Enter') {
+                const cmd = e.target.value; e.target.value='';
+                termOut.innerHTML += `\nroot@shield:~# ${cmd}`;
+                if(cmd==='clear') termOut.innerHTML=''; else if(cmd==='exit') closeOverlay('term');
+                else {
+                    try { const r=await fetch('/run', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code:cmd, lang:curLang})});
+                    const d=await r.json(); termOut.innerHTML+=`\n${d.output}`; } catch { termOut.innerHTML+='\nError'; }
+                }
+                termOut.scrollTop=termOut.scrollHeight;
+            }
+        });
 
+        // AI Logic
         function toggleAi() { const w=document.getElementById('aiWindow'); w.style.display=w.style.display==='flex'?'none':'flex'; }
         async function sendAi() {
             const i=document.getElementById('aiIn'); const t=i.value; if(!t)return;
@@ -290,33 +291,17 @@ print(res.json()['result'])</pre>
             const d=await res.json(); document.getElementById('aiMsgs').innerHTML+=`<div class="msg bot">${d.reply}</div>`;
         }
         document.getElementById('aiIn').addEventListener('keypress', e=>{if(e.key==='Enter')sendAi()});
-        
         async function analyzeCode() {
             const res=await fetch('/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:editor.getValue(), lang:curLang})});
             const d=await res.json(); toggleAi(); document.getElementById('aiMsgs').innerHTML+=`<div class="msg bot">🔍 Score: ${d.score}<br>${d.msg}</div>`;
         }
-        
-        // Terminal Execution
-        const termOut = document.getElementById('termOut');
-        document.getElementById('termIn').addEventListener('keypress', async e=>{
-            if(e.key==='Enter') {
-                const c=e.target.value; e.target.value=''; termOut.innerHTML+=`\nroot@shield:~# ${c}`;
-                if(c==='clear') termOut.innerHTML=''; else if(c==='exit') closeOverlay('term');
-                else {
-                    try { const r=await fetch('/run', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code:c, lang:curLang})});
-                    const d=await r.json(); termOut.innerHTML+=`\n${d.output}`; } catch { termOut.innerHTML+='\nError'; }
-                }
-                termOut.scrollTop=termOut.scrollHeight;
-            }
-        });
-        
+
         document.getElementById('fileInput').addEventListener('change', e => { const f=e.target.files[0]; if(f){ const r=new FileReader(); r.onload=ev=>editor.setValue(ev.target.result); r.readAsText(f); } });
         document.getElementById('zipInput').addEventListener('change', async e => { 
             const f=e.target.files[0]; if(!f)return;
             const fd=new FormData(); fd.append('file', f); fd.append('options', 'rename');
             try { const res=await fetch('/upload-zip', {method:'POST', body:fd}); const b=await res.blob(); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download='Project_Encrypted.zip'; a.click(); alert('Done!'); } catch{ alert('Error'); }
         });
-        
         function copy() { navigator.clipboard.writeText(editor.getValue()); alert("Copied!"); }
     </script>
 </body>
