@@ -2,14 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>EuroMoscow | V26 Cosmic</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EuroMoscow | V27 Architect</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
     
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700;900&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/ayu-mirage.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/material-palenight.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
@@ -20,375 +21,358 @@
 
     <style>
         :root {
-            --bg: #030305;
+            --bg: #020204; /* Deepest Black */
             --surface: #0a0a0c;
-            --surface-2: #141418;
-            --border: rgba(255, 255, 255, 0.06);
-            --accent: #6366f1; /* Indigo */
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.08);
+            --primary: #00e1ff; /* Dynamic Neon */
             --text: #ffffff;
-            --text-dim: #94a3b8;
-            --glow: 0 0 20px rgba(99, 102, 241, 0.3);
+            --text-muted: #94a3b8;
         }
 
         * { box-sizing: border-box; outline: none; }
         body {
             margin: 0; background: var(--bg); color: var(--text);
-            font-family: 'Inter', sans-serif; height: 100vh;
+            font-family: 'Outfit', sans-serif; height: 100vh;
             display: flex; flex-direction: column; overflow: hidden;
+            /* Animated Aurora Background */
+            background: radial-gradient(circle at 50% -50%, var(--primary), transparent 70%);
+            transition: background 0.5s ease;
         }
 
-        /* Cosmic Background */
-        .cosmic-bg {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
-            background: 
-                radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.08), transparent 25%),
-                radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.08), transparent 25%);
-        }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
-        /* Navbar */
+        /* NAVBAR */
         nav {
-            height: 70px; border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 40px; background: rgba(3,3,5,0.8); backdrop-filter: blur(10px);
+            height: 70px; padding: 0 40px; display: flex; align-items: center; justify-content: space-between;
+            background: rgba(2, 2, 4, 0.8); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border);
+            z-index: 100;
         }
-        .brand { font-weight: 900; font-size: 22px; letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px; }
-        .brand i { color: var(--accent); }
+        .brand { font-size: 24px; font-weight: 900; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
+        .brand i { color: var(--primary); text-shadow: 0 0 15px var(--primary); }
         
-        .lang-tabs { display: flex; background: var(--surface); padding: 4px; border-radius: 12px; border: 1px solid var(--border); }
-        .tab { 
-            padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-dim); transition: 0.3s;
+        .tabs { display: flex; gap: 8px; background: var(--glass); padding: 5px; border-radius: 12px; border: 1px solid var(--border); }
+        .tab {
+            padding: 8px 18px; border-radius: 8px; font-size: 12px; font-weight: 700; color: var(--text-muted);
+            cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 6px;
         }
-        .tab:hover { color: #fff; background: rgba(255,255,255,0.02); }
-        .tab.active { background: var(--surface-2); color: #fff; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .tab:hover { color: #fff; background: rgba(255,255,255,0.05); }
+        .tab.active { background: var(--primary); color: #000; box-shadow: 0 0 20px var(--primary); }
 
-        /* Main Layout */
+        /* LAYOUT */
         .layout { display: flex; flex: 1; overflow: hidden; }
         
-        /* Sidebar */
-        .sidebar { width: 340px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 10; }
-        .sidebar-header { padding: 20px; border-bottom: 1px solid var(--border); }
-        .sidebar-body { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
-        .sidebar-footer { padding: 20px; border-top: 1px solid var(--border); background: var(--surface-2); }
-
-        /* Switches */
-        .mode-switch { display: flex; background: var(--bg); border-radius: 8px; padding: 4px; border: 1px solid var(--border); }
-        .switch-btn { flex: 1; padding: 8px; text-align: center; border-radius: 6px; font-size: 12px; font-weight: 700; color: var(--text-dim); cursor: pointer; transition: 0.3s; }
-        .switch-btn.active { background: var(--surface-2); color: #fff; border: 1px solid var(--border); }
+        .sidebar {
+            width: 340px; background: var(--surface); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; z-index: 10; padding: 25px;
+        }
         
-        /* Option Card */
+        /* SWITCHES */
+        .mode-switch { display: flex; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 25px; }
+        .mode-btn { flex: 1; text-align: center; padding: 10px; font-size: 12px; font-weight: 800; color: var(--text-muted); cursor: pointer; border-radius: 8px; transition: 0.3s; }
+        .mode-btn.active { background: var(--glass); color: #fff; border: 1px solid var(--border); }
+        .mode-btn.active.enc { color: var(--primary); border-color: var(--primary); }
+        .mode-btn.active.dec { color: #f87171; border-color: #f87171; }
+
+        /* OPTIONS */
         .opt-card {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 12px 16px; background: var(--bg); border: 1px solid var(--border);
-            border-radius: 10px; cursor: pointer; transition: 0.2s;
+            padding: 14px; background: var(--glass); border: 1px solid var(--border);
+            border-radius: 10px; margin-bottom: 8px; cursor: pointer; transition: 0.2s;
         }
-        .opt-card:hover { border-color: var(--accent); transform: translateX(2px); }
-        .opt-label { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-        .opt-checkbox { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+        .opt-card:hover { border-color: var(--primary); background: rgba(255,255,255,0.05); }
+        .opt-label { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        
+        /* Checkbox Style */
+        .toggle { width: 40px; height: 22px; background: #222; border-radius: 20px; position: relative; transition: 0.3s; }
+        .toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: 0.3s; }
+        input[type="checkbox"] { display: none; }
+        input:checked + .toggle { background: var(--primary); }
+        input:checked + .toggle::after { transform: translateX(18px); }
 
-        /* Main Button */
-        .btn-primary {
-            width: 100%; padding: 14px; background: linear-gradient(135deg, var(--accent), #4f46e5);
-            border: none; border-radius: 10px; color: #fff; font-weight: 700; font-size: 15px;
-            cursor: pointer; transition: 0.3s; box-shadow: var(--glow);
+        /* ACTION BUTTONS */
+        .btn-main {
+            width: 100%; padding: 16px; background: var(--primary); color: #000; border: none;
+            border-radius: 12px; font-weight: 800; font-size: 15px; cursor: pointer;
+            transition: 0.3s; letter-spacing: 1px; margin-top: auto;
+            box-shadow: 0 0 20px var(--primary);
         }
-        .btn-primary:hover { transform: scale(1.02); box-shadow: 0 0 30px rgba(99, 102, 241, 0.5); }
+        .btn-main:hover { transform: scale(1.02); box-shadow: 0 0 40px var(--primary); }
+        
+        .btn-sub {
+            width: 100%; padding: 12px; background: transparent; border: 1px solid var(--border);
+            color: var(--text-muted); border-radius: 10px; font-weight: 600; font-size: 12px;
+            cursor: pointer; transition: 0.3s; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-sub:hover { border-color: var(--primary); color: #fff; background: var(--glass); }
 
-        /* Editor */
-        .editor-area { flex: 1; display: flex; flex-direction: column; position: relative; }
-        .editor-header {
-            height: 40px; display: flex; align-items: center; justify-content: space-between;
-            padding: 0 20px; border-bottom: 1px solid var(--border); font-size: 12px;
-            background: var(--surface); font-weight: 600; color: var(--text-dim);
+        /* EDITOR */
+        .editor-area { flex: 1; display: flex; flex-direction: column; background: #0b0b0e; position: relative; }
+        .editor-bar {
+            height: 45px; display: flex; align-items: center; justify-content: space-between;
+            padding: 0 30px; border-bottom: 1px solid var(--border); font-size: 12px;
+            background: var(--glass); font-weight: 700; color: var(--text-muted);
         }
         .CodeMirror { flex: 1; font-family: 'Fira Code', monospace; font-size: 14px; background: transparent !important; }
-        .cm-s-ayu-mirage.CodeMirror { background: transparent !important; }
+        .cm-s-material-palenight.CodeMirror { background: transparent !important; }
 
-        /* TERMINAL (Professional) */
-        .term-overlay {
-            position: fixed; bottom: 0; left: 0; width: 100%; height: 0;
-            background: rgba(10, 10, 12, 0.95); backdrop-filter: blur(10px);
-            border-top: 1px solid var(--border); z-index: 200; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex; flex-direction: column;
-        }
-        .term-overlay.open { height: 400px; }
-        .term-header {
-            padding: 10px 20px; background: #111; border-bottom: 1px solid var(--border);
-            display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #888;
-        }
-        .term-body { flex: 1; padding: 15px; font-family: 'Fira Code', monospace; font-size: 14px; overflow-y: auto; color: #ccc; }
-        .term-line { margin-bottom: 4px; }
-        .term-input-line { display: flex; align-items: center; gap: 8px; }
-        .term-prompt { color: var(--accent); font-weight: bold; }
-        .term-in { flex: 1; background: transparent; border: none; color: #fff; font-family: inherit; font-size: inherit; outline: none; }
-
-        /* API DOCS MODAL */
-        .modal {
+        /* OVERLAYS */
+        .overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 999; display: none;
-            justify-content: center; align-items: center; backdrop-filter: blur(5px);
+            background: rgba(0,0,0,0.95); backdrop-filter: blur(10px); z-index: 999;
+            display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s;
         }
-        .modal-card {
-            width: 800px; max-height: 90vh; background: var(--surface); border: 1px solid var(--border);
-            border-radius: 16px; overflow: hidden; display: flex; flex-direction: column;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.6); animation: scaleUp 0.3s ease;
+        .overlay.open { opacity: 1; }
+        
+        .win {
+            width: 900px; height: 700px; background: #0e0e11; border: 1px solid var(--primary);
+            border-radius: 16px; display: flex; flex-direction: column; overflow: hidden;
+            box-shadow: 0 0 100px rgba(0,0,0,0.8); transform: scale(0.95); transition: 0.3s;
         }
-        @keyframes scaleUp { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .modal-head { padding: 20px 30px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; font-weight: 800; font-size: 18px; }
-        .modal-body { padding: 30px; overflow-y: auto; }
-        .api-method { display: inline-block; padding: 4px 8px; background: var(--accent); color: #fff; border-radius: 4px; font-size: 12px; font-weight: bold; margin-right: 10px; }
-        pre { background: #000; padding: 15px; border-radius: 8px; border: 1px solid var(--border); color: #a5b3ce; overflow-x: auto; font-family: 'Fira Code'; font-size: 13px; }
+        .overlay.open .win { transform: scale(1); }
+        
+        .win-head {
+            padding: 20px 30px; border-bottom: 1px solid var(--border); display: flex;
+            justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02);
+        }
+        .win-body { flex: 1; padding: 30px; overflow-y: auto; font-family: 'Fira Code'; font-size: 14px; color: #ccc; }
+        
+        /* Terminal Specific */
+        .term-body { background: #050505; color: #0f0; font-family: 'Fira Code'; padding: 20px; flex: 1; overflow-y: auto; }
+        .term-input { padding: 15px; border-top: 1px solid #222; background: #080808; display: flex; gap: 10px; color: #fff; font-family: 'Fira Code'; }
+        .term-field { flex: 1; background: transparent; border: none; color: #fff; outline: none; font-family: inherit; font-size: 16px; }
 
-        /* Shortcuts Hint */
-        .shortcuts { position: fixed; bottom: 10px; left: 10px; font-size: 10px; color: #444; font-family: 'Inter'; pointer-events: none; }
-
-        @media (max-width: 900px) { .layout { flex-direction: column; } .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border); order: 2; } .editor-area { height: 500px; order: 1; } .tabs-container { display: none; } }
+        @media (max-width: 1000px) { .layout { flex-direction: column; } .sidebar { width: 100%; order: 2; border-right: none; border-top: 1px solid var(--border); } .editor-area { height: 500px; order: 1; } .tabs { display: none; } }
     </style>
 </head>
 <body>
 
-    <div class="cosmic-bg"></div>
-
     <nav>
-        <div class="brand"><i class="fas fa-shield-halved"></i> EuroMoscow <small>V26</small></div>
-        <div class="tabs-container">
-            <div class="tab active" onclick="setLang('python', '#6366f1')">Python</div>
-            <div class="tab" onclick="setLang('javascript', '#eab308')">JavaScript</div>
-            <div class="tab" onclick="setLang('lua', '#22c55e')">Lua</div>
-            <div class="tab" onclick="setLang('php', '#8b5cf6')">PHP</div>
-            <div class="tab" onclick="setLang('html', '#f97316')">HTML</div>
+        <div class="brand"><i class="fas fa-shield-alt"></i> EuroMoscow <small>V27</small></div>
+        <div class="tabs">
+            <div class="tab active" onclick="setLang('python', '#00e1ff')"><i class="fab fa-python"></i> Python</div>
+            <div class="tab" onclick="setLang('javascript', '#facc15')"><i class="fab fa-js"></i> JS</div>
+            <div class="tab" onclick="setLang('lua', '#22c55e')"><i class="fas fa-gamepad"></i> Lua</div>
+            <div class="tab" onclick="setLang('php', '#8b5cf6')"><i class="fab fa-php"></i> PHP</div>
+            <div class="tab" onclick="setLang('html', '#f97316')"><i class="fab fa-html5"></i> HTML</div>
         </div>
         <div style="display: flex; gap: 10px;">
-            <button class="tab" onclick="toggleTerminal()"><i class="fas fa-terminal"></i> Term</button>
-            <button class="tab" onclick="toggleModal('api')"><i class="fas fa-book"></i> API</button>
+            <button class="tab" onclick="openModal('term')"><i class="fas fa-terminal"></i> Terminal</button>
+            <button class="tab" onclick="openModal('docs')"><i class="fas fa-book"></i> API</button>
         </div>
     </nav>
 
     <div class="layout">
         <div class="sidebar">
-            <div class="sidebar-header">
-                <div class="mode-switch">
-                    <div class="switch-btn active" onclick="setMode('encrypt')">ENCRYPT</div>
-                    <div class="switch-btn" onclick="setMode('decrypt')">DECRYPT</div>
-                </div>
+            <div class="mode-switch">
+                <div class="mode-opt active enc" onclick="setMode('encrypt')">ENCRYPT</div>
+                <div class="mode-opt" onclick="setMode('decrypt')">DECRYPT</div>
             </div>
 
-            <div class="sidebar-content">
-                <div id="enc-opts">
-                    <div style="font-size:11px; font-weight:700; color:var(--text-dim); margin-bottom:10px; text-transform:uppercase;">Protection Layers</div>
-                    <div id="dynamic-opts">
-                        </div>
-
-                    <div style="font-size:11px; font-weight:700; color:var(--text-dim); margin:20px 0 10px 0; text-transform:uppercase;">File Actions</div>
-                    <div class="opt-card" onclick="document.getElementById('file').click()">
-                        <span class="opt-label"><i class="fas fa-file-upload"></i> Upload File</span>
-                    </div>
-                    <div class="opt-card" onclick="document.getElementById('zip').click()" style="margin-top:8px;">
-                        <span class="opt-label"><i class="fas fa-file-zipper"></i> Upload Project (ZIP)</span>
-                    </div>
-                    <input type="file" id="file" style="display:none">
-                    <input type="file" id="zip" style="display:none" accept=".zip">
+            <div id="encPanel" style="flex: 1; display: flex; flex-direction: column;">
+                <div class="opt-group">
+                    <h3>Security Layers</h3>
+                    <div id="optsContainer"></div>
                 </div>
                 
-                <div id="dec-opts" style="display: none; text-align: center; padding: 20px; color: var(--text-dim);">
-                    <i class="fas fa-wand-magic-sparkles" style="font-size: 40px; margin-bottom: 15px; color: var(--accent);"></i>
-                    <p>Smart Decryptor Active.<br>Paste encrypted code and let the system handle it.</p>
+                <div class="opt-group" style="margin-top: 20px;">
+                    <h3>File Manager</h3>
+                    <label class="opt-card" onclick="document.getElementById('file').click()">
+                        <span class="opt-label"><i class="fas fa-file-code"></i> Upload Source</span>
+                    </label>
+                    <label class="opt-card" onclick="document.getElementById('zip').click()">
+                        <span class="opt-label"><i class="fas fa-file-zipper"></i> Upload Project (ZIP)</span>
+                    </label>
+                    <input type="file" id="file" hidden><input type="file" id="zip" hidden accept=".zip">
                 </div>
             </div>
 
-            <div class="sidebar-footer">
-                <button class="btn-primary" id="actionBtn" onclick="process()">PROTECT CODE (Ctrl+Enter)</button>
+            <div id="decPanel" style="display: none; flex: 1; text-align: center; justify-content: center; flex-direction: column;">
+                <i class="fas fa-unlock-keyhole" style="font-size: 50px; color: var(--primary); margin-bottom: 20px;"></i>
+                <p style="color: var(--text-muted);">Smart Decryptor Ready.<br>Paste encrypted code to reverse it.</p>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <button class="btn-main" onclick="process()">PROTECT CODE</button>
+                <button class="btn-sub" onclick="download()"><i class="fas fa-download"></i> Download Result</button>
             </div>
         </div>
 
         <div class="editor-area">
-            <div class="editor-header">
-                <span>SOURCE CODE</span>
+            <div class="editor-bar">
+                <span id="langLabel">PYTHON SOURCE</span>
                 <div style="display: flex; gap: 15px;">
-                    <i class="fas fa-eraser" onclick="editor.setValue('')" style="cursor: pointer; color: #666;"></i>
-                    <i class="fas fa-copy" onclick="copy()" style="cursor: pointer; color: #666;"></i>
-                    <i class="fas fa-download" onclick="download()" style="cursor: pointer; color: var(--accent);"></i>
+                    <i class="fas fa-eraser" onclick="editor.setValue('')" style="cursor: pointer;"></i>
+                    <i class="fas fa-copy" onclick="copy()" style="cursor: pointer;"></i>
                 </div>
             </div>
             <textarea id="editor"></textarea>
         </div>
     </div>
 
-    <div id="terminal" class="term-overlay">
-        <div class="term-header">
-            <span><i class="fas fa-terminal"></i> TERMINAL (Python Sandbox)</span>
-            <i class="fas fa-chevron-down" style="cursor: pointer;" onclick="toggleTerminal()"></i>
-        </div>
-        <div class="term-body" id="termOutput">
-            <div class="term-line" style="color: #666;">EuroShell v2.0.0 - Ready. Type 'help' or python code.</div>
-        </div>
-        <div class="term-input-line" style="padding: 10px 20px;">
-            <span class="term-prompt">➜</span>
-            <input type="text" class="term-in" id="termInput" autocomplete="off">
+    <div id="termModal" class="overlay">
+        <div class="win">
+            <div class="win-head">
+                <span style="display:flex; gap:10px; align-items:center;"><i class="fas fa-terminal"></i> SYSTEM TERMINAL</span>
+                <i class="fas fa-times close-btn" onclick="closeModal('term')"></i>
+            </div>
+            <div class="term-body" id="termOut">EuroMoscow Shell v2.0.0 - Connected.<br>Type code to execute...</div>
+            <div class="term-input">
+                <span style="color: var(--primary); margin-right: 10px;">➜</span>
+                <input type="text" class="term-field" id="termIn" autofocus>
+            </div>
         </div>
     </div>
 
-    <div id="apiModal" class="modal">
-        <div class="modal-card">
-            <div class="modal-head">
-                <span>API Documentation</span>
-                <i class="fas fa-times" style="cursor: pointer;" onclick="toggleModal('api')"></i>
+    <div id="docsModal" class="overlay">
+        <div class="win" style="height: auto; max-height: 90%;">
+            <div class="win-head">
+                <span style="display:flex; gap:10px; align-items:center;"><i class="fas fa-book"></i> API REFERENCE</span>
+                <i class="fas fa-times close-btn" onclick="closeModal('docs')"></i>
             </div>
-            <div class="modal-body">
-                <p style="color: var(--text-dim);">Automate your workflow using our secure REST API.</p>
-                <div style="margin-bottom: 20px;">
-                    <span class="api-method">POST</span> <code style="color: #fff;">{{ request.url_root }}process</code>
-                </div>
-                
-                <h3 style="margin-bottom: 10px; font-size: 14px;">Python Example</h3>
-                <pre>import requests
+            <div class="win-body">
+                <h3 style="color: var(--primary);">POST /process</h3>
+                <p style="margin-bottom: 15px; color: #888;">Automate protection via simple JSON request.</p>
+                <pre style="background: #000; padding: 20px; border-radius: 10px; border: 1px solid var(--border); color: #a5b3ce;">
+import requests
 
-url = "{{ request.url_root }}process"
-payload = {
+res = requests.post("{{ request.url_root }}process", json={
     "code": "print('Hello')",
     "action": "encrypt",
     "lang": "python",
     "options": ["rename", "marshal"]
-}
-
-res = requests.post(url, json=payload)
+})
 print(res.json()['result'])</pre>
             </div>
         </div>
     </div>
 
-    <div class="shortcuts">Ctrl+Enter: Run | Ctrl+/: Terminal | Ctrl+S: Download</div>
+    <div id="loader" class="overlay" style="z-index: 9999;"><div class="spinner"></div></div>
 
     <script>
-        // LOGIC
+        // CONFIGURATION
         let curLang = 'python';
         let curMode = 'encrypt';
-        let cmdHistory = [];
-        let historyIndex = -1;
 
-        const configs = {
-            python: { color: '#6366f1', mode: 'python', opts: [ 
-                {id:'rename', l:'Variable Renaming'}, {id:'marshal', l:'Portable Blob'}, 
-                {id:'deadcode', l:'Dead Code Injection'}, {id:'nightmare', l:'Nightmare Mode 💀'},
-                {id:'xor', l:'XOR Encryption'}
+        const UI = {
+            python: { color: '#00e1ff', mode: 'python', opts: [
+                {id:'rename', l:'Variable Renaming'}, {id:'marshal', l:'Portable Blob'},
+                {id:'deadcode', l:'Dead Code Injection'}, {id:'xor', l:'XOR Encryption'},
+                {id:'nightmare', l:'Nightmare Mode 💀'}
             ]},
-            javascript: { color: '#eab308', mode: 'javascript', opts: [{id:'hex', l:'Hex Encoding'}, {id:'url', l:'URL Encode'}, {id:'base64', l:'Base64'}] },
-            lua: { color: '#22c55e', mode: 'lua', opts: [{id:'hex', l:'Hex Loader'}, {id:'reverse', l:'String Reverse'}] },
+            javascript: { color: '#facc15', mode: 'javascript', opts: [{id:'hex', l:'Hex Encoding'}, {id:'base64', l:'Base64 Eval'}, {id:'url', l:'URL Encode'}] },
+            lua: { color: '#22c55e', mode: 'lua', opts: [{id:'byte', l:'Bytecode Array'}, {id:'hex', l:'Hex Loader'}, {id:'reverse', l:'String Reverse'}] },
             php: { color: '#8b5cf6', mode: 'php', opts: [{id:'base64', l:'Gzip + Base64'}] },
             html: { color: '#f97316', mode: 'htmlmixed', opts: [{id:'hex', l:'Hex JS Write'}] }
         };
 
         var editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
-            mode: "python", theme: "ayu-mirage", lineNumbers: true, lineWrapping: true
+            mode: "python", theme: "material-palenight", lineNumbers: true, lineWrapping: true
         });
 
+        // FUNCTIONS
         function setLang(l, c) {
             curLang = l;
-            document.documentElement.style.setProperty('--accent', c);
-            editor.setOption("mode", configs[l].mode);
+            document.documentElement.style.setProperty('--primary', c);
+            document.querySelector('.nebula')?.remove(); // Reset BG animation
+            document.body.style.background = `radial-gradient(circle at 50% -50%, ${c}30, transparent 70%)`;
+            
+            editor.setOption("mode", UI[l].mode);
+            document.getElementById('langLabel').innerText = l.toUpperCase() + " SOURCE";
             
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             event.currentTarget.classList.add('active');
             
-            renderOpts();
-        }
-        
-        function renderOpts() {
-            const c = document.getElementById('dynamic-opts'); c.innerHTML = '';
-            configs[curLang].opts.forEach(o => {
-                c.innerHTML += `
+            const ctn = document.getElementById('optsContainer'); ctn.innerHTML = '';
+            UI[l].opts.forEach(o => {
+                ctn.innerHTML += `
                     <label class="opt-card">
-                        <span class="opt-label"><i class="fas fa-layer-group" style="color:var(--accent)"></i> ${o.l}</span>
-                        <input type="checkbox" class="opt-checkbox" id="opt-${o.id}" checked>
+                        <span class="opt-label"><i class="fas fa-shield-alt" style="color:var(--primary)"></i> ${o.l}</span>
+                        <input type="checkbox" id="opt-${o.id}" checked style="display:none">
+                        <div class="toggle"></div>
                     </label>`;
             });
         }
-        setLang('python', '#6366f1');
+        setLang('python', '#00e1ff');
 
         function setMode(m) {
             curMode = m;
-            document.getElementById('enc-opts').style.display = m==='encrypt'?'block':'none';
-            document.getElementById('dec-opts').style.display = m==='encrypt'?'none':'block';
-            document.querySelectorAll('.switch-btn').forEach(b => b.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-            document.getElementById('actionBtn').innerText = m==='encrypt'?'PROTECT CODE':'DECRYPT CODE';
+            const btn = document.querySelector('.btn-main');
+            document.querySelectorAll('.mode-opt').forEach(b => b.classList.remove('active'));
+            
+            if(m === 'encrypt') {
+                document.getElementById('encPanel').style.display = 'flex';
+                document.getElementById('decPanel').style.display = 'none';
+                document.querySelector('.mode-opt.enc').classList.add('active');
+                btn.innerText = 'PROTECT CODE';
+            } else {
+                document.getElementById('encPanel').style.display = 'none';
+                document.getElementById('decPanel').style.display = 'flex';
+                document.querySelector('.mode-opt.dec').classList.add('active');
+                btn.innerText = 'DECRYPT CODE';
+            }
         }
 
         async function process() {
             const code = editor.getValue(); if(!code.trim()) return alert("No Code!");
-            let opts = []; 
-            if(curMode==='encrypt') document.querySelectorAll('.opt-checkbox:checked').forEach(c=>opts.push(c.id.replace('opt-','')));
+            let opts = []; if(curMode==='encrypt') document.querySelectorAll('input:checked').forEach(c=>opts.push(c.id.replace('opt-','')));
             
-            const btn = document.getElementById('actionBtn');
-            const oldText = btn.innerText;
-            btn.innerText = 'PROCESSING...';
-            
+            document.getElementById('loader').style.display = 'flex';
             try {
                 const res = await fetch('/process', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code, action:curMode, lang:curLang, options:opts}) });
-                const d = await res.json();
-                editor.setValue(d.result);
-            } catch { alert("Error"); }
-            finally { btn.innerText = oldText; }
+                const d = await res.json(); editor.setValue(d.result);
+            } catch { alert("Error"); } 
+            finally { document.getElementById('loader').style.display = 'none'; }
         }
 
-        // Shortcuts
-        document.addEventListener('keydown', e => {
-            if (e.ctrlKey && e.key === 'Enter') process();
-            if (e.ctrlKey && e.key === '/') toggleTerminal();
-            if (e.ctrlKey && e.key === 's') { e.preventDefault(); download(); }
-        });
-
-        // Terminal Logic
-        function toggleTerminal() {
-            const t = document.getElementById('terminal');
-            t.classList.toggle('open');
-            if(t.classList.contains('open')) document.getElementById('termInput').focus();
+        // MODALS
+        function openModal(id) { 
+            const m = document.getElementById(id+'Modal'); 
+            m.style.display = 'flex'; setTimeout(() => m.classList.add('open'), 10);
+            if(id==='term') document.getElementById('termIn').focus();
         }
-
-        const termOut = document.getElementById('termOutput');
-        const termIn = document.getElementById('termInput');
-
-        termIn.addEventListener('keydown', async e => {
-            if (e.key === 'Enter') {
-                const cmd = termIn.value; 
-                if(!cmd) return;
-                
-                cmdHistory.push(cmd); historyIndex = cmdHistory.length;
-                termIn.value = '';
-                
-                termOut.innerHTML += `<div class="term-line"><span style="color:var(--accent)">➜</span> ${cmd}</div>`;
-                
-                if (cmd === 'clear') { termOut.innerHTML = ''; return; }
-                
-                try {
-                    const res = await fetch('/run', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code: cmd}) });
-                    const d = await res.json();
-                    termOut.innerHTML += `<div class="term-line" style="color:#ccc">${d.output}</div>`;
-                } catch {
-                    termOut.innerHTML += `<div class="term-line" style="color:#f44747">Connection Error</div>`;
-                }
-                termOut.scrollTop = termOut.scrollHeight;
-            }
-            // History navigation
-            if (e.key === 'ArrowUp') {
-                if (historyIndex > 0) { historyIndex--; termIn.value = cmdHistory[historyIndex]; }
-            }
-            if (e.key === 'ArrowDown') {
-                if (historyIndex < cmdHistory.length - 1) { historyIndex++; termIn.value = cmdHistory[historyIndex]; }
-                else { historyIndex = cmdHistory.length; termIn.value = ''; }
-            }
-        });
-
-        // Utils
-        function toggleModal(id) {
+        function closeModal(id) {
             const m = document.getElementById(id+'Modal');
-            m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
+            m.classList.remove('open'); setTimeout(() => m.style.display = 'none', 300);
         }
-        function copy() { navigator.clipboard.writeText(editor.getValue()); alert("Copied!"); }
+
+        // TERMINAL LOGIC
+        const tOut = document.getElementById('termOut');
+        document.getElementById('termIn').addEventListener('keypress', async e => {
+            if(e.key === 'Enter') {
+                const cmd = e.target.value; e.target.value = '';
+                tOut.innerHTML += `<div class="term-line"><span style="color:var(--primary)">➜</span> ${cmd}</div>`;
+                if(cmd === 'clear') tOut.innerHTML = '';
+                else if(cmd === 'exit') closeModal('term');
+                else {
+                    try {
+                        const res = await fetch('/run', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code:cmd}) });
+                        const d = await res.json();
+                        tOut.innerHTML += `<div style="color:#ccc; margin-bottom:10px;">${d.output}</div>`;
+                    } catch { tOut.innerHTML += `<div style="color:#f44747">Connection Error</div>`; }
+                }
+                tOut.scrollTop = tOut.scrollHeight;
+            }
+        });
+
+        // UTILS
         function download() {
             const b = new Blob([editor.getValue()], {type:'text/plain'});
-            const u = URL.createObjectURL(b);
-            const a = document.createElement('a'); a.href=u; a.download='Result.txt'; a.click();
+            const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href=u; a.download=`Result.${curLang==='python'?'py':'js'}`; a.click();
         }
+        function copy() { navigator.clipboard.writeText(editor.getValue()); alert("Copied!"); }
+        
+        // FILE HANDLERS
+        document.getElementById('file').addEventListener('change', e => { const f=e.target.files[0]; if(f){ const r=new FileReader(); r.onload=ev=>editor.setValue(ev.target.result); r.readAsText(f); } });
+        document.getElementById('zip').addEventListener('change', async e => { 
+            const f=e.target.files[0]; if(!f)return;
+            const fd=new FormData(); fd.append('file', f); fd.append('options', 'rename');
+            try { document.getElementById('loader').style.display='flex'; const res=await fetch('/upload-zip', {method:'POST', body:fd}); const b=await res.blob(); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download='Protected.zip'; a.click(); } 
+            catch{ alert('Error'); } finally { document.getElementById('loader').style.display='none'; }
+        });
     </script>
 </body>
 </html>
