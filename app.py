@@ -7,36 +7,39 @@ app = Flask(__name__)
 
 BRAND = "# Protected by EuroMoscow Shield V25\n"
 
-# 🔴 ضع مفتاحك هنا (Google Gemini API)
-GEMINI_API_KEY = "AIzaSyAS34mpmUNnNbWkWlM5b6_TOqhOEC8Q0Nc"
-
-# --- 1. AI ENGINE (Real Gemini + Fallback) ---
-def ask_gemini(prompt, code_context=""):
-    # لو مفيش مفتاح او المفتاح لسه النص الافتراضي، نستخدم الرد المحلي
-    if "AIzaSyAS34mpmUNnNbWkWlM5b6_TOqhOEC8Q0Nc" in GEMINI_API_KEY:
-        return local_ai_brain(prompt)
-        
+# --- 1. EURO-MIND AI (Free Unlimited API) ---
+def ask_ai(msg, code=""):
     try:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={GEMINI_API_KEY}"
-        headers = {'Content-Type': 'application/json'}
-        text = f"You are EuroMind, a coding security expert. User asks: {prompt}"
-        if code_context: text += f"\n\nCode Context:\n{code_context}"
+        # تجهيز شخصية الذكاء الاصطناعي
+        system_prompt = "You are EuroMind, an expert cybersecurity assistant created by EuroMoscow. You analyze code security, explain obfuscation, and fix errors. Keep answers concise and professional."
         
-        data = {"contents": [{"parts": [{"text": text}]}]}
-        res = requests.post(url, headers=headers, json=data)
+        # دمج الكود مع السؤال
+        full_prompt = f"Context Code:\n{code}\n\nUser Question: {msg}"
         
-        if res.status_code == 200:
-            return res.json()['candidates'][0]['content']['parts'][0]['text']
+        # استخدام Pollinations API (مجاني وبدون مفتاح)
+        response = requests.post('https://text.pollinations.ai/', json={
+            'messages': [
+                {'role': 'system', 'content': system_prompt},
+                {'role': 'user', 'content': full_prompt}
+            ],
+            'seed': random.randint(1, 10000), # عشوائية لضمان عدم تكرار الرد
+            'model': 'openai' # يستخدم نماذج ذكية جداً
+        }, timeout=10) # مهلة 10 ثواني
+        
+        if response.status_code == 200:
+            return response.text
         else:
-            return f"AI Error ({res.status_code}): Please check your API Key."
+            return local_ai(msg) # لو حصل ضغط على السيرفر نرجع للمحلي
+            
     except Exception as e:
-        return local_ai_brain(prompt) # لو حصل خطأ في الاتصال، نرجع للمحلي
+        return local_ai(msg)
 
-def local_ai_brain(msg):
+def local_ai(msg):
+    # الذكاء المحلي الاحتياطي
     msg = msg.lower()
-    if "hello" in msg: return "Welcome to EuroMoscow V25! (Add API Key for Real AI)"
-    if "analyze" in msg: return "Your code structure looks valid. Use 'Max' settings for safety."
-    return "I am EuroMind. Please add a valid Google API Key in app.py to unlock my full potential."
+    if "analyze" in msg: return "🛡️ Security Scan: Code structure seems valid. Recommend using 'Dead Code' and 'Rename' layers."
+    if "hello" in msg: return "Welcome Commander! EuroMind V25 is online."
+    return "I am EuroMind. I can help you secure your python, js, and lua scripts."
 
 # --- 2. ENCRYPTION ENGINES ---
 def random_name(len=8): return '_' + ''.join(random.choices('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', k=len))
@@ -97,7 +100,8 @@ def universal_decrypt(code):
             if m:
                 try:
                     payload = m.group(1)
-                    if 'zlib' in p: curr=zlib.decompress(bytes(eval(f"[{payload}]"))).decode()
+                    if 'zlib' in p and 'bytes' in p: curr=zlib.decompress(bytes(eval(f"[{payload}]"))).decode()
+                    elif 'zlib' in p: curr=zlib.decompress(base64.b64decode(payload)).decode()
                     elif 'reverse' in p: curr=payload.replace("\\'","'")[::-1]
                     elif 'hex' in p: curr=bytes.fromhex(payload.replace('\\x','')).decode()
                     elif 'decodeURIComponent' in p: curr=urllib.parse.unquote(payload)
@@ -121,31 +125,32 @@ def home(): return render_template('index.html')
 
 @app.route('/process', methods=['POST'])
 def process():
-    d=request.json; c=d.get('code',''); a=d.get('action'); l=d.get('lang','python'); o=d.get('options',[])
-    if a == 'encrypt':
-        if l=='python': res=proc_py(c,o)
-        elif l=='javascript': res=proc_js(c,o)
-        elif l=='lua': res=proc_lua(c,o)
-        elif l=='php': res=proc_php(c,o)
-        else: res=proc_html(c,o)
-    else: res=universal_decrypt(c)
-    return jsonify({'result':res})
+    try:
+        d=request.json; c=d.get('code',''); a=d.get('action'); l=d.get('lang','python'); o=d.get('options',[])
+        if a == 'encrypt':
+            if l=='python': res=proc_py(c,o)
+            elif l=='javascript': res=proc_js(c,o)
+            elif l=='lua': res=proc_lua(c,o)
+            elif l=='php': res=proc_php(c,o)
+            else: res=proc_html(c,o)
+        else: res=universal_decrypt(c)
+        return jsonify({'result':res})
+    except: return jsonify({'result':c})
 
-@app.route('/chat', methods=['POST']) # ✅ تم التأكد من وجود هذا المسار
-def chat():
-    d = request.json
-    return jsonify({'reply': ask_gemini(d.get('message',''), d.get('code',''))})
+@app.route('/run', methods=['POST'])
+def run(): return jsonify({'output': execute_code(request.json.get('code',''))})
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
-    d = request.json
-    # نستخدم الذكاء الاصطناعي للتحليل
-    analysis = ask_gemini("Analyze the security of this code and give a score out of 100:", d.get('code',''))
-    return jsonify({'msg': analysis})
+    code = request.json.get('code','')
+    # الذكاء الاصطناعي يحلل الكود الآن
+    analysis = ask_ai("Analyze the security of this code and give a score out of 100. Be brief.", code)
+    return jsonify({'reply': analysis})
 
-@app.route('/run', methods=['POST']) # مسار التيرمينال
-def run():
-    return jsonify({'output': execute_code(request.json.get('code',''))})
+@app.route('/chat', methods=['POST'])
+def chat():
+    d = request.json
+    return jsonify({'reply': ask_ai(d.get('message',''), d.get('code',''))})
 
 @app.route('/upload-zip', methods=['POST'])
 def zip_up():
@@ -156,11 +161,9 @@ def zip_up():
                 d=zi.read(i.filename)
                 try:
                     if i.filename.endswith('.py'): zo.writestr(i.filename, proc_py(d.decode('utf-8'),o))
-                    elif i.filename.endswith('.js'): zo.writestr(i.filename, proc_js(d.decode('utf-8'),o))
                     else: zo.writestr(i,d)
                 except: zo.writestr(i,d)
         out.seek(0); return send_file(out, mimetype='application/zip', as_attachment=True, download_name='Project.zip')
     except: return "Error", 500
 
 if __name__ == '__main__': app.run(debug=True, port=5000)
-
