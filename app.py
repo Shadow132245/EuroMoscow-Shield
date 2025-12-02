@@ -5,52 +5,47 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# --- CONFIGURATION ---
 BRAND = "# Protected by EuroMoscow Shield V25\n"
-# 🔴 ضع مفتاحك هنا ليعمل الذكاء الاصطناعي الحقيقي
-# Get free key: https://aistudio.google.com/app/apikey
-GEMINI_API_KEY = "AIzaSyBgR5-Ace1d1DwE6qX6va52Jiq24evr6o4" 
 
-# --- 1. REAL AI ENGINE (GEMINI) ---
-def ask_real_ai(prompt, code_context=""):
-    if GEMINI_API_KEY == "ضع_مفتاح_API_الخاص_بجوجل_هنا":
-        return smart_fallback_ai(prompt) # Use smart local AI if no key
+# 🔴 ضع مفتاحك هنا (Google Gemini API)
+GEMINI_API_KEY = "AIzaSyBgR5-Ace1d1DwE6qX6va52Jiq24evr6o4"
 
+# --- 1. AI ENGINE (Real Gemini + Fallback) ---
+def ask_gemini(prompt, code_context=""):
+    # لو مفيش مفتاح او المفتاح لسه النص الافتراضي، نستخدم الرد المحلي
+    if "ضع_مفتاحك" in GEMINI_API_KEY:
+        return local_ai_brain(prompt)
+        
     try:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={GEMINI_API_KEY}"
         headers = {'Content-Type': 'application/json'}
+        text = f"You are EuroMind, a coding security expert. User asks: {prompt}"
+        if code_context: text += f"\n\nCode Context:\n{code_context}"
         
-        full_prompt = f"You are EuroMind, an expert coding assistant for EuroMoscow Shield V25. User asks: {prompt}"
-        if code_context: full_prompt += f"\n\nContext Code:\n{code_context}"
-
-        data = {"contents": [{"parts": [{"text": full_prompt}]}]}
-        response = requests.post(url, headers=headers, json=data)
+        data = {"contents": [{"parts": [{"text": text}]}]}
+        res = requests.post(url, headers=headers, json=data)
         
-        if response.status_code == 200:
-            return response.json()['candidates'][0]['content']['parts'][0]['text']
+        if res.status_code == 200:
+            return res.json()['candidates'][0]['content']['parts'][0]['text']
         else:
-            return f"AI Error: {response.status_code}"
+            return f"AI Error ({res.status_code}): Please check your API Key."
     except Exception as e:
-        return f"AI Connection Failed: {str(e)}"
+        return local_ai_brain(prompt) # لو حصل خطأ في الاتصال، نرجع للمحلي
 
-def smart_fallback_ai(msg):
-    # ذكاء اصطناعي محلي متطور جداً (بدون إنترنت)
+def local_ai_brain(msg):
     msg = msg.lower()
-    if "hello" in msg: return "Hello Commander! I am EuroMind V25 (Local Mode). Add an API Key for full power."
-    if "analyze" in msg: return "Please use the 'AI SCAN' button for security analysis."
-    if "python" in msg: return "I can protect Python using Rename, DeadCode, and Marshal."
-    if "decrypt" in msg: return "Switch to Decrypt Mode and I will auto-detect the layers."
-    return "I am EuroMind V25. I protect your code. (To enable Real Chat, add Gemini API Key in app.py)"
+    if "hello" in msg: return "Welcome to EuroMoscow V25! (Add API Key for Real AI)"
+    if "analyze" in msg: return "Your code structure looks valid. Use 'Max' settings for safety."
+    return "I am EuroMind. Please add a valid Google API Key in app.py to unlock my full potential."
 
-# --- 2. ENGINES (ALL LANGUAGES) ---
-def random_name(len=8): return '_' + ''.join(random.choices('abcdefghijklmnopqrstuvwxyz', k=len))
+# --- 2. ENCRYPTION ENGINES ---
+def random_name(len=8): return '_' + ''.join(random.choices('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', k=len))
 
 def proc_py(code, opts):
     res = code
     try:
         if 'deadcode' in opts:
-            dead = f"if {random.randint(10,99)} > {random.randint(100,999)}: pass"
-            res = f"{dead}\n{res}"
+            res = f"if {random.randint(10,99)} > {random.randint(100,999)}: pass\n{res}"
         if 'rename' in opts:
             class R(ast.NodeTransformer):
                 def __init__(s): s.m={}
@@ -85,15 +80,16 @@ def proc_lua(code, opts):
 def proc_php(code, opts):
     cln = code.replace('<?php','').replace('?>','').strip()
     b64 = base64.b64encode(zlib.compress(cln.encode())).decode()
-    return f"<?php /* EuroMoscow */ eval(gzuncompress(base64_decode('{b64}'))); ?>"
+    return f"<?php /* V25 */ eval(gzuncompress(base64_decode('{b64}'))); ?>"
 
 def proc_html(code, opts):
     enc = urllib.parse.quote(code)
     return f"<script>document.write(decodeURIComponent('{enc}'));</script>"
 
+# --- 3. DECRYPTOR ---
 def universal_decrypt(code):
     curr = code
-    pats = [r"base64\.b64decode\(['\"](.*?)['\"]\)", r"atob\(['\"](.*?)['\"]\)", r"zlib\.decompress\(bytes\(\[(.*?)\]\)\)", r"eval\(['\"](\\x[0-9a-fA-F]{2}.*?)['\"]\)", r"string\.reverse\('((?:[^'\\]|\\.)*)'\)", r"base64_decode\('([^']+)'\)"]
+    pats = [r"base64\.b64decode\(['\"](.*?)['\"]\)", r"atob\(['\"](.*?)['\"]\)", r"zlib\.decompress\(bytes\(\[(.*?)\]\)\)", r"eval\(['\"](\\x[0-9a-fA-F]{2}.*?)['\"]\)", r"string\.reverse\('((?:[^'\\]|\\.)*)'\)", r"base64_decode\('([^']+)'\)", r"decodeURIComponent\('([^']+)'\)"]
     for _ in range(15):
         clean = curr.replace('\n',' ').strip(); found=False
         for p in pats:
@@ -101,16 +97,17 @@ def universal_decrypt(code):
             if m:
                 try:
                     payload = m.group(1)
-                    if 'zlib' in p and 'bytes' in p: curr=zlib.decompress(bytes(eval(f"[{payload}]"))).decode()
-                    elif 'zlib' in p: curr=zlib.decompress(base64.b64decode(payload)).decode()
+                    if 'zlib' in p: curr=zlib.decompress(bytes(eval(f"[{payload}]"))).decode()
                     elif 'reverse' in p: curr=payload.replace("\\'","'")[::-1]
                     elif 'hex' in p: curr=bytes.fromhex(payload.replace('\\x','')).decode()
+                    elif 'decodeURIComponent' in p: curr=urllib.parse.unquote(payload)
                     else: curr=base64.b64decode(payload).decode()
                     found=True
                 except: pass
         if not found: break
     return curr
 
+# --- 4. TERMINAL EXECUTION ---
 def execute_code(code):
     f = io.StringIO()
     try:
@@ -121,10 +118,6 @@ def execute_code(code):
 # --- ROUTES ---
 @app.route('/')
 def home(): return render_template('index.html')
-
-# ✅ المسار المطلوب لصفحة API
-@app.route('/docs')
-def api_docs(): return render_template('api_docs.html')
 
 @app.route('/process', methods=['POST'])
 def process():
@@ -138,20 +131,21 @@ def process():
     else: res=universal_decrypt(c)
     return jsonify({'result':res})
 
-@app.route('/run', methods=['POST'])
-def run(): return jsonify({'output': execute_code(request.json.get('code',''))})
-
-@app.route('/chat', methods=['POST'])
-def chat(): 
-    d=request.json
-    return jsonify({'reply': ask_real_ai(d.get('message',''), d.get('code',''))})
+@app.route('/chat', methods=['POST']) # ✅ تم التأكد من وجود هذا المسار
+def chat():
+    d = request.json
+    return jsonify({'reply': ask_gemini(d.get('message',''), d.get('code',''))})
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
-    code = request.json.get('code','')
-    # Let the Real AI analyze the code
-    analysis = ask_real_ai("Analyze the security of this code and give a score out of 100:", code)
-    return jsonify({'reply': analysis})
+    d = request.json
+    # نستخدم الذكاء الاصطناعي للتحليل
+    analysis = ask_gemini("Analyze the security of this code and give a score out of 100:", d.get('code',''))
+    return jsonify({'msg': analysis})
+
+@app.route('/run', methods=['POST']) # مسار التيرمينال
+def run():
+    return jsonify({'output': execute_code(request.json.get('code',''))})
 
 @app.route('/upload-zip', methods=['POST'])
 def zip_up():
@@ -162,6 +156,7 @@ def zip_up():
                 d=zi.read(i.filename)
                 try:
                     if i.filename.endswith('.py'): zo.writestr(i.filename, proc_py(d.decode('utf-8'),o))
+                    elif i.filename.endswith('.js'): zo.writestr(i.filename, proc_js(d.decode('utf-8'),o))
                     else: zo.writestr(i,d)
                 except: zo.writestr(i,d)
         out.seek(0); return send_file(out, mimetype='application/zip', as_attachment=True, download_name='Project.zip')
