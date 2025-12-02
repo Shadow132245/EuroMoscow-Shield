@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EuroMoscow Shield | Py Encryptor</title>
+    <meta name="description" content="Secure your Python projects with EuroMoscow Shield.">
+    <meta property="og:image" content="{{ url_for('static', filename='logo.png') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
+    <style>
+        :root { --bg-core: #050505; --bg-panel: #111111; --accent: #00e1ff; --text-main: #eeeeee; }
+        * { box-sizing: border-box; }
+        body { margin: 0; background-color: var(--bg-core); color: var(--text-main); font-family: 'Rajdhani', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; } ::-webkit-scrollbar-track { background: var(--bg-core); } ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; } ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+        
+        nav { height: 70px; background: rgba(10, 10, 10, 0.95); border-bottom: 2px solid var(--accent); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; flex-shrink: 0; }
+        .brand { font-size: 22px; font-weight: 800; letter-spacing: 1px; color: #fff; text-transform: uppercase; display: flex; align-items: center; gap: 10px; text-decoration: none;}
+        .brand span { color: var(--accent); text-shadow: 0 0 10px var(--accent); }
+        .nav-items { display: flex; gap: 5px; align-items: center; }
+        .nav-link { color: #888; text-decoration: none; font-weight: 600; font-size: 13px; transition: 0.3s; padding: 8px 10px; border-radius: 4px; display: flex; align-items: center; gap: 6px; border: 1px solid transparent; }
+        .nav-link:hover, .nav-link.active { color: #fff; background: rgba(255, 255, 255, 0.05); border: 1px solid #333; }
+        .nav-link.active { border-color: var(--accent); color: var(--accent); }
+        @media (max-width: 900px) { .nav-link span { display: none; } .nav-link i { font-size: 16px; } nav { padding: 0 10px; } }
+
+        .workspace { display: flex; flex: 1; height: calc(100vh - 100px); overflow: hidden; }
+        .sidebar { width: 300px; background: var(--bg-panel); border-right: 1px solid #222; padding: 20px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; flex-shrink: 0; z-index: 5; }
+        .editor-container { flex: 1; display: flex; flex-direction: column; border-right: 1px solid #333; position: relative; min-width: 0; }
+        .editor-toolbar { height: 40px; background: #151515; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border-bottom: 1px solid #333; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #666; flex-shrink: 0; }
+        .CodeMirror { flex: 1; font-family: 'JetBrains Mono', monospace; font-size: 14px; height: auto !important; }
+        @media (max-width: 900px) { body { height: auto; overflow-y: auto; } .workspace { flex-direction: column; height: auto; overflow: visible; } .sidebar { width: 100%; border-right: none; border-top: 2px solid var(--accent); order: 2; height: auto; } .editor-container { width: 100%; height: 400px; border-right: none; border-bottom: 1px solid #333; order: 1; } nav { position: sticky; top: 0; } }
+
+        .section-title { color: var(--accent); text-transform: uppercase; font-weight: bold; font-size: 14px; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+        .checkbox-wrapper { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px; background: #1a1a1a; border-radius: 6px; transition: 0.3s; border: 1px solid #333; }
+        .checkbox-wrapper:hover { background: #222; border-color: var(--accent); }
+        input[type="checkbox"] { accent-color: var(--accent); transform: scale(1.2); }
+        .btn { padding: 14px; border: none; border-radius: 6px; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 16px; cursor: pointer; text-transform: uppercase; transition: 0.3s; width: 100%; letter-spacing: 1px; }
+        .btn-encrypt { background: var(--accent); color: white; box-shadow: 0 4px 15px var(--accent-glow); }
+        .btn-file { background: #1a1a1a; color: #ccc; font-size: 14px; border: 1px dashed #444; }
+        .btn-download { background: transparent; border: 1px solid var(--accent); color: var(--accent); margin-top: 10px; }
+        .loader-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 50; backdrop-filter: blur(2px); }
+        .spinner { border: 4px solid #333; border-top: 4px solid var(--accent); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        footer { height: 40px; background: #080808; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #444; border-top: 1px solid #222; font-family: 'JetBrains Mono', monospace; flex-shrink: 0; margin-top: auto;}
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/" class="brand"><i class="fas fa-shield-virus"></i> EURO<span>SHIELD</span></a>
+        <div class="nav-items">
+            <a href="/" class="nav-link active"><i class="fab fa-python"></i> <span>PY ENC</span></a>
+            <a href="/decryptor" class="nav-link"><i class="fas fa-unlock"></i> <span>PY DEC</span></a>
+            <span style="color:#333;">|</span>
+            <a href="/js-shield" class="nav-link" style="color:#f7df1e;"><i class="fab fa-js"></i> <span>JS ENC</span></a>
+            <a href="/js-decryptor" class="nav-link" style="color:#f7df1e;"><i class="fas fa-unlock-alt"></i> <span>DEC</span></a>
+            <span style="color:#333;">|</span>
+            <a href="/lua-shield" class="nav-link" style="color:#00ff88;"><i class="fas fa-gamepad"></i> <span>LUA</span></a>
+            <a href="/terminal" class="nav-link" style="color:#0f0; border-color:#0f0;"><i class="fas fa-terminal"></i> <span>TERM</span></a>
+            <a href="/docs" class="nav-link"><i class="fas fa-book"></i> <span>API</span></a>
+        </div>
+    </nav>
+
+    <div class="workspace">
+        <div class="sidebar">
+            <div class="section-title">Core Protection</div>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                <label class="checkbox-wrapper"><input type="checkbox" id="opt-rename" checked> <span>Variable Renaming</span></label>
+                <label class="checkbox-wrapper"><input type="checkbox" id="opt-marshal" checked> <span>Portable Blob (Safe)</span></label>
+                <label class="checkbox-wrapper"><input type="checkbox" id="opt-deadcode" checked> <span>Dead Code Injection</span></label>
+            </div>
+            <div class="section-title" style="margin-top:20px;">Encryption Layers</div>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                <label class="checkbox-wrapper"><input type="checkbox" id="opt-zlib" checked> <span>Zlib Compression</span></label>
+                <label class="checkbox-wrapper"><input type="checkbox" id="opt-rot13" checked> <span>Rot13 (New)</span></label>
+                <label class="checkbox-wrapper"><input type="checkbox" id="opt-xor" checked> <span>EuroMoscow XOR</span></label>
+                <label class="checkbox-wrapper"><input type="checkbox" id="opt-base64" checked> <span>Base64 Encoding</span></label>
+            </div>
+            <div class="section-title" style="margin-top:20px;">File Manager</div>
+            <input type="file" id="fileInput" style="display:none" accept=".py">
+            <button class="btn btn-file" onclick="document.getElementById('fileInput').click()"><i class="fas fa-upload"></i> Upload .py File</button>
+            <input type="file" id="zipInput" style="display:none" accept=".zip">
+            <button class="btn btn-file" style="margin-top:10px; border-color:#fff;" onclick="document.getElementById('zipInput').click()"><i class="fas fa-file-archive"></i> Upload Project (.zip)</button>
+            <div style="margin-top: auto; display:flex; flex-direction:column; gap:12px;">
+                <button class="btn btn-encrypt" onclick="runProcess('encrypt')"><i class="fas fa-lock"></i> Obfuscate Code</button>
+                <button type="button" class="btn btn-download" onclick="downloadResult()"><i class="fas fa-download"></i> Download Result</button>
+            </div>
+        </div>
+        <div class="editor-container">
+            <div class="editor-toolbar"><span><i class="fas fa-code"></i> INPUT SOURCE</span> <i class="fas fa-eraser" style="cursor:pointer;" onclick="editorIn.setValue('')"></i></div>
+            <textarea id="code-input"></textarea>
+        </div>
+        <div class="editor-container" style="border-right:none;">
+            <div class="loader-overlay" id="loader"><div class="spinner"></div></div>
+            <div class="editor-toolbar"><span style="color:var(--accent); font-weight:bold;"><i class="fas fa-terminal"></i> OUTPUT</span> <i class="fas fa-copy" style="cursor:pointer; color:var(--accent);" onclick="copyToClipboard()"></i></div>
+            <textarea id="code-output"></textarea>
+        </div>
+    </div>
+    <footer>&copy; 2025 EuroMoscow.</footer>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+    <script>
+        var editorIn = CodeMirror.fromTextArea(document.getElementById("code-input"), { mode: "python", theme: "dracula", lineNumbers: true, lineWrapping: true });
+        var editorOut = CodeMirror.fromTextArea(document.getElementById("code-output"), { mode: "python", theme: "dracula", lineNumbers: true, lineWrapping: true, readOnly: true });
+        document.getElementById('fileInput').addEventListener('change', function(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { editorIn.setValue(e.target.result); }; reader.readAsText(file); });
+        
+        async function runProcess(action) {
+            const code = editorIn.getValue(); if(!code.trim()) return alert("Please enter Python code first.");
+            let options = [];
+            if(document.getElementById('opt-rename').checked) options.push('rename');
+            if(document.getElementById('opt-marshal').checked) options.push('marshal');
+            if(document.getElementById('opt-deadcode').checked) options.push('deadcode');
+            if(document.getElementById('opt-zlib').checked) options.push('zlib');
+            if(document.getElementById('opt-rot13').checked) options.push('rot13');
+            if(document.getElementById('opt-xor').checked) options.push('xor');
+            if(document.getElementById('opt-base64').checked) options.push('base64');
+            document.getElementById('loader').style.display = 'flex';
+            try { const res = await fetch('/process', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ code, action, options }) }); const data = await res.json(); editorOut.setValue(data.result); } catch(e) { editorOut.setValue("Error: " + e); } finally { document.getElementById('loader').style.display = 'none'; }
+        }
+        function downloadResult() { const code = editorOut.getValue(); if(!code) return alert("No result to download!"); const blob = new Blob([code], { type: "text/x-python" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = "EuroMoscow_Protected.py"; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); }
+        document.getElementById('zipInput').addEventListener('change', async function(e) { const file = e.target.files[0]; if (!file) return; if(!confirm("Encrypt everything inside this ZIP?")) return; const formData = new FormData(); formData.append('file', file); let options = []; if(document.getElementById('opt-rename').checked) options.push('rename'); if(document.getElementById('opt-marshal').checked) options.push('marshal'); if(document.getElementById('opt-xor').checked) options.push('xor'); formData.append('options', options.join(',')); document.getElementById('loader').style.display = 'flex'; try { const res = await fetch('/upload-zip', { method: 'POST', body: formData }); if(!res.ok) throw new Error("Upload failed"); const blob = await res.blob(); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = "EuroMoscow_Project_Protected.zip"; document.body.appendChild(a); a.click(); document.body.removeChild(a); alert("Project Encrypted & Downloaded!"); } catch(e) { alert("Error: " + e); } finally { document.getElementById('loader').style.display = 'none'; } });
+        function copyToClipboard() { navigator.clipboard.writeText(editorOut.getValue()); alert("Copied!"); }
+    </script>
+</body>
+</html>
+
