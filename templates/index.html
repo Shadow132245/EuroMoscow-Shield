@@ -31,7 +31,7 @@
             --font-code: 'JetBrains Mono', monospace;
         }
 
-        * { box-sizing: border-box; outline: none; }
+        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; background: var(--bg); color: #fff; font-family: var(--font-ui); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
         /* --- BACKGROUND FX --- */
@@ -39,7 +39,7 @@
         .scanlines { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(0deg, rgba(0,0,0,0.2) 0px, rgba(0,0,0,0.2) 1px, transparent 1px, transparent 2px); pointer-events: none; z-index: 900; }
 
         /* --- SCROLLBAR --- */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: #050505; }
         ::-webkit-scrollbar-thumb { background: #333; border: 1px solid var(--primary); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--primary); box-shadow: 0 0 10px var(--primary); }
@@ -104,14 +104,15 @@
         .modal-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
         .win { width: 85%; height: 85%; background: #08080a; border: 1px solid var(--primary); display: flex; flex-direction: column; box-shadow: 0 0 100px rgba(157,0,255,0.2); animation: zoom 0.3s ease; }
         @keyframes zoom { from{transform:scale(0.9);opacity:0;} to{transform:scale(1);opacity:1;} }
-        .win-head { padding: 20px 30px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; font-family: var(--font-head); color: var(--primary); background: rgba(157,0,255,0.05); }
+        .win-head { padding: 20px 30px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-family: var(--font-head); color: var(--primary); background: rgba(157,0,255,0.05); }
         .win-body { flex: 1; padding: 30px; overflow-y: auto; color: #ccc; font-family: var(--font-code); font-size: 14px; }
 
         /* --- TABLES (HISTORY) --- */
-        .log-table { width: 100%; border-collapse: collapse; }
+        .log-table { width: 100%; border-collapse: collapse; min-width: 500px; /* Ensure table scrolls on mobile */ }
         .log-table th { text-align: left; padding: 15px; border-bottom: 1px solid var(--primary); color: var(--primary); }
         .log-table td { padding: 15px; border-bottom: 1px solid #222; color: #aaa; }
         .log-table tr:hover td { background: rgba(157,0,255,0.05); color: #fff; }
+        .table-responsive { overflow-x: auto; }
 
         /* TERMINAL */
         .term-out { flex: 1; padding: 20px; color: #0f0; overflow-y: auto; }
@@ -120,7 +121,30 @@
         /* NOTIFICATION */
         .toast { position: fixed; bottom: 30px; right: 30px; padding: 15px 25px; background: var(--primary); color: #000; font-family: var(--font-head); font-size: 12px; border-radius: 4px; transform: translateX(200%); transition: 0.5s; z-index: 9000; font-weight: bold; box-shadow: 0 0 20px var(--primary); }
 
-        @media(max-width:900px){ .layout{flex-direction:column;} .sidebar{width:100%; height:auto; order:2;} .editor-wrap{height:500px; order:1;} }
+        /* --- RESPONSIVE MEDIA QUERIES --- */
+        @media (max-width: 900px) {
+            body { height: auto; min-height: 100vh; overflow-y: auto; }
+            .layout { flex-direction: column; overflow: visible; }
+            
+            nav { padding: 0 20px; height: auto; flex-wrap: wrap; padding-bottom: 15px; }
+            .brand { font-size: 20px; margin-top: 15px; margin-bottom: 10px; width: 100%; justify-content: center; }
+            .nav-dock { width: 100%; justify-content: space-around; }
+            
+            /* Reorder: Editor first (order 1), Sidebar controls last (order 2) */
+            .editor-wrap { height: 60vh; order: 1; border-bottom: 1px solid var(--border); }
+            .sidebar { width: 100%; height: auto; order: 2; padding: 20px; border-right: none; }
+            
+            .win { width: 95%; height: 90%; }
+            .toast { right: 10px; bottom: 10px; width: 90%; text-align: center; }
+        }
+
+        @media (max-width: 480px) {
+            .nav-btn { padding: 8px 12px; font-size: 10px; }
+            .editor-hud { padding: 0 15px; }
+            .mode-opt { padding: 10px; font-size: 11px; }
+            .opt-item { padding: 10px; }
+            .btn-infinite { font-size: 14px; padding: 16px; }
+        }
     </style>
 </head>
 <body>
@@ -131,8 +155,8 @@
     <nav>
         <div class="brand">V95 <span>INFINITE</span></div>
         <div class="nav-dock">
-            <button class="nav-btn" onclick="openModal('term')"><i class="fas fa-terminal"></i> TERMINAL</button>
-            <button class="nav-btn" onclick="fetchLogs()"><i class="fas fa-history"></i> HISTORY</button>
+            <button class="nav-btn" onclick="openModal('term')"><i class="fas fa-terminal"></i> TERM</button>
+            <button class="nav-btn" onclick="fetchLogs()"><i class="fas fa-history"></i> LOGS</button>
             <button class="nav-btn" onclick="openModal('docs')"><i class="fas fa-book"></i> API</button>
         </div>
     </nav>
@@ -202,10 +226,12 @@
         <div class="win">
             <div class="win-head"><span>// OPERATION_LOGS</span> <i class="fas fa-times" onclick="closeModal('history')" style="cursor:pointer"></i></div>
             <div class="win-body">
-                <table class="log-table">
-                    <thead><tr><th>TIME</th><th>IP</th><th>LANG</th><th>METHOD</th><th>RISK</th></tr></thead>
-                    <tbody id="logBody"></tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="log-table">
+                        <thead><tr><th>TIME</th><th>IP</th><th>LANG</th><th>METHOD</th><th>RISK</th></tr></thead>
+                        <tbody id="logBody"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -234,7 +260,10 @@ print(res.json()['result'])</pre>
         // --- BACKGROUND FX ---
         const cvs = document.getElementById('starfield');
         const ctx = cvs.getContext('2d');
-        cvs.width = window.innerWidth; cvs.height = window.innerHeight;
+        function resizeCanvas() { cvs.width = window.innerWidth; cvs.height = window.innerHeight; }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
         let stars = []; for(let i=0;i<100;i++) stars.push({x:Math.random()*cvs.width,y:Math.random()*cvs.height,s:Math.random()*2});
         function anim() {
             ctx.fillStyle='#000'; ctx.fillRect(0,0,cvs.width,cvs.height);
@@ -328,6 +357,7 @@ print(res.json()['result'])</pre>
                 tOut.innerHTML += `<br><span style="color:var(--primary)">root@v95:~#</span> ${c}`;
                 try{ const r=await fetch('/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:c})}); const d=await r.json(); tOut.innerHTML+=`<br>${d.output}`; }
                 catch{ tOut.innerHTML+='<br>Error'; }
+                tOut.scrollTop = tOut.scrollHeight;
             }
         });
 
