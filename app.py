@@ -1,59 +1,132 @@
-import os, sys, random, base64, zlib, ast, io, codecs, re, zipfile
+# ==========================================
+# Project: EuroMoscow Shield V50 (GOD MODE)
+# Core: Multi-Language Advanced Obfuscation
+# ==========================================
+
+import os, sys, random, base64, zlib, ast, io, codecs, re, urllib.parse, zipfile, string
 from flask import Flask, render_template, request, jsonify, send_file
 from contextlib import redirect_stdout
 
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB Limit
+SERVER_KEY = random.randint(1000, 9999) # Session Key
 
-BRAND = "# Protected by EuroMoscow V35 (Black Hole)\n"
+BRAND = "# Protected by EuroMoscow V50 (God Mode)\n"
 
-# --- CORE ENGINES ---
-def rand_str(l=10): return ''.join(random.choices('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', k=l))
+# --- HELPER FUNCTIONS ---
+def rand_str(l=8): return ''.join(random.choices(string.ascii_letters, k=l))
+def rand_hex(l=4): return ''.join(random.choices('0123456789ABCDEF', k=l))
 
-def obfuscate_python(code, layers):
+# ==========================================
+# 1. PYTHON ENGINES (CHAOS & NIGHTMARE)
+# ==========================================
+def proc_python(code, opts):
+    res = code
     try:
-        # 1. Dead Code Injection
-        if 'dead' in layers:
-            code = f"if 2077 > {random.randint(3000,9999)}: exit()\n{code}"
-        # 2. Variable Renaming (AST)
-        if 'rename' in layers:
+        # CHAOS LAMBDA (New in V50)
+        # يحول الكود لسطر واحد معقد جداً
+        if 'chaos' in opts:
+            b64 = base64.b64encode(zlib.compress(res.encode())).decode()
+            res = f"import zlib,base64;((lambda _0x:exec(zlib.decompress(base64.b64decode(_0x))))('{b64}'))"
+
+        # Standard AST Renaming
+        if 'rename' in opts:
             class R(ast.NodeTransformer):
                 def __init__(s): s.m={}
                 def visit_Name(s,n):
                     if isinstance(n.ctx,(ast.Store,ast.Del)) and n.id not in dir(__builtins__):
-                        if n.id not in s.m: s.m[n.id]=rand_str(12)
+                        if n.id not in s.m: s.m[n.id]=f"_{rand_hex(6)}"
                     return n
-            code = ast.unparse(R().visit(ast.parse(code)))
-        # 3. Compression
-        if 'marshal' in layers:
-            c = zlib.compress(code.encode('utf-8'))
-            code = f"import zlib,base64;exec(zlib.decompress({c}))"
-        # 4. Final Armor
-        b64 = base64.b64encode(code.encode()).decode()
-        return f"{BRAND}import base64;exec(base64.b64decode('{b64}'))"
-    except Exception as e: return f"# Error: {e}\n{code}"
+            try: res = ast.unparse(R().visit(ast.parse(res)))
+            except: pass
 
-def obfuscate_js(code):
-    h = ''.join([f'\\x{ord(c):02x}' for c in code])
-    return f"/* V35 */\neval('{h}')"
+        # Dead Code
+        if 'dead' in opts:
+            junk = f"if {random.randint(10,99)}=={random.randint(100,999)}: pass"
+            res = f"{junk}\n{res}"
 
-def obfuscate_lua(code):
-    return f"-- V35\nload(string.dump(loadstring([=[{code}]=])))()"
+        # Final Armor (Marshal + Base64)
+        if 'marshal' in opts:
+            c = zlib.compress(res.encode()); b=list(c)
+            res = f"import zlib;exec(zlib.decompress(bytes({b})),globals())"
+        
+        final = base64.b64encode(res.encode()).decode()
+        return f"{BRAND}import base64;exec(base64.b64decode('{final}'))"
+    except: return code
 
-def obfuscate_generic(code, lang):
-    # For Go, PHP, Java, etc. - Uses Base64 Wrapper
+# ==========================================
+# 2. JAVASCRIPT ENGINES (SPECTRAL PACKER)
+# ==========================================
+def proc_js(code, opts):
+    res = code
+    # SPECTRAL PACKER (New in V50)
+    # يغلف الكود داخل دالة فورية التنفيذ مع تشفير
+    if 'packer' in opts:
+        b64 = base64.b64encode(res.encode()).decode()
+        # دالة فك تشفير تبدو معقدة
+        wrapper = f"""(function(_0x, _0y){{
+    var _0z = function(_0a){{ return atob(_0a); }};
+    eval(_0z(_0x));
+}})('{b64}', '{rand_str(5)}');"""
+        return f"/* V50 Spectral */\n{wrapper}"
+
+    if 'hex' in opts:
+        h = ''.join([f'\\x{ord(c):02x}' for c in res])
+        return f"eval('{h}')"
+        
+    return f"eval(decodeURIComponent('{urllib.parse.quote(res)}'))"
+
+# ==========================================
+# 3. LUA ENGINES (ABYSS VM)
+# ==========================================
+def proc_lua(code, opts):
+    # ABYSS VM SIMULATION (New in V50)
+    if 'vm' in opts:
+        # يحول الكود لـ Bytecode ثم يضعه في جدول أرقام
+        b = [str(ord(c)) for c in code]
+        table = "{" + ",".join(b) + "}"
+        loader = f"""
+local _0x = {table}
+local _0y = ''
+for _,v in ipairs(_0x) do _0y=_0y..string.char(v) end
+load(_0y)()
+"""
+        return f"-- V50 Abyss VM\n{loader}"
+
+    # Basic Hex Loader
+    h = "".join([f"\\{ord(c)}" for c in code])
+    return f"loadstring('{h}')()"
+
+# ==========================================
+# 4. PHP & GO ENGINES (PHANTOM & ARMOR)
+# ==========================================
+def proc_php(code, opts):
+    # PHANTOM MODE
+    if 'ghost' in opts:
+        b64 = base64.b64encode(gz_enc := zlib.compress(code.encode())).decode()
+        # استخدام دوال متغيرة الاسم
+        return f"<?php $_a='base64_decode';$_b='gzuncompress';eval($_b($_a('{b64}'))); ?>"
+    return f"<?php eval(base64_decode('{base64.b64encode(code.encode()).decode()}')); ?>"
+
+def proc_go(code, opts):
+    # BINARY ARMOR
     b64 = base64.b64encode(code.encode()).decode()
-    if lang == 'php': return f"<?php eval(base64_decode('{b64}')); ?>"
-    if lang == 'go': return f"package main\nimport(\"encoding/base64\";\"fmt\")\nfunc main(){{s,_:=base64.StdEncoding.DecodeString(\"{b64}\");fmt.Print(string(s))}}"
-    if lang == 'ruby': return f"eval(Base64.decode64('{b64}'))"
-    return f"// Protected {lang}\n// {b64}"
+    return f"""package main
+import("encoding/base64";"fmt";"os")
+func main(){{
+    d,_ := base64.StdEncoding.DecodeString("{b64}")
+    // V50 Armor
+    fmt.Println(string(d))
+}}"""
 
+# ==========================================
+# 5. UNIVERSAL DECRYPTOR
+# ==========================================
 def universal_decrypt(code):
     curr = code
-    # Patterns for Base64, Hex, Zlib, etc.
     pats = [
         r"base64\.b64decode\(['\"](.*?)['\"]\)", r"atob\(['\"](.*?)['\"]\)", 
-        r"base64_decode\('([^']+)'\)", r"DecodeString\(\"([^\"]+)\"\)"
+        r"base64_decode\('([^']+)'\)", r"DecodeString\(\"([^\"]+)\"\)",
+        r"zlib\.decompress\(base64\.b64decode\(['\"](.*?)['\"]\)\)"
     ]
     for _ in range(15):
         found = False
@@ -61,7 +134,12 @@ def universal_decrypt(code):
             m = re.search(p, curr)
             if m:
                 try:
-                    curr = base64.b64decode(m.group(1)).decode(errors='ignore')
+                    payload = m.group(1)
+                    # Try Base64 then Zlib
+                    try: decoded = zlib.decompress(base64.b64decode(payload)).decode()
+                    except: decoded = base64.b64decode(payload).decode(errors='ignore')
+                    
+                    curr = decoded
                     found = True
                 except: pass
         if not found: break
@@ -69,60 +147,42 @@ def universal_decrypt(code):
 
 # --- ROUTES ---
 @app.route('/')
-def index(): return render_template('index.html')
+def home(): return render_template('index.html')
 
 @app.route('/process', methods=['POST'])
-def api_process():
-    d = request.json
-    code, action, lang, opts = d.get('code',''), d.get('action'), d.get('lang'), d.get('options',[])
-    
-    if action == 'encrypt':
-        if lang == 'python': res = obfuscate_python(code, opts)
-        elif lang == 'javascript': res = obfuscate_js(code)
-        elif lang == 'lua': res = obfuscate_lua(code)
-        else: res = obfuscate_generic(code, lang)
-    else:
-        res = universal_decrypt(code)
-    
-    return jsonify({'result': res})
+def process():
+    d=request.json; c=d.get('code',''); a=d.get('action'); l=d.get('lang'); o=d.get('options',[])
+    if a == 'encrypt':
+        if l=='python': res=proc_python(c,o)
+        elif l=='javascript': res=proc_js(c,o)
+        elif l=='lua': res=proc_lua(c,o)
+        elif l=='php': res=proc_php(c,o)
+        elif l=='go': res=proc_go(c,o)
+        else: res=c
+    else: res=universal_decrypt(c)
+    return jsonify({'result':res})
 
 @app.route('/run', methods=['POST'])
-def api_run():
-    # Safe Python Sandbox (Mock)
-    code = request.json.get('code','')
+def run():
     f = io.StringIO()
     try:
-        with redirect_stdout(f): exec(code, {'__builtins__': __builtins__}, {})
+        with redirect_stdout(f): exec(request.json.get('code',''), {'__builtins__':__builtins__}, {})
         return jsonify({'output': f.getvalue()})
     except Exception as e: return jsonify({'output': str(e)})
 
-@app.route('/analyze', methods=['POST'])
-def api_analyze():
-    c = request.json.get('code','')
-    score = 100
-    risk = []
-    if len(c) < 50: score=10; risk.append("Code too short")
-    if 'import' in c: risk.append("Imports detected")
-    if 'os.' in c: score-=50; risk.append("System Access (Critical)")
-    return jsonify({'msg': f"🛡️ SECURITY AUDIT\nScore: {score}/100\nRisks: {', '.join(risk) if risk else 'None'}"})
-
-@app.route('/zip', methods=['POST'])
-def api_zip():
+@app.route('/upload-zip', methods=['POST'])
+def zip_up():
     try:
-        f = request.files['file']
-        opts = request.form.get('options','').split(',')
-        m_in = io.BytesIO(f.read())
-        m_out = io.BytesIO()
-        with zipfile.ZipFile(m_in,'r') as zi, zipfile.ZipFile(m_out,'w',zipfile.ZIP_DEFLATED) as zo:
+        f=request.files['file']; m=io.BytesIO(f.read()); out=io.BytesIO(); o=request.form.get('options','').split(',')
+        with zipfile.ZipFile(m,'r') as zi, zipfile.ZipFile(out,'w',zipfile.ZIP_DEFLATED) as zo:
             for i in zi.infolist():
-                d = zi.read(i.filename)
+                d=zi.read(i.filename)
                 try:
-                    if i.filename.endswith('.py'): res = obfuscate_python(d.decode(), opts)
-                    else: res = d
-                    zo.writestr(i.filename, res)
-                except: zo.writestr(i, d)
-        m_out.seek(0)
-        return send_file(m_out, mimetype='application/zip', as_attachment=True, download_name='Protected.zip')
+                    if i.filename.endswith('.py'): zo.writestr(i.filename, proc_python(d.decode(),o))
+                    elif i.filename.endswith('.js'): zo.writestr(i.filename, proc_js(d.decode(),o))
+                    else: zo.writestr(i,d)
+                except: zo.writestr(i,d)
+        out.seek(0); return send_file(out, mimetype='application/zip', as_attachment=True, download_name='Protected_V50.zip')
     except: return "Error", 500
 
 if __name__ == '__main__': app.run(debug=True, port=5000)
