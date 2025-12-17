@@ -34,6 +34,31 @@
         * { box-sizing: border-box; outline: none; }
         body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-ui); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
+        /* --- GLOBAL SCROLLBAR FIX (Theme Matched) --- */
+        /* يضمن أن السكرول بار يأخذ لون الثيم في كل مكان */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #050505; 
+            border-left: 1px solid var(--border);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333; 
+            border: 1px solid #000;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+            box-shadow: 0 0 10px var(--primary); /* تأثير توهج عند اللمس */
+        }
+        /* إصلاح خاص للفايرفوكس */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #333 #050505;
+        }
+
         /* ANIMATED BG */
         .grid-bg {
             position: fixed; top: 0; left: 0; width: 200%; height: 200%; z-index: -2;
@@ -129,11 +154,11 @@
                 <div class="mode-opt dec" onclick="setMode('decrypt')">DECRYPT</div>
             </div>
 
-            <div id="encPanel" style="flex:1;">
+            <div id="encPanel" style="display:flex; flex-direction:column; flex:1;">
                 <div style="font-size:11px; font-weight:700; color:var(--primary); margin-bottom:15px; display:flex; justify-content:space-between;">
                     <span>LANGUAGES</span> <span>01</span>
                 </div>
-                <select id="langSelect" onchange="setLang(this.value)" style="width:100%; padding:12px; background:#000; color:#fff; border:1px solid var(--border); border-radius:6px; margin-bottom:20px;">
+                <select id="langSelect" onchange="setLang(this.value)" style="width:100%; padding:12px; background:#000; color:#fff; border:1px solid var(--border); border-radius:6px; margin-bottom:20px; font-family:var(--font-ui); font-weight:bold;">
                     <option value="python">Python (Recommended)</option>
                     <option value="javascript">JavaScript</option>
                     <option value="lua">Lua (Roblox/FiveM)</option>
@@ -144,7 +169,7 @@
                 <div style="font-size:11px; font-weight:700; color:var(--primary); margin-bottom:15px;">
                     <span>LAYERS</span> <span>02</span>
                 </div>
-                <div id="optsContainer"></div>
+                <div id="optsContainer" style="display:flex; flex-direction:column; gap:5px;"></div>
 
                 <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:20px;">
                     <button class="nav-btn" style="width:100%; justify-content:center; margin-bottom:10px;" onclick="document.getElementById('file').click()">
@@ -265,9 +290,9 @@ print(response.json()['result'])</pre>
             const con = document.getElementById('optsContainer'); con.innerHTML = '';
             if(UI[l]) UI[l].opts.forEach(o => {
                 con.innerHTML += `
-                    <label style="display:flex; justify-content:space-between; padding:10px; background:rgba(255,255,255,0.03); margin-bottom:5px; border-radius:4px; cursor:pointer;">
+                    <label style="display:flex; justify-content:space-between; padding:12px; background:rgba(255,255,255,0.03); margin-bottom:8px; border-radius:4px; cursor:pointer; border:1px solid transparent; transition:0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='transparent'">
                         <span style="font-size:13px; font-weight:600;">${o.l}</span>
-                        <input type="checkbox" id="opt-${o.id}" checked>
+                        <input type="checkbox" id="opt-${o.id}" checked style="accent-color:var(--primary); transform:scale(1.2);">
                     </label>`;
             });
         }
@@ -277,7 +302,10 @@ print(response.json()['result'])</pre>
             curMode = m;
             document.querySelectorAll('.mode-opt').forEach(b => b.classList.remove('active'));
             if(m==='encrypt') {
-                document.getElementById('encPanel').style.display='flex';
+                const enc = document.getElementById('encPanel');
+                enc.style.display='flex';
+                enc.style.flexDirection='column';
+                enc.style.flex='1';
                 document.getElementById('decPanel').style.display='none';
                 document.querySelector('.mode-opt.enc').classList.add('active');
             } else {
