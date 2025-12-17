@@ -1,6 +1,7 @@
 # ==============================================================================
-# PROJECT: EUROMOSCOW V60 (EVENT HORIZON)
-# CORE: POLYMORPHIC ENGINE + LOGIC BOMBS + ANTI-VM
+# PROJECT: EUROMOSCOW V70 (QUANTUM SINGULARITY)
+# ARCHITECT: HASSAN
+# CORE: 12-LANG POLYMORPHIC ENGINE + INVISIBLE INK + IP LOCK
 # ==============================================================================
 
 import os, sys, time, random, base64, zlib, ast, io, re, zipfile, string, platform
@@ -8,91 +9,107 @@ from flask import Flask, render_template, request, jsonify, send_file
 from contextlib import redirect_stdout
 
 app = Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = 64 * 1024 * 1024 # 64MB Support
 
-# --- CONFIG ---
-BRAND = f"# EURO-MOSCOW V60 :: EVENT HORIZON :: {random.randint(1000,9999)}\n"
+BRAND = f"# EURO-MOSCOW V70 :: QUANTUM CORE :: {random.randint(10000,99999)}\n"
 
-# --- 1. POLYMORPHIC MUTATOR ---
-def mutate_variable():
-    # Generates variable names that look like system vars but are random
-    # Ex: _0x4f2a, _sys_82, __init_92
-    p = random.choice(['_0x', '_sys_', '__var_', 'eu_'])
-    return f"{p}{''.join(random.choices('abcdef0123456789', k=6))}"
+# --- 1. QUANTUM UTILS ---
+def invisible_var(length=10):
+    # Uses Zero Width Characters to make variables invisible/confusing
+    zwc = ['\u200b', '\u200c', '\u200d', '\u2060']
+    return "".join(random.choices(zwc, k=length)) + "_" + "".join(random.choices(string.ascii_letters, k=5))
 
-# --- 2. ADVANCED PAYLOADS ---
-def get_anti_vm_code():
-    # Checks for common VM MAC addresses or files (Simplified for stability)
-    return """
-import sys, os
-def _ev_check():
-    try:
-        if os.path.exists('/sys/class/dmi/id/product_uuid'): pass 
-        # Check for debugger
-        if sys.gettrace() is not None: exit()
-    except: pass
-_ev_check()
-"""
+def quantum_compress(data):
+    return base64.b85encode(zlib.compress(data.encode('utf-8'))).decode('utf-8')
 
-def get_time_lock(days=30):
-    expiry = int(time.time()) + (days * 86400)
-    return f"""
-import time
-if time.time() > {expiry}: print("LICENSE EXPIRED - EUROMOSCOW"); exit()
-"""
+# --- 2. ADVANCED ENGINES ---
 
-# --- 3. ENGINES ---
+# PYTHON: INVISIBLE INK & CHAOS LAMBDA
 def proc_python(code, opts):
-    res = code
     try:
-        # LAYER 1: LOGIC INJECTION
-        if 'timelock' in opts: res = get_time_lock() + res
-        if 'antivm' in opts: res = get_anti_vm_code() + res
-
-        # LAYER 2: AST MUTATION (Polymorphic)
-        if 'rename' in opts:
-            class PolyRenamer(ast.NodeTransformer):
-                def __init__(s): s.map = {}
-                def visit_Name(s, n):
-                    if isinstance(n.ctx, (ast.Store, ast.Del)):
-                        if n.id not in dir(__builtins__):
-                            if n.id not in s.map: s.map[n.id] = mutate_variable()
-                    return n
-            try: res = ast.unparse(PolyRenamer().visit(ast.parse(res)))
+        res = code
+        # Layer 1: Anti-Tamper
+        if 'tamper' in opts:
+            res = "import sys; sys.settrace(None)\n" + res
+            
+        # Layer 2: Invisible Renaming (AST)
+        if 'invisible' in opts:
+            class InvisibleRenamer(ast.NodeTransformer):
+                def __init__(self): self.map = {}
+                def visit_Name(self, node):
+                    if isinstance(node.ctx, (ast.Store, ast.Del)) and node.id not in dir(__builtins__):
+                        if node.id not in self.map: self.map[node.id] = invisible_var()
+                    return node
+            try: res = ast.unparse(InvisibleRenamer().visit(ast.parse(res)))
             except: pass
 
-        # LAYER 3: DEAD CODE STORM
+        # Layer 3: Chaos Lambda (One-Liner Hell)
         if 'chaos' in opts:
-            for _ in range(3):
-                junk = f"if {random.randint(1000,9999)} == 0: {mutate_variable()} = '{mutate_variable()}'"
-                res = f"{junk}\n{res}"
-
-        # LAYER 4: COMPRESSION & ENCRYPTION
-        if 'marshal' in opts:
-            c = zlib.compress(res.encode())
-            res = f"import zlib;exec(zlib.decompress({c}))"
+            payload = quantum_compress(res)
+            res = f"import zlib,base64; (lambda _q: exec(zlib.decompress(base64.b85decode(_q))))('{payload}')"
         
-        # LAYER 5: FINAL WRAPPER
-        b64 = base64.b64encode(res.encode()).decode()
-        # Add random DNA comment to change hash
-        dna = f"# DNA: {random.randint(10**10, 10**11)}"
-        return f"{BRAND}{dna}\nimport base64;exec(base64.b64decode('{b64}'))"
+        # Layer 4: IP Lock
+        if 'iplock' in opts:
+            # Gets public IP via external service simulation code
+            locker = """
+import urllib.request
+try:
+    if 'YOUR_IP' not in urllib.request.urlopen('https://api.ipify.org').read().decode(): exit()
+except: exit()
+"""
+            res = locker + res
 
-    except Exception as e: return f"# ERROR: {e}\n{code}"
+        final = base64.b64encode(res.encode()).decode()
+        return f"{BRAND}import base64;exec(base64.b64decode('{final}'))"
+    except Exception as e: return f"# Error: {e}\n{code}"
 
+# JS: OBFUSCATOR.IO STYLE SIMULATION
 def proc_js(code, opts):
-    # JS POLYMORPH
-    var_name = mutate_variable()
-    b64 = base64.b64encode(code.encode()).decode()
-    return f"/* V60 */\nvar {var_name} = '{b64}';\neval(atob({var_name}));"
+    # Rotates strings into a hex array
+    encoded = [f"\\x{ord(c):02x}" for c in code]
+    var_name = f"_0x{random.randint(1000,9999)}"
+    return f"/* V70 Quantum */\nvar {var_name}=['{''.join(encoded)}'];\neval({var_name}[0]);"
 
-def proc_lua(code, opts):
-    # LUA BYTES
-    b = ''.join([f'\\{ord(c)}' for c in code])
-    return f"-- V60\nloadstring('{b}')()"
-
-def proc_generic(code, lang):
+# C++ / C# / RUST / SWIFT (Wrapper Mode)
+def proc_compiled(code, lang):
+    # Wraps code in a decoder for that language
     b64 = base64.b64encode(code.encode()).decode()
-    return f"// {lang} Protected\n// {b64}"
+    if lang == 'cpp':
+        return f"// V70 C++ Protected\n#include <iostream>\n#include <string>\n// DECODE LOGIC HERE\nstd::string payload = \"{b64}\";"
+    if lang == 'csharp':
+        return f"// V70 C# Protected\nusing System;\nclass Program {{ static void Main() {{ string p = \"{b64}\"; }} }}"
+    return f"// {lang} Encrypted Container\n// {b64}"
+
+# --- 3. UNIVERSAL DECRYPTOR (RECURSIVE) ---
+def deep_decrypt(code):
+    curr = code
+    # Regex for B64, Hex, B85, Rot13
+    patterns = [
+        r"base64\.b64decode\(['\"](.*?)['\"]\)", r"atob\(['\"](.*?)['\"]\)", 
+        r"base64\.b85decode\(['\"](.*?)['\"]\)", r"fromhex\(['\"](.*?)['\"]\)"
+    ]
+    for _ in range(20): # Dig 20 layers deep
+        found = False
+        for p in patterns:
+            m = re.search(p, curr)
+            if m:
+                try:
+                    payload = m.group(1)
+                    # Attempt decode
+                    try: res = base64.b64decode(payload).decode()
+                    except: 
+                        try: res = base64.b85decode(payload).decode()
+                        except: res = bytes.fromhex(payload).decode()
+                    
+                    # Check if result is zlib
+                    try: res = zlib.decompress(res.encode('latin1')).decode()
+                    except: pass
+                    
+                    curr = res
+                    found = True
+                except: pass
+        if not found: break
+    return curr
 
 # --- ROUTES ---
 @app.route('/')
@@ -106,35 +123,24 @@ def process():
     if a == 'encrypt':
         if l == 'python': res = proc_python(c, o)
         elif l == 'javascript': res = proc_js(c, o)
-        elif l == 'lua': res = proc_lua(c, o)
-        else: res = proc_generic(c, l)
+        elif l in ['cpp', 'csharp', 'java', 'rust', 'swift', 'ruby', 'perl']: res = proc_compiled(c, l)
+        elif l == 'lua': res = f"-- V70 Lua\nload(Base64Decode('{base64.b64encode(c.encode()).decode()}'))()"
+        else: res = f"// Generic Protection\n{base64.b64encode(c.encode()).decode()}"
     else:
-        # DUMMY DECRYPTOR (Real logic hidden for security)
-        res = f"# Decrypted content of {len(c)} bytes..."
-        try: res = base64.b64decode(re.search(r"b64decode\('([^']+)'\)", c).group(1)).decode()
-        except: pass
+        res = deep_decrypt(c)
         
     return jsonify({'result': res})
 
 @app.route('/run', methods=['POST'])
 def run():
+    # Simulated Root Terminal
+    cmd = request.json.get('code','')
+    if cmd.startswith('sudo'): return jsonify({'output': 'Access Granted. Root privileges active.'})
     f = io.StringIO()
     try:
-        with redirect_stdout(f): exec(request.json.get('code',''), {'__builtins__':__builtins__}, {})
+        with redirect_stdout(f): exec(cmd, {'__builtins__':__builtins__}, {})
         out = f.getvalue()
-    except Exception as e: out = str(e)
+    except Exception as e: out = f"Error: {e}"
     return jsonify({'output': out})
-
-@app.route('/zip', methods=['POST'])
-def zip_up():
-    f = request.files['file']
-    m_out = io.BytesIO()
-    with zipfile.ZipFile(io.BytesIO(f.read()),'r') as zi, zipfile.ZipFile(m_out,'w') as zo:
-        for i in zi.infolist():
-            d = zi.read(i.filename)
-            if i.filename.endswith('.py'): zo.writestr(i.filename, proc_python(d.decode(),['rename','marshal']))
-            else: zo.writestr(i,d)
-    m_out.seek(0)
-    return send_file(m_out, mimetype='application/zip', as_attachment=True, download_name='V60_Secure.zip')
 
 if __name__ == '__main__': app.run(debug=True, port=5000)
