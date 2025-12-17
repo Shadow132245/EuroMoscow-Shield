@@ -34,21 +34,21 @@ class Camouflage:
     @staticmethod
     def generate_junk():
         """Creates fake classes and math operations to fool AVs."""
-        vars = ['_a', '_b', '_x', '_y', 'data', 'config', 'system']
+        # Fix: Generate ID once to match class name and instance
+        rand_id = random.randint(100, 999) 
         junk = f"""
-class SystemConfig_{random.randint(100,999)}:
+class SystemConfig_{rand_id}:
     def __init__(self):
         self.status = 'active'
         self.value = {random.randint(1000,9999)}
     def check(self):
         return self.value * 2
 
-_conf = SystemConfig_{random.randint(100,999)}()
+_conf = SystemConfig_{rand_id}()
 _math_val = _conf.check() + {random.randint(1,50)}
 # EuroMoscow System Init
 """
         return junk
-
     @staticmethod
     def get_anti_tamper():
         """Checks for Debuggers and VM signatures."""
@@ -216,3 +216,4 @@ def upload_zip():
     except Exception as e: return str(e), 500
 
 if __name__ == '__main__': app.run(debug=True, port=5000)
+
