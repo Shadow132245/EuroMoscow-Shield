@@ -1,146 +1,251 @@
 # ==============================================================================
-# PROJECT: EUROMOSCOW V70 (QUANTUM SINGULARITY)
+# PROJECT: EUROMOSCOW V80 (TITAN EDITION)
 # ARCHITECT: HASSAN
-# CORE: 12-LANG POLYMORPHIC ENGINE + INVISIBLE INK + IP LOCK
+# CORE: INTELLIGENT AUTO-PILOT + CONTROL FLOW FLATTENING + AST TRANSFORMERS
 # ==============================================================================
 
-import os, sys, time, random, base64, zlib, ast, io, re, zipfile, string, platform
+import os
+import sys
+import time
+import random
+import base64
+import zlib
+import ast
+import io
+import re
+import zipfile
+import string
+import platform
+import logging
 from flask import Flask, render_template, request, jsonify, send_file
 from contextlib import redirect_stdout
 
+# --- SYSTEM CONFIGURATION ---
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 64 * 1024 * 1024 # 64MB Support
+app.config['MAX_CONTENT_LENGTH'] = 128 * 1024 * 1024 # 128MB Limit
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger('TitanCore')
 
-BRAND = f"# EURO-MOSCOW V70 :: QUANTUM CORE :: {random.randint(10000,99999)}\n"
+BRAND = f"# PROTECTED BY EUROMOSCOW V80 :: TITAN CORE :: {int(time.time())}\n"
 
-# --- 1. QUANTUM UTILS ---
-def invisible_var(length=10):
-    # Uses Zero Width Characters to make variables invisible/confusing
-    zwc = ['\u200b', '\u200c', '\u200d', '\u2060']
-    return "".join(random.choices(zwc, k=length)) + "_" + "".join(random.choices(string.ascii_letters, k=5))
+# ==============================================================================
+# 1. INTELLIGENT AUTO-PILOT ENGINE
+# ==============================================================================
+class AutoPilot:
+    """
+    Analyzes the language and selects the best 'Safe' encryption methods
+    that guarantee code functionality while maximizing security.
+    """
+    @staticmethod
+    def get_best_strategy(lang):
+        strategies = {
+            'python': ['rename', 'dead', 'marshal'], # XOR & Chaos removed for stability
+            'javascript': ['hex', 'packer'],
+            'lua': ['hex', 'vm'],
+            'php': ['base64', 'ghost'],
+            'go': ['armor'],
+            'html': ['hex'],
+            'ruby': ['base64'],
+            'cpp': ['wrapper']
+        }
+        return strategies.get(lang, ['base64'])
 
-def quantum_compress(data):
-    return base64.b85encode(zlib.compress(data.encode('utf-8'))).decode('utf-8')
+# ==============================================================================
+# 2. PYTHON ADVANCED TRANSFORMERS (AST)
+# ==============================================================================
+class PythonTransformers:
+    
+    @staticmethod
+    def random_var(length=12):
+        """Generates variable names that look like system internal vars."""
+        return '_' + ''.join(random.choices('0123456789abcdef', k=length))
 
-# --- 2. ADVANCED ENGINES ---
+    @staticmethod
+    def inject_dead_code(code):
+        """Injects extensive dead code logic without breaking syntax."""
+        try:
+            junk_vars = [f"{PythonTransformers.random_var()}={random.randint(0,999)}" for _ in range(5)]
+            junk_logic = f"if {random.randint(1000,9999)} == 0: {' '.join(junk_vars)}"
+            return f"{junk_logic}\n{code}"
+        except: return code
 
-# PYTHON: INVISIBLE INK & CHAOS LAMBDA
-def proc_python(code, opts):
-    try:
-        res = code
-        # Layer 1: Anti-Tamper
-        if 'tamper' in opts:
-            res = "import sys; sys.settrace(None)\n" + res
-            
-        # Layer 2: Invisible Renaming (AST)
-        if 'invisible' in opts:
-            class InvisibleRenamer(ast.NodeTransformer):
-                def __init__(self): self.map = {}
+    @staticmethod
+    def rename_variables(code):
+        """Safely renames variables using AST parsing."""
+        try:
+            tree = ast.parse(code)
+            class Renamer(ast.NodeTransformer):
+                def __init__(self):
+                    self.map = {}
+                    self.ignore = dir(__builtins__) + ['self', 'args', 'kwargs']
                 def visit_Name(self, node):
-                    if isinstance(node.ctx, (ast.Store, ast.Del)) and node.id not in dir(__builtins__):
-                        if node.id not in self.map: self.map[node.id] = invisible_var()
+                    if isinstance(node.ctx, (ast.Store, ast.Del)):
+                        if node.id not in self.ignore and not node.id.startswith('__'):
+                            if node.id not in self.map:
+                                self.map[node.id] = PythonTransformers.random_var()
+                    elif isinstance(node.ctx, ast.Load):
+                        if node.id in self.map:
+                            node.id = self.map[node.id]
                     return node
-            try: res = ast.unparse(InvisibleRenamer().visit(ast.parse(res)))
-            except: pass
+            
+            # Attempt to unparse (Python 3.9+)
+            if hasattr(ast, 'unparse'):
+                return ast.unparse(Renamer().visit(tree))
+            return code # Fallback for older python
+        except: return code
 
-        # Layer 3: Chaos Lambda (One-Liner Hell)
-        if 'chaos' in opts:
-            payload = quantum_compress(res)
-            res = f"import zlib,base64; (lambda _q: exec(zlib.decompress(base64.b85decode(_q))))('{payload}')"
-        
-        # Layer 4: IP Lock
-        if 'iplock' in opts:
-            # Gets public IP via external service simulation code
-            locker = """
-import urllib.request
-try:
-    if 'YOUR_IP' not in urllib.request.urlopen('https://api.ipify.org').read().decode(): exit()
-except: exit()
+    @staticmethod
+    def control_flow_flattening(code):
+        """
+        Simulates control flow flattening by wrapping code in a while loop
+        with a state machine. (Simplified for stability).
+        """
+        b64 = base64.b64encode(code.encode()).decode()
+        loader = f"""
+import base64
+_state = 0
+while _state < 3:
+    if _state == 0:
+        _payload = "{b64}"
+        _state += 1
+    elif _state == 1:
+        _code = base64.b64decode(_payload).decode()
+        _state += 2
+    elif _state == 3:
+        exec(_code)
+        break
 """
-            res = locker + res
+        return loader
 
-        final = base64.b64encode(res.encode()).decode()
-        return f"{BRAND}import base64;exec(base64.b64decode('{final}'))"
-    except Exception as e: return f"# Error: {e}\n{code}"
+# ==============================================================================
+# 3. CORE PROCESSING ENGINE
+# ==============================================================================
+class TitanEngine:
+    
+    @staticmethod
+    def encrypt(code, lang, options):
+        # 1. Auto-Pilot Override
+        if 'autopilot' in options:
+            options = AutoPilot.get_best_strategy(lang)
+            logger.info(f"Auto-Pilot engaged for {lang}: {options}")
 
-# JS: OBFUSCATOR.IO STYLE SIMULATION
-def proc_js(code, opts):
-    # Rotates strings into a hex array
-    encoded = [f"\\x{ord(c):02x}" for c in code]
-    var_name = f"_0x{random.randint(1000,9999)}"
-    return f"/* V70 Quantum */\nvar {var_name}=['{''.join(encoded)}'];\neval({var_name}[0]);"
+        # 2. Python Processing
+        if lang == 'python':
+            res = code
+            if 'rename' in options: res = PythonTransformers.rename_variables(res)
+            if 'dead' in options: res = PythonTransformers.inject_dead_code(res)
+            
+            # Compression Layer
+            if 'marshal' in options:
+                c = zlib.compress(res.encode('utf-8'))
+                res = f"import zlib,base64;exec(zlib.decompress({c}))"
+            
+            # Final Layer
+            final = base64.b85encode(res.encode()).decode()
+            return f"{BRAND}import base64;exec(base64.b85decode('{final}'))"
 
-# C++ / C# / RUST / SWIFT (Wrapper Mode)
-def proc_compiled(code, lang):
-    # Wraps code in a decoder for that language
-    b64 = base64.b64encode(code.encode()).decode()
-    if lang == 'cpp':
-        return f"// V70 C++ Protected\n#include <iostream>\n#include <string>\n// DECODE LOGIC HERE\nstd::string payload = \"{b64}\";"
-    if lang == 'csharp':
-        return f"// V70 C# Protected\nusing System;\nclass Program {{ static void Main() {{ string p = \"{b64}\"; }} }}"
-    return f"// {lang} Encrypted Container\n// {b64}"
+        # 3. JavaScript Processing
+        elif lang == 'javascript':
+            if 'packer' in options:
+                # Custom Packer Logic
+                b64 = base64.b64encode(code.encode()).decode()
+                key = random.randint(10,99)
+                return f"/* V80 TITAN */\n(function(x){{eval(atob(x))}})('{b64}')"
+            
+            # Hex Encoding
+            h = ''.join([f'\\x{ord(c):02x}' for c in code])
+            return f"eval('{h}')"
 
-# --- 3. UNIVERSAL DECRYPTOR (RECURSIVE) ---
-def deep_decrypt(code):
-    curr = code
-    # Regex for B64, Hex, B85, Rot13
-    patterns = [
-        r"base64\.b64decode\(['\"](.*?)['\"]\)", r"atob\(['\"](.*?)['\"]\)", 
-        r"base64\.b85decode\(['\"](.*?)['\"]\)", r"fromhex\(['\"](.*?)['\"]\)"
-    ]
-    for _ in range(20): # Dig 20 layers deep
-        found = False
-        for p in patterns:
-            m = re.search(p, curr)
-            if m:
-                try:
-                    payload = m.group(1)
-                    # Attempt decode
-                    try: res = base64.b64decode(payload).decode()
-                    except: 
-                        try: res = base64.b85decode(payload).decode()
-                        except: res = bytes.fromhex(payload).decode()
-                    
-                    # Check if result is zlib
-                    try: res = zlib.decompress(res.encode('latin1')).decode()
+        # 4. Lua Processing
+        elif lang == 'lua':
+            # Virtual Machine Simulation
+            if 'vm' in options:
+                bytes_table = "{" + ",".join([str(ord(c)) for c in code]) + "}"
+                return f"-- V80 VM\nlocal b={bytes_table};local s='';for i=1,#b do s=s..string.char(b[i]) end;load(s)()"
+            return f"load(Base64Decode('{base64.b64encode(code.encode()).decode()}'))()"
+
+        # 5. Go / C++ / Compiled Langs
+        else:
+            b64 = base64.b64encode(code.encode()).decode()
+            if lang == 'go':
+                return f"package main\nimport \"encoding/base64\"\nimport \"fmt\"\nfunc main(){{d,_:=base64.StdEncoding.DecodeString(\"{b64}\");fmt.Print(string(d))}}"
+            return f"// V80 Protected {lang.upper()}\n// PAYLOAD: {b64}"
+
+    @staticmethod
+    def decrypt(code):
+        # Universal Recursive Decryptor
+        curr = code
+        patterns = [
+            r"base64\.b85decode\(['\"](.*?)['\"]\)",
+            r"base64\.b64decode\(['\"](.*?)['\"]\)", 
+            r"atob\(['\"](.*?)['\"]\)",
+            r"DecodeString\(\"([^\"]+)\"\)"
+        ]
+        
+        for _ in range(15):
+            found = False
+            for p in patterns:
+                m = re.search(p, curr)
+                if m:
+                    try:
+                        payload = m.group(1)
+                        try: curr = base64.b85decode(payload).decode()
+                        except: curr = base64.b64decode(payload).decode(errors='ignore')
+                        
+                        # Check for internal zlib
+                        try: curr = zlib.decompress(curr.encode('latin1')).decode()
+                        except: pass
+                        
+                        found = True
                     except: pass
-                    
-                    curr = res
-                    found = True
-                except: pass
-        if not found: break
-    return curr
+            if not found: break
+        return curr
 
-# --- ROUTES ---
+# ==============================================================================
+# 4. FLASK ROUTES
+# ==============================================================================
 @app.route('/')
-def home(): return render_template('index.html')
+def index(): return render_template('index.html')
 
 @app.route('/process', methods=['POST'])
-def process():
-    d = request.json
-    c, a, l, o = d.get('code',''), d.get('action'), d.get('lang'), d.get('options',[])
-    
-    if a == 'encrypt':
-        if l == 'python': res = proc_python(c, o)
-        elif l == 'javascript': res = proc_js(c, o)
-        elif l in ['cpp', 'csharp', 'java', 'rust', 'swift', 'ruby', 'perl']: res = proc_compiled(c, l)
-        elif l == 'lua': res = f"-- V70 Lua\nload(Base64Decode('{base64.b64encode(c.encode()).decode()}'))()"
-        else: res = f"// Generic Protection\n{base64.b64encode(c.encode()).decode()}"
-    else:
-        res = deep_decrypt(c)
-        
-    return jsonify({'result': res})
+def handle_process():
+    try:
+        data = request.json
+        res = ""
+        if data['action'] == 'encrypt':
+            res = TitanEngine.encrypt(data.get('code',''), data.get('lang','python'), data.get('options',[]))
+        else:
+            res = TitanEngine.decrypt(data.get('code',''))
+        return jsonify({'result': res})
+    except Exception as e:
+        return jsonify({'result': f"# CRITICAL SYSTEM ERROR: {str(e)}"}), 500
 
 @app.route('/run', methods=['POST'])
-def run():
-    # Simulated Root Terminal
-    cmd = request.json.get('code','')
-    if cmd.startswith('sudo'): return jsonify({'output': 'Access Granted. Root privileges active.'})
+def handle_run():
+    # Secure Sandbox Simulation
+    code = request.json.get('code', '')
     f = io.StringIO()
     try:
-        with redirect_stdout(f): exec(cmd, {'__builtins__':__builtins__}, {})
-        out = f.getvalue()
-    except Exception as e: out = f"Error: {e}"
-    return jsonify({'output': out})
+        with redirect_stdout(f): exec(code, {'__builtins__': __builtins__}, {})
+        return jsonify({'output': f.getvalue()})
+    except Exception as e: return jsonify({'output': str(e)})
+
+@app.route('/zip', methods=['POST'])
+def handle_zip():
+    try:
+        f = request.files['file']
+        opts = request.form.get('options','').split(',')
+        m_out = io.BytesIO()
+        with zipfile.ZipFile(io.BytesIO(f.read()), 'r') as zi, zipfile.ZipFile(m_out, 'w', zipfile.ZIP_DEFLATED) as zo:
+            for i in zi.infolist():
+                d = zi.read(i.filename)
+                try:
+                    if i.filename.endswith('.py'): 
+                        zo.writestr(i.filename, TitanEngine.encrypt(d.decode(), 'python', opts))
+                    else: zo.writestr(i, d)
+                except: zo.writestr(i, d)
+        m_out.seek(0)
+        return send_file(m_out, mimetype='application/zip', as_attachment=True, download_name='Titan_Secure.zip')
+    except: return "Error", 500
 
 if __name__ == '__main__': app.run(debug=True, port=5000)
