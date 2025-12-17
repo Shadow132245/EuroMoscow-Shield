@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EuroMoscow | V110 SINGULARITY</title>
+    <title>EuroMoscow | V120 OMEGA</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Rajdhani:wght@500;700&family=JetBrains+Mono:wght@400;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/ayu-mirage.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
@@ -15,126 +16,169 @@
 
     <style>
         :root {
-            --bg: #020202;
-            --primary: #ff0040; /* Singularity Red */
-            --accent: #00ffcc;
-            --border: rgba(255, 255, 255, 0.1);
+            --bg: #050505;
+            --primary: #00ff41; /* Toxic Green */
+            --secondary: #008f11;
+            --text: #e0e0e0;
+            --border: rgba(0, 255, 65, 0.2);
             --font-head: 'Orbitron', sans-serif;
             --font-ui: 'Rajdhani', sans-serif;
         }
+
         * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; background: var(--bg); color: #fff; font-family: var(--font-ui); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
-        
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-ui); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
         /* SCROLLBAR */
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: #000; }
-        ::-webkit-scrollbar-thumb { background: #333; border: 1px solid var(--primary); }
+        ::-webkit-scrollbar-thumb { background: var(--secondary); border-radius: 2px; }
 
-        /* NAV */
-        nav { height: 70px; padding: 0 30px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: rgba(10,10,10,0.95); z-index: 100; }
-        .brand { font-family: var(--font-head); font-size: 20px; font-weight: 900; letter-spacing: 2px; }
-        .brand span { color: var(--primary); text-shadow: 0 0 15px var(--primary); }
-        .nav-btn { background: rgba(255,255,255,0.05); padding: 8px 15px; border-radius: 4px; cursor: pointer; border: 1px solid var(--border); font-weight: bold; color: #ccc; font-size: 11px; margin-left: 5px; }
-        .nav-btn:hover { border-color: var(--primary); color: #fff; }
-
-        /* LAYOUT */
-        .layout { display: flex; flex: 1; overflow: hidden; }
-        .sidebar { width: 360px; background: rgba(15,15,20,0.95); border-right: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column; overflow-y: auto; }
+        /* NAVBAR */
+        nav {
+            height: 70px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between;
+            background: rgba(0,0,0,0.95); border-bottom: 1px solid var(--border); z-index: 100;
+        }
+        .brand { font-family: var(--font-head); font-size: 18px; font-weight: 900; letter-spacing: 1px; color: #fff; }
+        .brand span { color: var(--primary); text-shadow: 0 0 10px var(--primary); }
         
-        /* EDITOR */
-        .editor-wrap { flex: 1; display: flex; flex-direction: column; background: #050505; }
-        .CodeMirror { flex: 1; font-family: 'JetBrains Mono'; font-size: 14px; }
+        .nav-items { display: flex; gap: 8px; }
+        .nav-btn {
+            background: rgba(0,255,65,0.05); border: 1px solid var(--border); color: #aaa;
+            padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 10px;
+            font-family: var(--font-head); transition: 0.3s;
+        }
+        .nav-btn:hover { border-color: var(--primary); color: #fff; background: rgba(0,255,65,0.1); }
+
+        /* LAYOUT (RESPONSIVE GRID) */
+        .layout { display: flex; flex: 1; overflow: hidden; }
+        .sidebar {
+            width: 350px; background: rgba(10,12,10,0.95); border-right: 1px solid var(--border);
+            padding: 20px; display: flex; flex-direction: column; overflow-y: auto;
+        }
+        .editor-wrap { flex: 1; display: flex; flex-direction: column; background: #080808; position: relative; }
 
         /* CONTROLS */
-        .section-title { font-family: var(--font-head); font-size: 10px; color: var(--primary); margin-bottom: 10px; letter-spacing: 1px; display: block; margin-top: 15px; }
+        .section-label { font-family: var(--font-head); font-size: 10px; color: var(--primary); margin: 15px 0 8px 0; letter-spacing: 1px; }
         
         .opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .opt-item {
-            display: flex; align-items: center; justify-content: space-between; padding: 12px;
-            background: rgba(255,255,255,0.03); border: 1px solid transparent; border-radius: 4px; cursor: pointer; transition: 0.2s;
+        .opt-card {
+            display: flex; align-items: center; justify-content: space-between; padding: 10px;
+            background: rgba(255,255,255,0.02); border: 1px solid #222; border-radius: 4px; cursor: pointer; transition: 0.2s;
         }
-        .opt-item:hover { border-color: var(--primary); background: rgba(255,0,64,0.05); }
-        .opt-lbl { font-size: 11px; font-weight: 700; }
-        .opt-check { width: 14px; height: 14px; border: 2px solid #444; display: flex; align-items: center; justify-content: center; }
-        input:checked + .opt-check { background: var(--primary); border-color: var(--primary); }
-        
-        /* INPUTS */
-        .cyber-input { width: 100%; background: #000; border: 1px solid var(--border); color: var(--accent); padding: 10px; font-family: 'JetBrains Mono'; font-size: 11px; margin-bottom: 10px; display: none; }
-        .cyber-input.active { display: block; animation: slideDown 0.3s ease; }
-        @keyframes slideDown { from{opacity:0; transform:translateY(-10px);} to{opacity:1; transform:translateY(0);} }
+        .opt-card:hover { border-color: var(--primary); background: rgba(0,255,65,0.05); }
+        .opt-txt { font-size: 11px; font-weight: 700; }
+        .opt-box { width: 12px; height: 12px; border: 1px solid #666; display: flex; align-items: center; justify-content: center; }
+        input:checked + .opt-box { background: var(--primary); border-color: var(--primary); }
 
-        /* BUTTON */
-        .btn-singularity {
-            width: 100%; padding: 15px; background: var(--primary); color: #000; border: none; font-family: var(--font-head);
-            font-weight: 900; margin-top: 20px; cursor: pointer; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-            transition: 0.3s;
+        .inp-omega {
+            width: 100%; background: #000; border: 1px solid #333; color: var(--primary);
+            padding: 10px; font-family: 'JetBrains Mono'; font-size: 11px; margin-bottom: 8px; display: none;
         }
-        .btn-singularity:hover { box-shadow: 0 0 30px var(--primary); letter-spacing: 2px; }
+        .inp-omega.show { display: block; animation: fade 0.3s; }
+        @keyframes fade { from{opacity:0;} to{opacity:1;} }
 
-        /* RESPONSIVE */
+        .btn-omega {
+            width: 100%; padding: 14px; background: var(--primary); color: #000; border: none;
+            font-family: var(--font-head); font-weight: 900; margin-top: auto; cursor: pointer;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            transition: 0.3s; letter-spacing: 1px;
+        }
+        .btn-omega:hover { box-shadow: 0 0 20px var(--primary); letter-spacing: 2px; }
+
+        /* EDITOR */
+        .CodeMirror { flex: 1; font-family: 'JetBrains Mono'; font-size: 13px; background: transparent; }
+        .cm-s-ayu-mirage.CodeMirror { background: transparent; }
+
+        /* MODALS */
+        .modal-wrap {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 2000; display: none;
+            justify-content: center; align-items: center; backdrop-filter: blur(5px);
+        }
+        .modal-box {
+            width: 800px; height: 600px; background: #0a0a0a; border: 1px solid var(--primary);
+            display: flex; flex-direction: column; box-shadow: 0 0 50px rgba(0,255,65,0.1);
+        }
+        .modal-head { padding: 15px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; color: var(--primary); font-family: var(--font-head); }
+        .modal-body { flex: 1; padding: 20px; overflow-y: auto; color: #ccc; font-family: 'JetBrains Mono'; font-size: 12px; }
+
+        /* MOBILE RESPONSIVE */
         @media (max-width: 900px) {
+            body { height: auto; min-height: 100vh; overflow-y: auto; }
             .layout { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; order: 2; border-top: 1px solid var(--border); }
-            .editor-wrap { height: 50vh; order: 1; }
+            
+            nav { padding: 0 15px; }
+            .brand { font-size: 16px; }
+            
+            /* Editor on TOP for Mobile */
+            .editor-wrap { height: 50vh; order: 1; border-bottom: 1px solid var(--border); }
+            
+            /* Sidebar on BOTTOM for Mobile */
+            .sidebar { width: 100%; height: auto; order: 2; padding-bottom: 40px; border-right: none; }
+            
+            .modal-box { width: 95%; height: 80%; }
+            .opt-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
     <nav>
-        <div class="brand">V110 <span>SINGULARITY</span></div>
-        <div>
-            <button class="nav-btn" onclick="copyResult()">COPY</button>
-            <button class="nav-btn" onclick="location.reload()">RESET</button>
+        <div class="brand">V120 <span>OMEGA</span></div>
+        <div class="nav-items">
+            <div class="nav-btn" onclick="copyCode()">COPY</div>
+            <div class="nav-btn" onclick="openModal('term')">TERM</div>
+            <div class="nav-btn" onclick="location.reload()">RESET</div>
         </div>
     </nav>
 
     <div class="layout">
         <div class="sidebar">
-            <span class="section-title">CORE LANGUAGE</span>
-            <select id="lang" style="width:100%; padding:10px; background:#000; color:#fff; border:1px solid var(--border); margin-bottom:10px;">
-                <option value="python">PYTHON (Singularity Engine)</option>
+            <span class="section-label">LANGUAGE CORE</span>
+            <select id="lang" style="width:100%; padding:10px; background:#000; color:#fff; border:1px solid #333;">
+                <option value="python">PYTHON (Omega Engine)</option>
                 <option value="javascript">JAVASCRIPT</option>
                 <option value="lua">LUA</option>
             </select>
 
-            <span class="section-title">CYBER WEAPONRY (FEATURES)</span>
+            <span class="section-label">OMEGA ARSENAL (FEATURES)</span>
             <div class="opt-grid">
-                <label class="opt-item" onclick="toggleInput('webhook')">
-                    <span class="opt-lbl">DISCORD SPY 📡</span>
-                    <input type="checkbox" id="opt-webhook" hidden>
-                    <div class="opt-check"></div>
+                <label class="opt-card" onclick="toggleInp('geo')">
+                    <span class="opt-txt">GEO FENCE (Country) 🌍</span>
+                    <input type="checkbox" id="opt-geo" hidden><div class="opt-box"></div>
                 </label>
-                <label class="opt-item">
-                    <span class="opt-lbl">FERNET AES 🔒</span>
-                    <input type="checkbox" id="opt-fernet" hidden>
-                    <div class="opt-check"></div>
+                <label class="opt-card" onclick="toggleInp('kill')">
+                    <span class="opt-txt">KILL SWITCH (URL) 💀</span>
+                    <input type="checkbox" id="opt-killswitch" hidden><div class="opt-box"></div>
                 </label>
-                <label class="opt-item">
-                    <span class="opt-lbl">ANTI-DISASSEMBLY 🛡️</span>
-                    <input type="checkbox" id="opt-antidis" hidden>
-                    <div class="opt-check"></div>
+                <label class="opt-card">
+                    <span class="opt-txt">ANTI-SNIFFER 🛑</span>
+                    <input type="checkbox" id="opt-sniffer" hidden><div class="opt-box"></div>
                 </label>
-                <label class="opt-item">
-                    <span class="opt-lbl">FAKE ERROR 🎭</span>
-                    <input type="checkbox" id="opt-fakeerror" hidden>
-                    <div class="opt-check"></div>
+                <label class="opt-card">
+                    <span class="opt-txt">ADMIN CHECK 🛡️</span>
+                    <input type="checkbox" id="opt-admin" hidden><div class="opt-box"></div>
                 </label>
-                <label class="opt-item">
-                    <span class="opt-lbl">NTP TIME LOCK 🌍</span>
-                    <input type="checkbox" id="opt-ntp" hidden>
-                    <div class="opt-check"></div>
+                <label class="opt-card">
+                    <span class="opt-txt">SILENT MODE 🔇</span>
+                    <input type="checkbox" id="opt-silent" hidden><div class="opt-box"></div>
                 </label>
-                <label class="opt-item">
-                    <span class="opt-lbl">AST RENAMING 📝</span>
-                    <input type="checkbox" id="opt-rename" checked hidden>
-                    <div class="opt-check"></div>
+                <label class="opt-card">
+                    <span class="opt-txt">SELF DESTRUCT ⏳</span>
+                    <input type="checkbox" id="opt-suicide" hidden><div class="opt-box"></div>
+                </label>
+                <label class="opt-card">
+                    <span class="opt-txt">AST RENAMING 📝</span>
+                    <input type="checkbox" id="opt-rename" checked hidden><div class="opt-box"></div>
                 </label>
             </div>
 
-            <input id="inp-webhook" class="cyber-input" placeholder="Paste Discord Webhook URL Here...">
+            <div style="margin-top:10px;">
+                <input id="inp-geo" class="inp-omega" placeholder="Country Code (e.g. EG, US)">
+                <input id="inp-kill" class="inp-omega" placeholder="Raw Text URL (Content: RUN)">
+            </div>
 
-            <button class="btn-singularity" id="btn" onclick="process()">INITIATE SINGULARITY</button>
+            <button class="btn-omega" id="btn" onclick="process()">DEPLOY PAYLOAD</button>
         </div>
 
         <div class="editor-wrap">
@@ -142,16 +186,23 @@
         </div>
     </div>
 
+    <div id="termModal" class="modal-wrap">
+        <div class="modal-box">
+            <div class="modal-head"><span>ROOT_ACCESS</span> <span onclick="closeModal('term')" style="cursor:pointer">X</span></div>
+            <div class="modal-body" id="termOut">Omega Protocol v120.0<br>System Ready.<br></div>
+            <input id="termIn" style="width:100%; background:#000; border:none; color:#fff; padding:10px; font-family:'JetBrains Mono'; outline:none;">
+        </div>
+    </div>
+
     <script>
         var editor = CodeMirror.fromTextArea(document.getElementById("editor"), { mode: "python", theme: "ayu-mirage", lineNumbers: true });
 
-        function toggleInput(id) {
-            const chk = document.getElementById('opt-'+id);
-            const inp = document.getElementById('inp-'+id);
+        function toggleInp(id) {
+            const el = document.getElementById('inp-'+id);
+            const chk = document.getElementById('opt-'+(id=='kill'?'killswitch':id));
             setTimeout(() => {
-                if(chk.checked && inp) inp.classList.add('active');
-                else if(inp) inp.classList.remove('active');
-            }, 100);
+                if(chk.checked) el.classList.add('show'); else el.classList.remove('show');
+            }, 50);
         }
 
         async function process() {
@@ -159,42 +210,48 @@
             if(!code.trim()) return alert("BUFFER EMPTY");
             
             const btn = document.getElementById('btn');
-            btn.innerText = "ENCRYPTING...";
+            btn.innerText = "COMPILING...";
             
-            // Collect Options
             let opts = [];
             document.querySelectorAll('input[type="checkbox"]:checked').forEach(c => opts.push(c.id.replace('opt-','')));
             
-            // Collect Params
             let params = {};
-            const webhook = document.getElementById('inp-webhook').value;
-            if(webhook) params.webhook_url = webhook;
+            if(document.getElementById('inp-geo').value) params.geo_code = document.getElementById('inp-geo').value;
+            if(document.getElementById('inp-kill').value) params.kill_url = document.getElementById('inp-kill').value;
 
             try {
                 const res = await fetch('/process', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
-                        code: code,
-                        action: 'encrypt',
-                        lang: document.getElementById('lang').value,
-                        options: opts,
-                        params: params
+                        code: code, action: 'encrypt', lang: document.getElementById('lang').value,
+                        options: opts, params: params
                     })
                 });
                 const data = await res.json();
                 editor.setValue(data.result);
-                btn.innerText = "DEPLOYED SUCCESSFULLY";
+                btn.innerText = "SUCCESS";
             } catch(e) {
-                alert("SYSTEM FAILURE: " + e);
-                btn.innerText = "INITIATE SINGULARITY";
+                alert("ERROR: " + e);
+                btn.innerText = "DEPLOY PAYLOAD";
             }
         }
 
-        function copyResult() {
-            navigator.clipboard.writeText(editor.getValue());
-            alert("PAYLOAD COPIED");
-        }
+        function copyCode() { navigator.clipboard.writeText(editor.getValue()); alert("COPIED"); }
+        
+        // Terminal
+        const tOut = document.getElementById('termOut');
+        document.getElementById('termIn').addEventListener('keypress', async e => {
+            if(e.key==='Enter') {
+                const c = e.target.value; e.target.value='';
+                tOut.innerHTML += `<br><span style="color:var(--primary)">root@omega:~#</span> ${c}`;
+                try{ const r=await fetch('/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:c})}); const d=await r.json(); tOut.innerHTML+=`<br>${d.output}`; }
+                catch{ tOut.innerHTML+='<br>Error'; }
+            }
+        });
+
+        function openModal(id) { document.getElementById(id+'Modal').style.display='flex'; }
+        function closeModal(id) { document.getElementById(id+'Modal').style.display='none'; }
     </script>
 </body>
 </html>
