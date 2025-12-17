@@ -3,375 +3,358 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EuroMoscow | V70 QUANTUM</title>
+    <title>EuroMoscow | V80 TITAN</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
     
-    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Rajdhani:wght@500;700&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;900&family=Rajdhani:wght@600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/pastel-on-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/lua/lua.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clike/clike.min.js"></script> <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/ruby/ruby.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/perl/perl.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/swift/swift.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/rust/rust.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/go/go.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/php/php.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
 
     <style>
         :root {
-            --bg: #000000;
-            --glass: rgba(20, 20, 20, 0.4);
-            --glass-border: rgba(255, 255, 255, 0.05);
-            --primary: #00ff88; /* Quantum Green */
-            --accent: #00d4ff;
-            --alert: #ff004c;
-            --text: #ffffff;
-            --font-head: 'Syncopate', sans-serif;
+            --bg: #030405;
+            --panel: rgba(10, 15, 20, 0.9);
+            --border: rgba(0, 255, 170, 0.15);
+            --primary: #00ffaa; /* Titan Green */
+            --accent: #00d0ff;
+            --alert: #ff2a2a;
+            --font-head: 'Orbitron', sans-serif;
             --font-ui: 'Rajdhani', sans-serif;
-            --font-code: 'Fira Code', monospace;
+            --font-code: 'Share Tech Mono', monospace;
         }
 
-        * { box-sizing: border-box; outline: none; cursor: none; /* Custom Cursor */ }
-        
-        /* CUSTOM CURSOR */
-        #cursor {
-            width: 20px; height: 20px; border: 2px solid var(--primary); border-radius: 50%;
-            position: fixed; pointer-events: none; z-index: 9999; transform: translate(-50%, -50%);
-            transition: width 0.2s, height 0.2s, background 0.2s; mix-blend-mode: difference;
-        }
-        #cursor.hover { width: 50px; height: 50px; background: rgba(0, 255, 136, 0.2); border-color: transparent; }
+        * { box-sizing: border-box; outline: none; }
+        body { margin: 0; background: var(--bg); color: #fff; font-family: var(--font-ui); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-        body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-ui); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        /* --- BACKGROUND (NEURAL NETWORK) --- */
+        #neuralNet { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.3; }
+        .vignette { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, transparent 40%, #000 100%); pointer-events: none; z-index: 0; }
 
-        /* LIQUID METAL BACKGROUND */
-        #liquidCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.4; }
-        .noise { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://grainy-gradients.vercel.app/noise.svg'); opacity: 0.05; z-index: -1; pointer-events: none; }
+        /* --- SCROLLBAR --- */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #080808; }
+        ::-webkit-scrollbar-thumb { background: #222; border: 1px solid var(--primary); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); box-shadow: 0 0 10px var(--primary); }
 
-        /* BIOMETRIC LOCK SCREEN */
-        #bioLock {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000;
-            z-index: 10000; display: flex; flex-direction: column; justify-content: center; align-items: center;
-            transition: opacity 1s;
-        }
-        .fingerprint { font-size: 80px; color: var(--primary); animation: scan 2s infinite linear; cursor: pointer; filter: drop-shadow(0 0 20px var(--primary)); }
-        @keyframes scan { 0% { opacity: 0.5; transform: scale(1); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.5; transform: scale(1); } }
-        .bio-text { font-family: var(--font-head); margin-top: 20px; letter-spacing: 5px; font-size: 12px; color: var(--primary); }
-
-        /* NAVBAR */
+        /* --- NAVBAR --- */
         nav {
-            height: 90px; display: flex; align-items: center; justify-content: space-between; padding: 0 50px;
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(20px); border-bottom: 1px solid var(--glass-border);
-            z-index: 100;
+            height: 80px; display: flex; align-items: center; justify-content: space-between; padding: 0 40px;
+            background: rgba(3,4,5,0.95); border-bottom: 1px solid var(--border); z-index: 100;
+            box-shadow: 0 5px 30px rgba(0, 255, 170, 0.05);
         }
-        .brand { font-family: var(--font-head); font-weight: 700; font-size: 20px; letter-spacing: 3px; display: flex; align-items: center; gap: 15px; }
+        .brand { font-family: var(--font-head); font-size: 26px; font-weight: 900; letter-spacing: 2px; color: #fff; display: flex; gap: 12px; align-items: center; }
         .brand span { color: var(--primary); text-shadow: 0 0 20px var(--primary); }
         
-        /* 12-LANG DOCK */
-        .lang-dock {
-            display: flex; gap: 5px; overflow-x: auto; max-width: 60%; padding: 10px;
-            background: var(--glass); border-radius: 50px; border: 1px solid var(--glass-border);
-        }
-        .lang-dock::-webkit-scrollbar { display: none; }
-        .l-btn {
-            padding: 8px 16px; border-radius: 30px; font-size: 10px; font-weight: 700; color: #888;
-            transition: 0.3s; white-space: nowrap; font-family: var(--font-head);
-        }
-        .l-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
-        .l-btn.active { background: var(--primary); color: #000; box-shadow: 0 0 20px var(--primary); }
+        .sys-stat { font-family: var(--font-code); font-size: 11px; color: var(--primary); display: flex; gap: 20px; opacity: 0.8; }
+        .stat-dot { width: 8px; height: 8px; background: var(--primary); border-radius: 50%; display: inline-block; animation: blink 1s infinite; margin-right: 5px; }
+        @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
 
-        /* LAYOUT */
-        .layout { display: flex; flex: 1; overflow: hidden; perspective: 1000px; }
-        .sidebar {
-            width: 400px; background: rgba(10,10,12,0.8); backdrop-filter: blur(30px);
-            border-right: 1px solid var(--glass-border); padding: 40px; display: flex; flex-direction: column;
-            z-index: 10; transform-origin: left; animation: slideIn 1s ease;
+        /* --- LAYOUT --- */
+        .layout { display: flex; flex: 1; overflow: hidden; }
+        .sidebar { 
+            width: 400px; background: var(--panel); border-right: 1px solid var(--border); 
+            padding: 30px; display: flex; flex-direction: column; z-index: 10; backdrop-filter: blur(15px);
         }
-        @keyframes slideIn { from{transform: translateX(-100%); opacity:0;} to{transform:translateX(0); opacity:1;} }
 
-        /* CONTROLS */
-        .cyber-switch {
-            display: flex; background: #050505; border-radius: 8px; padding: 5px;
-            border: 1px solid var(--glass-border); margin-bottom: 40px; position: relative;
-        }
-        .cs-opt { flex: 1; text-align: center; padding: 15px; font-family: var(--font-head); font-size: 10px; color: #555; z-index: 2; transition: 0.3s; }
-        .cs-opt.active { color: #fff; }
-        .cs-bg { position: absolute; width: 50%; height: calc(100% - 10px); top: 5px; left: 5px; background: var(--primary); border-radius: 6px; transition: 0.3s; z-index: 1; box-shadow: 0 0 20px var(--primary); }
-        
-        .opt-row {
-            display: flex; align-items: center; justify-content: space-between; padding: 20px;
-            background: linear-gradient(90deg, rgba(255,255,255,0.01), transparent);
-            border-left: 2px solid #333; margin-bottom: 10px; transition: 0.3s;
-        }
-        .opt-row:hover { border-left-color: var(--primary); background: linear-gradient(90deg, rgba(0, 255, 136, 0.05), transparent); padding-left: 25px; }
-        .opt-txt { font-weight: 700; font-size: 14px; letter-spacing: 1px; }
-        
-        /* TOGGLE */
-        .neon-toggle { width: 40px; height: 20px; background: #222; border-radius: 20px; position: relative; transition: 0.3s; }
-        .neon-toggle::after { content:''; position:absolute; top:2px; left:2px; width:16px; height:16px; background:#666; border-radius:50%; transition:0.3s; }
-        input:checked + .neon-toggle { background: var(--primary); box-shadow: 0 0 15px var(--primary); }
-        input:checked + .neon-toggle::after { left: 22px; background: #fff; }
+        /* --- CONTROLS --- */
+        .mode-tabs { display: flex; background: #000; padding: 4px; border: 1px solid var(--border); margin-bottom: 25px; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); }
+        .mode-btn { flex: 1; text-align: center; padding: 12px; font-weight: 800; font-size: 14px; color: #555; cursor: pointer; transition: 0.3s; font-family: var(--font-head); letter-spacing: 1px; }
+        .mode-btn.active { background: #111; color: #fff; }
+        .mode-btn.active.enc { color: var(--primary); text-shadow: 0 0 10px var(--primary); }
+        .mode-btn.active.dec { color: var(--alert); text-shadow: 0 0 10px var(--alert); }
 
-        /* EXECUTE BUTTON */
-        .btn-exec {
-            width: 100%; padding: 25px; background: transparent; color: var(--primary); border: 2px solid var(--primary);
-            font-family: var(--font-head); font-size: 14px; margin-top: auto; position: relative; overflow: hidden;
-            transition: 0.3s; font-weight: bold; clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
+        /* AUTO PILOT BUTTON */
+        .btn-auto {
+            width: 100%; padding: 15px; background: linear-gradient(90deg, rgba(0,255,170,0.1), transparent);
+            border: 1px solid var(--primary); color: var(--primary); font-family: var(--font-head);
+            font-size: 12px; cursor: pointer; margin-bottom: 25px; display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: 0.3s;
         }
-        .btn-exec:hover { background: var(--primary); color: #000; box-shadow: 0 0 50px var(--primary); }
+        .btn-auto:hover { background: var(--primary); color: #000; box-shadow: 0 0 30px var(--primary); }
+        .btn-auto i { animation: spin-slow 4s infinite linear; }
+        @keyframes spin-slow { 100% { transform: rotate(360deg); } }
+
+        /* OPTIONS */
+        .opt-item {
+            display: flex; align-items: center; justify-content: space-between; padding: 15px;
+            background: rgba(255,255,255,0.02); border-left: 2px solid #333; margin-bottom: 8px;
+            cursor: pointer; transition: 0.3s;
+        }
+        .opt-item:hover { border-left-color: var(--primary); background: rgba(0,255,170,0.05); padding-left: 20px; }
+        .opt-check { width: 18px; height: 18px; border: 2px solid #555; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        input:checked + .opt-check { background: var(--primary); border-color: var(--primary); box-shadow: 0 0 10px var(--primary); }
+        input:checked + .opt-check i { opacity: 1; transform: scale(1); }
+        .opt-check i { font-size: 10px; color: #000; opacity: 0; transition: 0.2s; }
+
+        /* MEGA BUTTON */
+        .btn-titan {
+            width: 100%; padding: 22px; background: var(--primary); color: #000; border: none;
+            font-family: var(--font-head); font-weight: 900; font-size: 18px; cursor: pointer; margin-top: auto;
+            clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+            transition: 0.3s; letter-spacing: 2px;
+        }
+        .btn-titan:hover { transform: scale(1.02); box-shadow: 0 0 50px var(--primary); filter: brightness(1.2); }
 
         /* EDITOR */
-        .editor-wrap { flex: 1; display: flex; flex-direction: column; background: #050505; position: relative; }
+        .editor-wrap { flex: 1; display: flex; flex-direction: column; background: #050505; }
+        .editor-hud {
+            height: 50px; background: rgba(0,0,0,0.5); border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 30px;
+            font-family: var(--font-code); color: var(--primary); font-size: 12px;
+        }
         .CodeMirror { flex: 1; font-family: var(--font-code); font-size: 14px; background: transparent !important; }
-        .cm-s-dracula.CodeMirror { background: transparent !important; }
+        .cm-s-pastel-on-dark.CodeMirror { background: transparent !important; }
 
-        /* TERMINAL & API MODALS */
-        .modal-wrap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: none; justify-content: center; align-items: center; }
-        .cyber-win { width: 90%; height: 85%; border: 1px solid var(--primary); background: #000; display: flex; flex-direction: column; box-shadow: 0 0 100px var(--primary); animation: holograph 0.4s ease; }
-        @keyframes holograph { 0%{opacity:0; transform:scaleY(0);} 100%{opacity:1; transform:scaleY(1);} }
-        .win-head { padding: 20px; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; font-family: var(--font-head); color: var(--primary); }
-        .win-content { flex: 1; padding: 30px; overflow-y: auto; color: #ccc; font-family: var(--font-code); }
+        /* MODALS */
+        .modal-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; display: none; justify-content: center; align-items: center; }
+        .titan-win { width: 85%; height: 80%; background: #080a0c; border: 1px solid var(--primary); display: flex; flex-direction: column; box-shadow: 0 0 100px rgba(0,255,170,0.2); animation: scaleUp 0.3s ease; }
+        @keyframes scaleUp { from{transform:scale(0.9);opacity:0;} to{transform:scale(1);opacity:1;} }
+        
+        .win-head { padding: 20px 30px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; font-family: var(--font-head); color: var(--primary); background: rgba(0,255,170,0.05); }
+        .win-body { flex: 1; padding: 30px; overflow-y: auto; color: #ccc; font-family: var(--font-code); font-size: 14px; }
 
-        /* NOTIFICATION */
-        .toast { position: fixed; bottom: 30px; right: 30px; padding: 15px 25px; background: var(--primary); color: #000; font-family: var(--font-head); font-size: 12px; border-radius: 4px; transform: translateX(200%); transition: 0.5s; z-index: 9000; font-weight: bold; }
+        /* TERMINAL */
+        .term-out { flex: 1; padding: 20px; color: #0f0; overflow-y: auto; }
+        .term-in { padding: 20px; background: #000; border-top: 1px solid #333; color: #fff; font-family: var(--font-code); width: 100%; border: none; outline: none; }
 
-        @media(max-width:1000px){ .layout{flex-direction:column;} .sidebar{width:100%; height:auto; order:2;} .editor-wrap{height:500px; order:1;} .lang-dock{max-width:100%;} }
+        @media(max-width:1000px){ .layout{flex-direction:column;} .sidebar{width:100%; height:auto; order:2;} .editor-wrap{height:500px; order:1;} }
     </style>
 </head>
 <body>
 
-    <div id="cursor"></div>
-    
-    <div id="bioLock">
-        <i class="fas fa-fingerprint fingerprint" onclick="unlockSystem()"></i>
-        <div class="bio-text">SYSTEM LOCKED // TOUCH TO ACCESS</div>
-    </div>
+    <script>
+        // SOUND ENGINE V2 (Spatial Audio)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSnd(type) {
+            if(audioCtx.state==='suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            
+            if(type==='click') { osc.type='square'; osc.frequency.setValueAtTime(150, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime+0.1); gain.gain.value=0.1; osc.start(); osc.stop(audioCtx.currentTime+0.1); }
+            if(type==='hover') { osc.type='sine'; osc.frequency.value=800; gain.gain.value=0.02; osc.start(); osc.stop(audioCtx.currentTime+0.05); }
+            if(type==='success') { osc.type='triangle'; osc.frequency.setValueAtTime(400, audioCtx.currentTime); osc.frequency.linearRampToValueAtTime(800, audioCtx.currentTime+0.3); gain.gain.value=0.2; osc.start(); osc.stop(audioCtx.currentTime+0.3); }
+            if(type==='error') { osc.type='sawtooth'; osc.frequency.setValueAtTime(100, audioCtx.currentTime); gain.gain.value=0.2; osc.start(); osc.stop(audioCtx.currentTime+0.3); }
+        }
+    </script>
 
-    <div class="noise"></div>
-    <canvas id="liquidCanvas"></canvas>
+    <div class="vignette"></div>
+    <canvas id="neuralNet"></canvas>
 
     <nav>
-        <div class="brand">V70 <span>SINGULARITY</span></div>
-        <div class="lang-dock">
-            <div class="l-btn active" onclick="setLang('python', '#00ff88')">PYTHON</div>
-            <div class="l-btn" onclick="setLang('javascript', '#facc15')">JS</div>
-            <div class="l-btn" onclick="setLang('lua', '#00d4ff')">LUA</div>
-            <div class="l-btn" onclick="setLang('cpp', '#ff004c')">C++</div>
-            <div class="l-btn" onclick="setLang('csharp', '#9b59b6')">C#</div>
-            <div class="l-btn" onclick="setLang('java', '#e67e22')">JAVA</div>
-            <div class="l-btn" onclick="setLang('go', '#00add8')">GO</div>
-            <div class="l-btn" onclick="setLang('rust', '#e74c3c')">RUST</div>
-            <div class="l-btn" onclick="setLang('swift', '#f39c12')">SWIFT</div>
-            <div class="l-btn" onclick="setLang('ruby', '#c0392b')">RUBY</div>
-            <div class="l-btn" onclick="setLang('perl', '#3498db')">PERL</div>
-            <div class="l-btn" onclick="setLang('php', '#8b5cf6')">PHP</div>
+        <div class="brand">V80 <span>TITAN</span></div>
+        <div class="sys-stat">
+            <span><div class="stat-dot"></div> SYSTEM ONLINE</span>
+            <span><div class="stat-dot"></div> CORE SECURE</span>
         </div>
         <div style="display:flex; gap:10px;">
-            <button class="l-btn" onclick="openModal('term')"><i class="fas fa-terminal"></i></button>
-            <button class="l-btn" onclick="openModal('docs')"><i class="fas fa-book"></i></button>
+            <button class="nav-btn" onclick="openModal('term'); playSnd('click')"><i class="fas fa-terminal"></i> TERMINAL</button>
+            <button class="nav-btn" onclick="openModal('docs'); playSnd('click')"><i class="fas fa-book"></i> API</button>
         </div>
     </nav>
 
     <div class="layout">
         <div class="sidebar">
-            <div class="cyber-switch">
-                <div class="cs-bg" id="csBg"></div>
-                <div class="cs-opt" onclick="setMode('encrypt')">ENCRYPT_DATA</div>
-                <div class="cs-opt" onclick="setMode('decrypt')">DECRYPT_DATA</div>
+            <div class="mode-tabs">
+                <div class="mode-btn active enc" onclick="setMode('encrypt'); playSnd('click')">ENCRYPT</div>
+                <div class="mode-btn dec" onclick="setMode('decrypt'); playSnd('click')">DECRYPT</div>
             </div>
 
             <div id="encPanel" style="display:flex; flex-direction:column; flex:1;">
-                <div style="font-family:var(--font-head); font-size:10px; color:var(--primary); margin-bottom:15px;">ADVANCED_MODULES</div>
-                <div id="optsContainer"></div>
+                <button class="btn-auto" onclick="autoPilot(); playSnd('success')">
+                    <i class="fas fa-robot"></i> ACTIVATE AI AUTO-PILOT
+                </button>
 
-                <div style="margin-top:30px;">
-                    <div class="opt-row" onclick="document.getElementById('file').click()">
-                        <div class="opt-txt">IMPORT SOURCE FILE</div>
-                        <i class="fas fa-file-import"></i>
+                <div style="color:var(--primary); font-size:11px; font-weight:bold; margin-bottom:10px;">TARGET LANGUAGE</div>
+                <select id="langSelect" onchange="setLang(this.value); playSnd('click')" style="width:100%; padding:15px; background:#000; color:#fff; border:1px solid var(--border); margin-bottom:20px; font-family:var(--font-head);">
+                    <option value="python">PYTHON (Titan Core)</option>
+                    <option value="javascript">JAVASCRIPT</option>
+                    <option value="lua">LUA</option>
+                    <option value="go">GOLANG</option>
+                    <option value="php">PHP</option>
+                </select>
+
+                <div style="color:var(--primary); font-size:11px; font-weight:bold; margin-bottom:10px;">ACTIVE MODULES</div>
+                <div id="optsContainer" style="display:flex; flex-direction:column; gap:5px;"></div>
+
+                <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:20px;">
+                    <div class="opt-item" onclick="document.getElementById('file').click(); playSnd('click')">
+                        <span style="font-size:13px; font-weight:bold;"><i class="fas fa-upload" style="color:var(--primary)"></i> IMPORT FILE</span>
                     </div>
                     <input type="file" id="file" hidden>
                 </div>
             </div>
 
-            <div id="decPanel" style="display:none; flex:1; justify-content:center; align-items:center; flex-direction:column; text-align:center;">
-                <i class="fas fa-atom" style="font-size:60px; color:var(--primary); animation:spin 4s infinite linear;"></i>
-                <h3 style="color:#fff; font-family:var(--font-head); margin-top:20px;">QUANTUM DECODER</h3>
-                <p style="color:#888; font-size:12px;">The system will automatically reverse-engineer the payload.</p>
+            <div id="decPanel" style="display:none; flex:1; align-items:center; justify-content:center; flex-direction:column; text-align:center;">
+                <i class="fas fa-radar" style="font-size:60px; color:var(--primary); margin-bottom:20px; animation:spin-slow 4s infinite linear;"></i>
+                <h3 style="color:#fff; font-family:var(--font-head);">SIGNAL DECODER</h3>
+                <p style="color:#888; font-size:12px;">The Titan system will extract the payload.</p>
             </div>
 
-            <button class="btn-exec" id="actionBtn" onclick="process()">INITIALIZE QUANTUM CORE</button>
+            <button class="btn-titan" id="actionBtn" onmouseenter="playSnd('hover')" onclick="process()">INITIATE SEQUENCE</button>
         </div>
 
         <div class="editor-wrap">
+            <div class="editor-hud">
+                <span>TITAN WORKSPACE</span>
+                <div style="display:flex; gap:15px;">
+                    <i class="fas fa-eraser" style="cursor:pointer" onclick="editor.setValue(''); playSnd('click')"></i>
+                    <i class="fas fa-copy" style="cursor:pointer" onclick="copy(); playSnd('click')"></i>
+                    <i class="fas fa-download" style="cursor:pointer" onclick="download(); playSnd('click')"></i>
+                </div>
+            </div>
             <textarea id="editor"></textarea>
         </div>
     </div>
 
-    <div class="toast" id="toast">OPERATION SUCCESSFUL</div>
-
-    <div id="termModal" class="modal-wrap">
-        <div class="cyber-win">
-            <div class="win-head"><span>ROOT_TERMINAL</span> <i class="fas fa-times" onclick="closeModal('term')" style="cursor:pointer"></i></div>
-            <div class="win-content" id="termOut" style="color:var(--primary)">V70 Kernel Loaded...<br>root@singularity:~# </div>
-            <input id="termIn" style="background:#111; border:none; color:#fff; padding:20px; font-family:var(--font-code); width:100%; outline:none;" autofocus>
+    <div id="termModal" class="modal-bg">
+        <div class="titan-win">
+            <div class="win-head"><span>// ROOT_ACCESS</span> <i class="fas fa-times" onclick="closeModal('term'); playSnd('click')" style="cursor:pointer"></i></div>
+            <div class="term-out" id="termOut">EuroShield Titan v80.0<br>System Ready.<br></div>
+            <input id="termIn" class="term-in" autofocus>
         </div>
     </div>
 
-    <div id="docsModal" class="modal-wrap">
-        <div class="cyber-win">
-            <div class="win-head"><span>API_NODE</span> <i class="fas fa-times" onclick="closeModal('docs')" style="cursor:pointer"></i></div>
-            <div class="win-content">
-                <h2>REST API Access</h2>
+    <div id="docsModal" class="modal-bg">
+        <div class="titan-win">
+            <div class="win-head"><span>// API_NODE</span> <i class="fas fa-times" onclick="closeModal('docs'); playSnd('click')" style="cursor:pointer"></i></div>
+            <div class="win-body">
+                <h2 style="color:var(--primary)">Titan REST API</h2>
                 <code>POST {{ request.url_root }}process</code>
-                <pre style="background:#111; padding:20px; margin-top:10px; border:1px solid #333; color:#fff;">
+                <pre style="background:#111; padding:20px; border:1px solid #333; margin-top:20px; color:#fff;">
 import requests
-# 12 Languages Supported
-data = {
-    "code": "print('V70')",
+# Using Auto-Pilot Mode
+res = requests.post("{{ request.url_root }}process", json={
+    "code": "print('V80')",
     "action": "encrypt",
-    "lang": "python", 
-    "options": ["invisible", "chaos"]
-}
-res = requests.post("{{ request.url_root }}process", json=data)
+    "lang": "python",
+    "options": ["autopilot"]
+})
 print(res.json()['result'])</pre>
             </div>
         </div>
     </div>
 
     <script>
-        // --- VOICE SYSTEM (J.A.R.V.I.S) ---
-        function speak(text) {
-            const synth = window.speechSynthesis;
-            const u = new SpeechSynthesisUtterance(text);
-            u.pitch = 0.8; u.rate = 1;
-            synth.speak(u);
-        }
-
-        // --- BIOMETRIC UNLOCK ---
-        function unlockSystem() {
-            speak("Biometric scan accepted. Welcome, Commander.");
-            document.getElementById('bioLock').style.opacity = '0';
-            setTimeout(() => document.getElementById('bioLock').remove(), 1000);
-        }
-
-        // --- CUSTOM CURSOR ---
-        document.addEventListener('mousemove', e => {
-            const c = document.getElementById('cursor');
-            c.style.left = e.pageX + 'px'; c.style.top = e.pageY + 'px';
-        });
-        document.querySelectorAll('button, .l-btn, .opt-row').forEach(b => {
-            b.addEventListener('mouseenter', () => document.getElementById('cursor').classList.add('hover'));
-            b.addEventListener('mouseleave', () => document.getElementById('cursor').classList.remove('hover'));
-        });
-
-        // --- LIQUID CANVAS (Simplified for Performance) ---
-        const canvas = document.getElementById('liquidCanvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-        let particles = [];
-        for(let i=0; i<30; i++) particles.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, s:Math.random()*2+1, vx:(Math.random()-0.5), vy:(Math.random()-0.5)});
+        // --- CANVAS NEURAL NET ---
+        const cvs = document.getElementById('neuralNet');
+        const ctx = cvs.getContext('2d');
+        cvs.width = window.innerWidth; cvs.height = window.innerHeight;
+        let nodes = [];
+        for(let i=0; i<60; i++) nodes.push({x:Math.random()*cvs.width, y:Math.random()*cvs.height, vx:(Math.random()-0.5), vy:(Math.random()-0.5)});
         
-        function animate() {
-            ctx.fillStyle = 'rgba(0,0,0,0.1)'; ctx.fillRect(0,0,canvas.width,canvas.height);
+        function drawNet() {
+            ctx.clearRect(0,0,cvs.width,cvs.height);
             ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary');
-            particles.forEach(p=>{
-                p.x+=p.vx; p.y+=p.vy;
-                if(p.x<0||p.x>canvas.width) p.vx*=-1; if(p.y<0||p.y>canvas.height) p.vy*=-1;
-                ctx.beginPath(); ctx.arc(p.x,p.y,p.s,0,Math.PI*2); ctx.fill();
+            nodes.forEach(n => {
+                n.x+=n.vx; n.y+=n.vy;
+                if(n.x<0||n.x>cvs.width) n.vx*=-1; if(n.y<0||n.y>cvs.height) n.vy*=-1;
+                ctx.beginPath(); ctx.arc(n.x,n.y,1.5,0,Math.PI*2); ctx.fill();
+                nodes.forEach(n2 => {
+                    let d = Math.hypot(n.x-n2.x, n.y-n2.y);
+                    if(d<120) {
+                        ctx.strokeStyle = ctx.fillStyle; ctx.globalAlpha = 1 - d/120;
+                        ctx.beginPath(); ctx.moveTo(n.x,n.y); ctx.lineTo(n2.x,n2.y); ctx.stroke(); ctx.globalAlpha=1;
+                    }
+                });
             });
-            requestAnimationFrame(animate);
+            requestAnimationFrame(drawNet);
         }
-        animate();
+        drawNet();
 
         // --- LOGIC ---
         let curLang='python', curMode='encrypt';
         const UI = {
-            python: { opts: [{id:'invisible',l:'INVISIBLE INK 👻'}, {id:'chaos',l:'CHAOS LAMBDA 🌪️'}, {id:'tamper',l:'ANTI-TAMPER 🛡️'}, {id:'iplock',l:'IP ADDRESS LOCK 🔒'}] },
-            javascript: { opts: [{id:'hex',l:'HEX MATRIX'}, {id:'obf',l:'V70 OBFUSCATOR'}] },
-            lua: { opts: [{id:'vm',l:'ABYSS VM'}, {id:'byte',l:'BYTECODE'}] },
-            // Generic options for compiled langs
-            generic: { opts: [{id:'base64',l:'BINARY WRAPPER'}] }
+            python: { c:'#00ffaa', opts: [{id:'dead',l:'DEAD CODE STORM'}, {id:'rename',l:'AST RENAMING'}, {id:'marshal',l:'MARSHAL COMPRESSION'}] },
+            javascript: { c:'#facc15', opts: [{id:'hex',l:'HEX ENCODING'}, {id:'packer',l:'TITAN PACKER'}] },
+            lua: { c:'#00d4ff', opts: [{id:'vm',l:'VIRTUAL MACHINE'}, {id:'hex',l:'HEX LOADER'}] },
+            // Generic
+            generic: { c:'#fff', opts: [{id:'base64',l:'BASE64 WRAPPER'}] }
         };
 
-        var editor = CodeMirror.fromTextArea(document.getElementById("editor"), { mode: "python", theme: "dracula", lineNumbers: true });
+        var editor = CodeMirror.fromTextArea(document.getElementById("editor"), { mode: "python", theme: "pastel-on-dark", lineNumbers: true });
 
-        function setLang(l, c) {
+        function setLang(l) {
             curLang = l;
-            document.documentElement.style.setProperty('--primary', c);
-            const mode = l==='cpp'||l==='csharp'||l==='java' ? 'clike' : l;
-            editor.setOption("mode", mode);
-            
-            // Generate Options
+            const conf = UI[l] || UI.generic;
+            document.documentElement.style.setProperty('--primary', conf.c);
             const con = document.getElementById('optsContainer'); con.innerHTML = '';
-            const opts = (UI[l] || UI.generic).opts;
-            opts.forEach(o => {
+            (conf.opts || []).forEach(o => {
                 con.innerHTML += `
-                    <label class="opt-row">
-                        <div class="opt-txt">${o.l}</div>
-                        <input type="checkbox" id="opt-${o.id}" checked style="display:none">
-                        <div class="neon-toggle"></div>
+                    <label class="opt-item" onmouseenter="playSnd('hover')" onclick="playSnd('click')">
+                        <span style="font-weight:700; font-size:12px; letter-spacing:1px;">${o.l}</span>
+                        <input type="checkbox" id="opt-${o.id}" class="opt-chk" hidden>
+                        <div class="opt-check"><i class="fas fa-check"></i></div>
                     </label>`;
             });
-            
-            document.querySelectorAll('.l-btn').forEach(b => b.classList.remove('active'));
-            event.currentTarget.classList.add('active');
         }
-        setLang('python', '#00ff88');
+        setLang('python');
 
         function setMode(m) {
             curMode = m;
-            const bg = document.getElementById('csBg');
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
             const btn = document.getElementById('actionBtn');
-            if(m === 'encrypt') {
-                bg.style.left = '5px';
+            if(m==='encrypt') {
                 document.getElementById('encPanel').style.display='flex';
+                document.getElementById('encPanel').style.flexDirection='column';
                 document.getElementById('decPanel').style.display='none';
-                btn.innerText = 'INITIALIZE QUANTUM CORE';
+                document.querySelector('.mode-btn.enc').classList.add('active');
+                btn.innerText = 'INITIATE SEQUENCE';
             } else {
-                bg.style.left = '50%';
                 document.getElementById('encPanel').style.display='none';
                 document.getElementById('decPanel').style.display='flex';
-                btn.innerText = 'DECRYPT PAYLOAD';
+                document.querySelector('.mode-btn.dec').classList.add('active');
+                btn.innerText = 'DECRYPT ARTIFACT';
             }
         }
 
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.innerText = msg; t.style.transform = 'translateX(0)';
-            speak(msg);
-            setTimeout(() => t.style.transform = 'translateX(200%)', 3000);
+        function autoPilot() {
+            // Smart Selection Logic
+            document.querySelectorAll('.opt-chk').forEach(c => c.checked = true);
+            alert("TITAN AUTO-PILOT: OPTIMAL CONFIGURATION APPLIED.");
         }
 
         async function process() {
-            const code = editor.getValue(); if(!code.trim()) return showToast("BUFFER EMPTY");
-            let opts = []; if(curMode==='encrypt') document.querySelectorAll('input:checked').forEach(c=>opts.push(c.id.replace('opt-','')));
+            playSnd('click');
+            const code = editor.getValue(); if(!code.trim()) return alert("BUFFER EMPTY");
+            
+            // Build options array
+            let opts = [];
+            if(curMode==='encrypt') document.querySelectorAll('.opt-chk:checked').forEach(c=>opts.push(c.id.replace('opt-','')));
             
             const btn = document.getElementById('actionBtn'); btn.innerText = 'PROCESSING...';
             try {
                 const res = await fetch('/process', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code, action:curMode, lang:curLang, options:opts}) });
-                const d = await res.json(); editor.setValue(d.result); showToast("OPERATION COMPLETE");
-            } catch { showToast("SYSTEM FAILURE"); } finally { btn.innerText = curMode==='encrypt'?'INITIALIZE QUANTUM CORE':'DECRYPT PAYLOAD'; }
+                const d = await res.json(); editor.setValue(d.result); playSnd('success');
+            } catch { playSnd('error'); alert("SYSTEM FAILURE"); } finally { btn.innerText = curMode==='encrypt'?'INITIATE SEQUENCE':'DECRYPT ARTIFACT'; }
         }
 
         // TERMINAL
-        const termOut = document.getElementById('termOut');
+        const tOut = document.getElementById('termOut');
         document.getElementById('termIn').addEventListener('keypress', async e => {
             if(e.key==='Enter') {
+                playSnd('click');
                 const c = e.target.value; e.target.value='';
-                termOut.innerHTML += `<br><span style="color:var(--primary)">root@v70:~#</span> ${c}`;
-                try{ const r=await fetch('/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:c})}); const d=await r.json(); termOut.innerHTML+=`<br>${d.output}`; }
-                catch{ termOut.innerHTML+='<br>Error'; }
+                tOut.innerHTML += `<br><span style="color:var(--primary)">root@titan:~#</span> ${c}`;
+                try{ const r=await fetch('/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:c})}); const d=await r.json(); tOut.innerHTML+=`<br>${d.output}`; }
+                catch{ tOut.innerHTML+='<br>Error'; }
             }
         });
 
         function openModal(id) { document.getElementById(id+'Modal').style.display='flex'; }
         function closeModal(id) { document.getElementById(id+'Modal').style.display='none'; }
-        
-        document.getElementById('file').addEventListener('change', e => { const f=e.target.files[0]; if(f){ const r=new FileReader(); r.onload=ev=>editor.setValue(ev.target.result); r.readAsText(f); showToast("FILE LOADED"); } });
+        function copy() { navigator.clipboard.writeText(editor.getValue()); }
+        function download() { const b=new Blob([editor.getValue()],{type:'text/plain'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download='Titan.txt'; a.click(); }
+        document.getElementById('file').addEventListener('change', e => { const f=e.target.files[0]; if(f){ const r=new FileReader(); r.onload=ev=>editor.setValue(ev.target.result); r.readAsText(f); } });
     </script>
 </body>
 </html>
