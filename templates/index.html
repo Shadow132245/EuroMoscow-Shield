@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EuroMoscow | V40 Singularity</title>
+    <title>EuroMoscow | V50 God Mode</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
     
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -21,8 +21,8 @@
 
     <style>
         :root {
-            --bg: #020204;
-            --panel: rgba(15, 15, 20, 0.7);
+            --bg: #010103;
+            --panel: rgba(10, 10, 15, 0.9);
             --border: rgba(255, 255, 255, 0.08);
             --primary: #00f0ff;
             --text: #ffffff;
@@ -31,118 +31,103 @@
             --font-code: 'JetBrains Mono', monospace;
         }
 
+        /* --- GLOBAL FIXES --- */
         * { box-sizing: border-box; outline: none; }
         body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-ui); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        
+        /* DARK SCROLLBAR */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #333; border: 1px solid #000; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
-        /* --- GLOBAL SCROLLBAR FIX (Theme Matched) --- */
-        /* يضمن أن السكرول بار يأخذ لون الثيم في كل مكان */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #050505; 
-            border-left: 1px solid var(--border);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #333; 
-            border: 1px solid #000;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--primary);
-            box-shadow: 0 0 10px var(--primary); /* تأثير توهج عند اللمس */
-        }
-        /* إصلاح خاص للفايرفوكس */
-        * {
-            scrollbar-width: thin;
-            scrollbar-color: #333 #050505;
-        }
-
-        /* ANIMATED BG */
-        .grid-bg {
-            position: fixed; top: 0; left: 0; width: 200%; height: 200%; z-index: -2;
-            background: linear-gradient(rgba(0,240,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,240,255,0.03) 1px, transparent 1px);
-            background-size: 40px 40px; transform: perspective(500px) rotateX(60deg); animation: grid 20s linear infinite;
-        }
-        @keyframes grid { 0% { transform: perspective(500px) rotateX(60deg) translateY(0); } 100% { transform: perspective(500px) rotateX(60deg) translateY(40px); } }
+        /* BG FX */
+        .stars { position:fixed; top:0; left:0; width:100%; height:100%; background:url('https://www.transparenttextures.com/patterns/stardust.png'); opacity:0.1; pointer-events:none; z-index:-1; animation:twinkle 100s linear infinite; }
+        @keyframes twinkle { 0%{background-position:0 0;} 100%{background-position:1000px 1000px;} }
 
         /* NAVBAR */
-        nav { height: 75px; padding: 0 30px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: rgba(2,2,4,0.9); backdrop-filter: blur(10px); z-index: 100; }
-        .brand { font-family: var(--font-tech); font-size: 22px; font-weight: 900; letter-spacing: 1px; display: flex; gap: 10px; align-items: center; text-shadow: 0 0 15px var(--primary); }
-        .brand i { color: var(--primary); }
+        nav { height: 75px; padding: 0 30px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: rgba(5,5,8,0.95); z-index: 100; box-shadow: 0 0 30px rgba(0,0,0,0.8); }
+        .brand { font-family: var(--font-tech); font-size: 24px; font-weight: 900; letter-spacing: 2px; color: #fff; display: flex; gap: 10px; align-items: center; text-shadow: 0 0 15px var(--primary); }
+        .brand i { color: var(--primary); filter: drop-shadow(0 0 10px var(--primary)); }
         
         .nav-links { display: flex; gap: 10px; }
         .nav-btn {
-            background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #ccc;
-            padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 700; transition: 0.3s;
-            display: flex; align-items: center; gap: 6px; font-size: 12px;
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: #ccc;
+            padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 700; transition: 0.3s;
+            display: flex; align-items: center; gap: 6px; font-size: 12px; font-family: var(--font-tech);
         }
         .nav-btn:hover { border-color: var(--primary); color: #fff; background: rgba(0,240,255,0.1); box-shadow: 0 0 15px var(--primary); }
 
         /* LAYOUT */
         .layout { display: flex; flex: 1; overflow: hidden; }
-        .sidebar { width: 350px; background: var(--panel); border-right: 1px solid var(--border); padding: 25px; display: flex; flex-direction: column; z-index: 10; backdrop-filter: blur(20px); }
+        .sidebar { width: 360px; background: var(--panel); border-right: 1px solid var(--border); padding: 25px; display: flex; flex-direction: column; z-index: 10; }
         
         /* MODE SWITCH */
-        .mode-box { display: flex; background: #000; padding: 4px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 25px; }
-        .mode-opt { flex: 1; text-align: center; padding: 10px; font-weight: 800; font-size: 13px; color: #666; cursor: pointer; border-radius: 6px; transition: 0.3s; font-family: var(--font-tech); }
+        .mode-box { display: flex; background: #000; padding: 4px; border-radius: 6px; border: 1px solid var(--border); margin-bottom: 25px; }
+        .mode-opt { flex: 1; text-align: center; padding: 12px; font-weight: 800; font-size: 13px; color: #666; cursor: pointer; border-radius: 4px; transition: 0.3s; font-family: var(--font-tech); }
         .mode-opt.active { background: #151515; color: #fff; border: 1px solid var(--border); }
         .mode-opt.active.enc { color: var(--primary); text-shadow: 0 0 10px var(--primary); }
         .mode-opt.active.dec { color: #ff0055; text-shadow: 0 0 10px #ff0055; }
 
-        /* BUTTONS */
+        /* PANELS (Fixed Layout) */
+        #encPanel { display: flex; flex-direction: column; flex: 1; }
+        #decPanel { display: none; flex: 1; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+
+        /* MEGA BUTTON */
         .btn-main {
-            width: 100%; padding: 16px; background: var(--primary); color: #000; border: none; border-radius: 8px;
-            font-family: var(--font-tech); font-weight: 900; font-size: 15px; cursor: pointer; margin-top: auto;
-            transition: 0.3s; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            width: 100%; padding: 18px; background: var(--primary); color: #000; border: none; border-radius: 4px;
+            font-family: var(--font-tech); font-weight: 900; font-size: 16px; cursor: pointer; margin-top: auto;
+            transition: 0.3s; letter-spacing: 2px; position: relative; overflow: hidden;
         }
-        .btn-main:hover { transform: translateY(-2px); box-shadow: 0 0 30px var(--primary); }
+        .btn-main:hover { transform: scale(1.02); box-shadow: 0 0 40px var(--primary); }
+        .btn-main::after { content:''; position:absolute; top:-50%; left:-50%; width:200%; height:200%; background:linear-gradient(rgba(255,255,255,0.2), transparent); transform:rotate(45deg); animation:shine 3s infinite; }
+        @keyframes shine { 0%{left:-100%} 100%{left:100%} }
 
         /* EDITOR */
-        .editor-area { flex: 1; display: flex; flex-direction: column; background: #08080c; position: relative; }
+        .editor-area { flex: 1; display: flex; flex-direction: column; background: #050508; position: relative; }
         .editor-bar { height: 45px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 25px; font-size: 11px; font-weight: 700; color: #666; background: rgba(0,0,0,0.3); font-family: var(--font-tech); }
         .CodeMirror { flex: 1; font-family: var(--font-code); font-size: 14px; background: transparent !important; }
         .cm-s-ayu-mirage.CodeMirror { background: transparent !important; }
 
-        /* OVERLAYS (MODALS) */
+        /* OVERLAYS */
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 999; display: none; justify-content: center; align-items: center; backdrop-filter: blur(15px); }
-        .win { width: 85%; height: 85%; background: #0b0b0f; border: 1px solid var(--primary); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 80px rgba(0,240,255,0.15); animation: zoom 0.3s ease; }
-        @keyframes zoom { from{transform:scale(0.9);opacity:0;} to{transform:scale(1);opacity:1;} }
+        .win { width: 85%; height: 85%; background: #0b0b0f; border: 1px solid var(--primary); border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 100px rgba(0,240,255,0.1); animation: open 0.3s ease; }
+        @keyframes open { from{transform:scale(0.9);opacity:0;} to{transform:scale(1);opacity:1;} }
         
         .win-head { padding: 15px 30px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-family: var(--font-tech); color: var(--primary); background: rgba(0,240,255,0.05); }
         .win-body { flex: 1; padding: 40px; overflow-y: auto; color: #ccc; font-size: 14px; line-height: 1.6; }
-        
-        /* CONTENT STYLES */
-        h2 { color: #fff; margin-top: 0; font-family: var(--font-tech); }
-        h3 { color: var(--primary); margin-top: 25px; font-size: 16px; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        p { color: #aaa; }
-        pre { background: #000; padding: 20px; border-radius: 8px; border: 1px solid var(--border); font-family: var(--font-code); color: #0f0; overflow-x: auto; }
-        code { background: #222; padding: 2px 6px; border-radius: 4px; font-family: var(--font-code); color: #fff; }
         
         /* TERMINAL */
         .term-out { background: #000; flex: 1; padding: 20px; font-family: var(--font-code); color: #0f0; overflow-y: auto; font-size: 16px; }
         .term-in { display: flex; background: #080808; padding: 15px; border-top: 1px solid #333; }
         .term-field { flex: 1; background: transparent; border: none; color: #fff; font-family: var(--font-code); font-size: 16px; }
 
+        /* API DOCS STYLE */
+        pre { background: #000; padding: 20px; border: 1px solid var(--border); border-radius: 6px; color: #a5b3ce; overflow-x: auto; }
+        code { color: var(--primary); background: #111; padding: 2px 5px; border-radius: 3px; }
+
         /* LOADER */
-        .loader { position: absolute; top:0; left:0; width:100%; height:100%; background:#000; z-index:2000; display:flex; justify-content:center; align-items:center; transition:0.5s; }
-        .spinner { width:60px; height:60px; border:4px solid #333; border-top:4px solid var(--primary); border-radius:50%; animation:spin 1s linear infinite; }
-        @keyframes spin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
+        .loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000; display: flex; justify-content: center; align-items: center; transition: 0.5s; flex-direction: column; }
+        .load-bar { width: 200px; height: 2px; background: #333; margin-top: 20px; overflow: hidden; }
+        .load-fill { height: 100%; width: 50%; background: var(--primary); animation: load 1s infinite; }
+        @keyframes load { 0%{transform:translateX(-100%)} 100%{transform:translateX(200%)} }
 
         @media (max-width: 900px) { .layout { flex-direction: column; } .sidebar { width: 100%; order: 2; height: auto; } .editor-area { height: 500px; order: 1; } }
     </style>
 </head>
-<body onload="document.getElementById('loader').style.opacity='0'; setTimeout(()=>document.getElementById('loader').remove(),500)">
+<body onload="setTimeout(()=>{document.getElementById('loader').style.opacity='0'; setTimeout(()=>document.getElementById('loader').remove(),500)},800)">
 
-    <div class="loader" id="loader"><div class="spinner"></div></div>
-    <div class="grid-bg"></div>
+    <div class="loader" id="loader">
+        <div style="font-family:var(--font-tech); font-size:24px; color:#fff; letter-spacing:5px;">V50 GOD MODE</div>
+        <div class="load-bar"><div class="load-fill"></div></div>
+    </div>
+    <div class="stars"></div>
 
     <nav>
-        <div class="brand"><i class="fas fa-atom"></i> V40<small style="font-size:12px; color:#666;">//SINGULARITY</small></div>
+        <div class="brand"><i class="fas fa-biohazard"></i> V50<small style="font-size:12px; color:#666; margin-left:5px;">//GOD_MODE</small></div>
         <div class="nav-links">
             <button class="nav-btn" onclick="openModal('term')"><i class="fas fa-terminal"></i> TERMINAL</button>
-            <button class="nav-btn" onclick="openModal('docs')"><i class="fas fa-book"></i> API DOCS</button>
+            <button class="nav-btn" onclick="openModal('docs')"><i class="fas fa-book-dead"></i> API</button>
             <button class="nav-btn" onclick="openModal('tos')"><i class="fas fa-scale-balanced"></i> TERMS</button>
         </div>
     </nav>
@@ -154,42 +139,39 @@
                 <div class="mode-opt dec" onclick="setMode('decrypt')">DECRYPT</div>
             </div>
 
-            <div id="encPanel" style="display:flex; flex-direction:column; flex:1;">
-                <div style="font-size:11px; font-weight:700; color:var(--primary); margin-bottom:15px; display:flex; justify-content:space-between;">
-                    <span>LANGUAGES</span> <span>01</span>
-                </div>
-                <select id="langSelect" onchange="setLang(this.value)" style="width:100%; padding:12px; background:#000; color:#fff; border:1px solid var(--border); border-radius:6px; margin-bottom:20px; font-family:var(--font-ui); font-weight:bold;">
-                    <option value="python">Python (Recommended)</option>
-                    <option value="javascript">JavaScript</option>
-                    <option value="lua">Lua (Roblox/FiveM)</option>
-                    <option value="go">GoLang</option>
-                    <option value="php">PHP</option>
+            <div id="encPanel">
+                <div style="font-size:11px; font-weight:700; color:var(--primary); margin-bottom:10px;">TARGET LANGUAGE</div>
+                <select id="langSelect" onchange="setLang(this.value)" style="width:100%; padding:15px; background:#000; color:#fff; border:1px solid var(--border); border-radius:4px; margin-bottom:20px; font-family:var(--font-tech); font-size:14px; cursor:pointer; outline:none;">
+                    <option value="python">PYTHON (Chaos Engine)</option>
+                    <option value="javascript">JAVASCRIPT (Spectral)</option>
+                    <option value="lua">LUA (Abyss VM)</option>
+                    <option value="go">GOLANG (Armor)</option>
+                    <option value="php">PHP (Phantom)</option>
                 </select>
 
-                <div style="font-size:11px; font-weight:700; color:var(--primary); margin-bottom:15px;">
-                    <span>LAYERS</span> <span>02</span>
-                </div>
-                <div id="optsContainer" style="display:flex; flex-direction:column; gap:5px;"></div>
+                <div style="font-size:11px; font-weight:700; color:var(--primary); margin-bottom:10px;">ENGINES</div>
+                <div id="optsContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
 
-                <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:20px;">
+                <div style="margin-top:25px; border-top:1px solid var(--border); padding-top:20px;">
                     <button class="nav-btn" style="width:100%; justify-content:center; margin-bottom:10px;" onclick="document.getElementById('file').click()">
-                        <i class="fas fa-upload"></i> Upload File
+                        <i class="fas fa-upload"></i> UPLOAD SOURCE
                     </button>
                     <input type="file" id="file" hidden>
                 </div>
             </div>
 
-            <div id="decPanel" style="display:none; flex:1; text-align:center; flex-direction:column; justify-content:center;">
-                <i class="fas fa-unlock" style="font-size:50px; color:var(--primary); margin-bottom:20px;"></i>
-                <p>Paste code. Auto-detection active.</p>
+            <div id="decPanel">
+                <i class="fas fa-brain" style="font-size:60px; color:var(--primary); margin-bottom:20px; filter:drop-shadow(0 0 20px var(--primary));"></i>
+                <h3 style="color:#fff; font-family:var(--font-tech);">NEURAL DECRYPTOR</h3>
+                <p style="font-size:13px; color:#888;">Paste encrypted code. The AI will auto-reverse it.</p>
             </div>
 
-            <button class="btn-main" onclick="process()">INITIATE SEQUENCE</button>
+            <button class="btn-main" id="actionBtn" onclick="process()">EXECUTE GOD MODE</button>
         </div>
 
         <div class="editor-area">
             <div class="editor-bar">
-                <span id="langLabel">PYTHON ENVIRONMENT</span>
+                <span id="langLabel">PYTHON WORKSPACE</span>
                 <div style="display:flex; gap:15px;">
                     <i class="fas fa-eraser" style="cursor:pointer;" onclick="editor.setValue('')"></i>
                     <i class="fas fa-copy" style="cursor:pointer;" onclick="copy()"></i>
@@ -203,66 +185,48 @@
     <div id="termModal" class="overlay">
         <div class="win">
             <div class="win-head"><span>// SYSTEM TERMINAL</span> <i class="fas fa-times" style="cursor:pointer;" onclick="closeModal('term')"></i></div>
-            <div class="term-out" id="termOut">EuroShield OS v40.0 [Root Access]<br>Type 'help' for commands...<br></div>
-            <div class="term-in"><span style="color:var(--primary); margin-right:10px;">root@v40:~#</span> <input id="termIn" class="term-field" autofocus></div>
+            <div class="term-out" id="termOut">EuroShield V50.0 [God Access]<br>Ready...<br></div>
+            <div class="term-in"><span style="color:var(--primary); margin-right:10px;">root@v50:~#</span> <input id="termIn" class="term-field" autofocus></div>
         </div>
     </div>
 
     <div id="docsModal" class="overlay">
         <div class="win">
-            <div class="win-head"><span>// API DOCUMENTATION</span> <i class="fas fa-times" style="cursor:pointer;" onclick="closeModal('docs')"></i></div>
+            <div class="win-head"><span>// API REFERENCE</span> <i class="fas fa-times" style="cursor:pointer;" onclick="closeModal('docs')"></i></div>
             <div class="win-body">
-                <h2>EuroMoscow Shield API</h2>
-                <p>Integrate our advanced obfuscation engine into your applications.</p>
-                
-                <h3>Endpoint</h3>
+                <h2>V50 God Mode API</h2>
+                <p>Access the strongest obfuscation engines via REST.</p>
                 <code>POST {{ request.url_root }}process</code>
+                
+                <h3>Engines Table</h3>
+                <ul>
+                    <li><strong>python:</strong> chaos, rename, marshal, dead</li>
+                    <li><strong>javascript:</strong> packer, hex</li>
+                    <li><strong>lua:</strong> vm, hex</li>
+                </ul>
 
-                <h3>Parameters</h3>
-                <table style="width:100%; border-collapse:collapse; margin-top:10px;">
-                    <tr style="text-align:left; color:var(--primary);"><th>Key</th><th>Type</th><th>Description</th></tr>
-                    <tr><td>code</td><td>String</td><td>The source code.</td></tr>
-                    <tr><td>lang</td><td>String</td><td>python, javascript, lua, go, php</td></tr>
-                    <tr><td>action</td><td>String</td><td>encrypt | decrypt</td></tr>
-                </table>
-
-                <h3>Python Example</h3>
+                <h3>Example</h3>
                 <pre>
 import requests
-
-url = "{{ request.url_root }}process"
-payload = {
-    "code": "print('Hello World')",
+res = requests.post("{{ request.url_root }}process", json={
+    "code": "print('Hello')",
     "action": "encrypt",
     "lang": "python",
-    "options": ["rename", "deadcode"]
-}
-
-response = requests.post(url, json=payload)
-print(response.json()['result'])</pre>
+    "options": ["chaos", "marshal"]
+})
+print(res.json()['result'])</pre>
             </div>
         </div>
     </div>
 
     <div id="tosModal" class="overlay">
-        <div class="win" style="height:70%;">
-            <div class="win-head"><span>// TERMS OF SERVICE</span> <i class="fas fa-times" style="cursor:pointer;" onclick="closeModal('tos')"></i></div>
+        <div class="win" style="height:60%;">
+            <div class="win-head"><span>// AGREEMENT</span> <i class="fas fa-times" style="cursor:pointer;" onclick="closeModal('tos')"></i></div>
             <div class="win-body">
-                <h2>User Agreement</h2>
-                <p>By using EuroMoscow Shield V40, you agree to the following terms:</p>
-                
-                <h3>1. Purpose</h3>
-                <p>This tool is designed for <strong>educational and security research purposes only</strong>. It is intended to help developers protect their intellectual property.</p>
-
-                <h3>2. Prohibited Use</h3>
-                <p>You may NOT use this service to obfuscate malicious code, malware, spyware, or any software intended to harm systems or violate privacy.</p>
-
-                <h3>3. No Warranty</h3>
-                <p>The software is provided "as is", without warranty of any kind. EuroMoscow is not liable for any damages arising from the use of this tool.</p>
-
-                <div style="margin-top:40px; padding:15px; background:rgba(255,0,0,0.1); border:1px solid red; color:#ff5555;">
-                    <i class="fas fa-exclamation-triangle"></i> Violation of these terms will result in an immediate IP ban.
-                </div>
+                <h2>Usage Policy</h2>
+                <p>1. This tool is for educational use only.</p>
+                <p>2. Do not use V50 God Mode to hide malware.</p>
+                <p>3. EuroMoscow is not responsible for misuse.</p>
             </div>
         </div>
     </div>
@@ -271,11 +235,11 @@ print(response.json()['result'])</pre>
         // CONFIG
         let curLang='python', curMode='encrypt';
         const UI = {
-            python: { opts: [{id:'rename',l:'Variable Renaming'}, {id:'marshal',l:'Bytecode (Marshal)'}, {id:'dead',l:'Dead Code Injection'}, {id:'xor',l:'Poly-XOR Shield'}] },
-            javascript: { opts: [{id:'hex',l:'Hex Encoding'}, {id:'url',l:'URL Escape'}] },
-            lua: { opts: [{id:'hex',l:'Hex Loader'}] },
-            go: { opts: [{id:'base64',l:'Base64 Wrap'}] },
-            php: { opts: [{id:'base64',l:'Gzip + Base64'}] },
+            python: { opts: [{id:'chaos',l:'CHAOS LAMBDA (God Mode) ⚡'}, {id:'rename',l:'Variable Renaming'}, {id:'marshal',l:'Bytecode Marshal'}, {id:'dead',l:'Dead Code'}] },
+            javascript: { opts: [{id:'packer',l:'SPECTRAL PACKER (New) 👻'}, {id:'hex',l:'Hex Encoding'}, {id:'url',l:'URL Escape'}] },
+            lua: { opts: [{id:'vm',l:'ABYSS VM (Exclusive) 🌀'}, {id:'hex',l:'Hex Loader'}] },
+            go: { opts: [{id:'base64',l:'Binary Armor 🛡️'}] },
+            php: { opts: [{id:'ghost',l:'PHANTOM MODE 💀'}, {id:'base64',l:'Base64 Standard'}] },
             html: { opts: [{id:'hex',l:'Hex Write'}] }
         };
 
@@ -285,13 +249,13 @@ print(response.json()['result'])</pre>
         function setLang(l) {
             curLang = l;
             editor.setOption("mode", l==='html'?'htmlmixed':l);
-            document.getElementById('langLabel').innerText = l.toUpperCase() + " ENVIRONMENT";
+            document.getElementById('langLabel').innerText = l.toUpperCase() + " WORKSPACE";
             
             const con = document.getElementById('optsContainer'); con.innerHTML = '';
             if(UI[l]) UI[l].opts.forEach(o => {
                 con.innerHTML += `
-                    <label style="display:flex; justify-content:space-between; padding:12px; background:rgba(255,255,255,0.03); margin-bottom:8px; border-radius:4px; cursor:pointer; border:1px solid transparent; transition:0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='transparent'">
-                        <span style="font-size:13px; font-weight:600;">${o.l}</span>
+                    <label style="display:flex; justify-content:space-between; padding:15px; background:rgba(255,255,255,0.03); border:1px solid transparent; border-radius:4px; cursor:pointer; transition:0.3s;" onmouseover="this.style.borderColor='var(--primary)';this.style.background='rgba(0,240,255,0.05)'" onmouseout="this.style.borderColor='transparent';this.style.background='rgba(255,255,255,0.03)'">
+                        <span style="font-size:13px; font-weight:700; letter-spacing:1px;">${o.l}</span>
                         <input type="checkbox" id="opt-${o.id}" checked style="accent-color:var(--primary); transform:scale(1.2);">
                     </label>`;
             });
@@ -301,29 +265,32 @@ print(response.json()['result'])</pre>
         function setMode(m) {
             curMode = m;
             document.querySelectorAll('.mode-opt').forEach(b => b.classList.remove('active'));
+            const btn = document.getElementById('actionBtn');
+            
             if(m==='encrypt') {
                 const enc = document.getElementById('encPanel');
-                enc.style.display='flex';
-                enc.style.flexDirection='column';
-                enc.style.flex='1';
+                enc.style.display='flex'; enc.style.flexDirection='column'; enc.style.flex='1';
                 document.getElementById('decPanel').style.display='none';
                 document.querySelector('.mode-opt.enc').classList.add('active');
+                btn.innerText = 'EXECUTE GOD MODE';
             } else {
                 document.getElementById('encPanel').style.display='none';
-                document.getElementById('decPanel').style.display='flex';
+                const dec = document.getElementById('decPanel');
+                dec.style.display='flex'; dec.style.flexDirection='column'; dec.style.flex='1';
                 document.querySelector('.mode-opt.dec').classList.add('active');
+                btn.innerText = 'DECRYPT ARTIFACT';
             }
         }
 
         async function process() {
-            const code = editor.getValue(); if(!code.trim()) return alert("NO CODE DETECTED");
+            const code = editor.getValue(); if(!code.trim()) return alert("BUFFER EMPTY");
             let opts = []; if(curMode==='encrypt') document.querySelectorAll('input:checked').forEach(c=>opts.push(c.id.replace('opt-','')));
             
-            const btn = document.querySelector('.btn-main'); btn.innerText = 'PROCESSING...';
+            const btn = document.getElementById('actionBtn'); btn.innerText = 'PROCESSING...';
             try {
                 const res = await fetch('/process', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code, action:curMode, lang:curLang, options:opts}) });
                 const d = await res.json(); editor.setValue(d.result);
-            } catch { alert("Error connecting to server."); } finally { btn.innerText = 'INITIATE SEQUENCE'; }
+            } catch { alert("SERVER ERROR"); } finally { btn.innerText = curMode==='encrypt'?'EXECUTE GOD MODE':'DECRYPT ARTIFACT'; }
         }
 
         // TERMINAL
@@ -331,7 +298,7 @@ print(response.json()['result'])</pre>
         document.getElementById('termIn').addEventListener('keypress', async e => {
             if(e.key==='Enter') {
                 const c = e.target.value; e.target.value='';
-                termOut.innerHTML += `\n<span style="color:var(--primary)">root@v40:~#</span> ${c}`;
+                termOut.innerHTML += `\n<span style="color:var(--primary)">root@v50:~#</span> ${c}`;
                 if(c==='clear') termOut.innerHTML='';
                 else {
                     try{ const r=await fetch('/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:c})}); const d=await r.json(); termOut.innerHTML+=`\n${d.output}`; }
@@ -341,11 +308,10 @@ print(response.json()['result'])</pre>
             }
         });
 
-        // MODALS
         function openModal(id) { document.getElementById(id+'Modal').style.display='flex'; if(id==='term') document.getElementById('termIn').focus(); }
         function closeModal(id) { document.getElementById(id+'Modal').style.display='none'; }
         
-        function copy() { navigator.clipboard.writeText(editor.getValue()); alert("Copied!"); }
+        function copy() { navigator.clipboard.writeText(editor.getValue()); alert("COPIED"); }
         function download() { const b=new Blob([editor.getValue()],{type:'text/plain'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download='Protected.txt'; a.click(); }
         document.getElementById('file').addEventListener('change', e => { const f=e.target.files[0]; if(f){ const r=new FileReader(); r.onload=ev=>editor.setValue(ev.target.result); r.readAsText(f); } });
     </script>
