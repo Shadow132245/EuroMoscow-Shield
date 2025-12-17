@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EuroMoscow | V50 God Mode</title>
+    <title>EuroMoscow | V60 Event Horizon</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
     
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Rajdhani:wght@500;700&family=JetBrains+Mono:wght@400;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/ayu-mirage.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/vibrant-ink.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
@@ -21,161 +21,202 @@
 
     <style>
         :root {
-            --bg: #010103;
-            --panel: rgba(10, 10, 15, 0.9);
+            --bg: #010101;
+            --glass: rgba(10, 10, 15, 0.7);
             --border: rgba(255, 255, 255, 0.08);
-            --primary: #00f0ff;
-            --text: #ffffff;
+            --neon: #ff003c; /* Cyberpunk Red */
+            --neon-blue: #00f3ff;
+            --font-head: 'Audiowide', cursive;
             --font-ui: 'Rajdhani', sans-serif;
-            --font-tech: 'Orbitron', sans-serif;
             --font-code: 'JetBrains Mono', monospace;
         }
 
-        /* --- GLOBAL FIXES --- */
-        * { box-sizing: border-box; outline: none; }
-        body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-ui); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
-        
-        /* DARK SCROLLBAR */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        * { box-sizing: border-box; outline: none; cursor: crosshair; }
+        body { margin: 0; background: var(--bg); color: #fff; font-family: var(--font-ui); height: 100vh; overflow: hidden; display: flex; flex-direction: column; perspective: 1000px; }
+
+        /* --- BACKGROUND FX --- */
+        .cyber-map {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(255, 0, 60, 0.05), transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(0, 243, 255, 0.05), transparent 40%);
+            animation: map-pulse 10s infinite alternate;
+        }
+        .grid {
+            position: fixed; top: 0; left: 0; width: 200%; height: 200%;
+            background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
+            background-size: 60px 60px; transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
+            animation: grid-flow 20s linear infinite; z-index: -1; opacity: 0.3;
+        }
+        @keyframes grid-flow { 0% { transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px); } 100% { transform: perspective(500px) rotateX(60deg) translateY(60px) translateZ(-200px); } }
+
+        /* --- SCROLLBAR --- */
+        ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #000; }
-        ::-webkit-scrollbar-thumb { background: #333; border: 1px solid #000; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+        ::-webkit-scrollbar-thumb { background: var(--neon); border-radius: 2px; }
 
-        /* BG FX */
-        .stars { position:fixed; top:0; left:0; width:100%; height:100%; background:url('https://www.transparenttextures.com/patterns/stardust.png'); opacity:0.1; pointer-events:none; z-index:-1; animation:twinkle 100s linear infinite; }
-        @keyframes twinkle { 0%{background-position:0 0;} 100%{background-position:1000px 1000px;} }
-
-        /* NAVBAR */
-        nav { height: 75px; padding: 0 30px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: rgba(5,5,8,0.95); z-index: 100; box-shadow: 0 0 30px rgba(0,0,0,0.8); }
-        .brand { font-family: var(--font-tech); font-size: 24px; font-weight: 900; letter-spacing: 2px; color: #fff; display: flex; gap: 10px; align-items: center; text-shadow: 0 0 15px var(--primary); }
-        .brand i { color: var(--primary); filter: drop-shadow(0 0 10px var(--primary)); }
-        
-        .nav-links { display: flex; gap: 10px; }
-        .nav-btn {
-            background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: #ccc;
-            padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 700; transition: 0.3s;
-            display: flex; align-items: center; gap: 6px; font-size: 12px; font-family: var(--font-tech);
+        /* --- UI COMPONENTS --- */
+        nav {
+            height: 80px; display: flex; align-items: center; justify-content: space-between; padding: 0 40px;
+            background: rgba(2,2,2,0.9); border-bottom: 1px solid var(--border); z-index: 100;
+            box-shadow: 0 5px 30px rgba(0,0,0,0.8);
         }
-        .nav-btn:hover { border-color: var(--primary); color: #fff; background: rgba(0,240,255,0.1); box-shadow: 0 0 15px var(--primary); }
-
-        /* LAYOUT */
-        .layout { display: flex; flex: 1; overflow: hidden; }
-        .sidebar { width: 360px; background: var(--panel); border-right: 1px solid var(--border); padding: 25px; display: flex; flex-direction: column; z-index: 10; }
+        .logo { font-family: var(--font-head); font-size: 24px; color: var(--neon); text-shadow: 0 0 15px var(--neon); display: flex; gap: 10px; }
+        .logo span { color: #fff; }
         
-        /* MODE SWITCH */
-        .mode-box { display: flex; background: #000; padding: 4px; border-radius: 6px; border: 1px solid var(--border); margin-bottom: 25px; }
-        .mode-opt { flex: 1; text-align: center; padding: 12px; font-weight: 800; font-size: 13px; color: #666; cursor: pointer; border-radius: 4px; transition: 0.3s; font-family: var(--font-tech); }
-        .mode-opt.active { background: #151515; color: #fff; border: 1px solid var(--border); }
-        .mode-opt.active.enc { color: var(--primary); text-shadow: 0 0 10px var(--primary); }
-        .mode-opt.active.dec { color: #ff0055; text-shadow: 0 0 10px #ff0055; }
+        .stat-bar { display: flex; gap: 20px; font-family: var(--font-code); font-size: 11px; color: var(--neon-blue); }
+        .stat-item { background: rgba(0, 243, 255, 0.05); padding: 5px 10px; border: 1px solid var(--border); border-radius: 4px; }
 
-        /* PANELS (Fixed Layout) */
-        #encPanel { display: flex; flex-direction: column; flex: 1; }
-        #decPanel { display: none; flex: 1; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-
-        /* MEGA BUTTON */
-        .btn-main {
-            width: 100%; padding: 18px; background: var(--primary); color: #000; border: none; border-radius: 4px;
-            font-family: var(--font-tech); font-weight: 900; font-size: 16px; cursor: pointer; margin-top: auto;
-            transition: 0.3s; letter-spacing: 2px; position: relative; overflow: hidden;
+        /* --- LAYOUT --- */
+        .workspace { display: flex; height: calc(100vh - 80px); }
+        
+        /* SIDEBAR (3D Card) */
+        .sidebar {
+            width: 380px; background: var(--glass); border-right: 1px solid var(--border);
+            padding: 30px; display: flex; flex-direction: column; z-index: 10;
+            backdrop-filter: blur(20px); transform-style: preserve-3d; transition: transform 0.1s;
         }
-        .btn-main:hover { transform: scale(1.02); box-shadow: 0 0 40px var(--primary); }
-        .btn-main::after { content:''; position:absolute; top:-50%; left:-50%; width:200%; height:200%; background:linear-gradient(rgba(255,255,255,0.2), transparent); transform:rotate(45deg); animation:shine 3s infinite; }
-        @keyframes shine { 0%{left:-100%} 100%{left:100%} }
+        
+        .panel-header {
+            font-family: var(--font-head); font-size: 16px; color: #fff; margin-bottom: 20px;
+            border-bottom: 2px solid var(--neon); padding-bottom: 10px; display: flex; justify-content: space-between;
+        }
+
+        /* TOGGLES */
+        .switch { display: flex; background: #000; padding: 4px; border: 1px solid var(--border); margin-bottom: 20px; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); }
+        .sw-btn { flex: 1; padding: 12px; text-align: center; color: #666; font-weight: 800; cursor: pointer; transition: 0.3s; font-family: var(--font-head); font-size: 12px; }
+        .sw-btn.active { background: #111; color: #fff; border: 1px solid var(--border); }
+        .sw-btn.active.enc { color: var(--neon); text-shadow: 0 0 10px var(--neon); }
+        .sw-btn.active.dec { color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue); }
+
+        /* OPTIONS */
+        .opt-row { display: flex; align-items: center; justify-content: space-between; padding: 15px; background: rgba(255,255,255,0.02); margin-bottom: 8px; border: 1px solid transparent; transition: 0.3s; cursor: pointer; }
+        .opt-row:hover { border-color: var(--neon); background: rgba(255, 0, 60, 0.05); transform: translateX(5px); }
+        .opt-lbl { font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 10px; }
+        
+        .check-glow { width: 20px; height: 20px; border: 2px solid #444; transition: 0.3s; box-shadow: inset 0 0 5px #000; }
+        input:checked + .check-glow { background: var(--neon); border-color: var(--neon); box-shadow: 0 0 15px var(--neon); }
+
+        /* BUTTONS */
+        .btn-nuke {
+            width: 100%; padding: 20px; background: var(--neon); color: #000; border: none;
+            font-family: var(--font-head); font-size: 18px; cursor: pointer; margin-top: auto;
+            clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
+            transition: 0.3s; letter-spacing: 2px;
+        }
+        .btn-nuke:hover { transform: scale(1.05); box-shadow: 0 0 50px var(--neon); color: #fff; }
+        .btn-nuke:active { transform: scale(0.95); }
 
         /* EDITOR */
-        .editor-area { flex: 1; display: flex; flex-direction: column; background: #050508; position: relative; }
-        .editor-bar { height: 45px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 25px; font-size: 11px; font-weight: 700; color: #666; background: rgba(0,0,0,0.3); font-family: var(--font-tech); }
+        .editor-box { flex: 1; display: flex; flex-direction: column; background: #050505; position: relative; }
+        .editor-hud {
+            height: 50px; background: rgba(0,0,0,0.5); border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 30px;
+            font-family: var(--font-code); font-size: 12px; color: var(--neon-blue);
+        }
         .CodeMirror { flex: 1; font-family: var(--font-code); font-size: 14px; background: transparent !important; }
-        .cm-s-ayu-mirage.CodeMirror { background: transparent !important; }
+        .cm-s-vibrant-ink.CodeMirror { background: transparent !important; }
 
-        /* OVERLAYS */
-        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 999; display: none; justify-content: center; align-items: center; backdrop-filter: blur(15px); }
-        .win { width: 85%; height: 85%; background: #0b0b0f; border: 1px solid var(--primary); border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 100px rgba(0,240,255,0.1); animation: open 0.3s ease; }
-        @keyframes open { from{transform:scale(0.9);opacity:0;} to{transform:scale(1);opacity:1;} }
+        /* MODALS (Term & API) */
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 999; display: none; justify-content: center; align-items: center; }
+        .holo-win {
+            width: 80%; height: 80%; background: #020202; border: 1px solid var(--neon-blue);
+            box-shadow: 0 0 50px rgba(0, 243, 255, 0.2); display: flex; flex-direction: column;
+            animation: holo-pop 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+        @keyframes holo-pop { 0%{transform:scale(0) rotateX(90deg); opacity:0;} 100%{transform:scale(1) rotateX(0deg); opacity:1;} }
         
-        .win-head { padding: 15px 30px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-family: var(--font-tech); color: var(--primary); background: rgba(0,240,255,0.05); }
-        .win-body { flex: 1; padding: 40px; overflow-y: auto; color: #ccc; font-size: 14px; line-height: 1.6; }
-        
+        .holo-head { padding: 15px; background: rgba(0, 243, 255, 0.1); border-bottom: 1px solid var(--neon-blue); font-family: var(--font-head); color: var(--neon-blue); display: flex; justify-content: space-between; }
+        .holo-body { flex: 1; padding: 30px; overflow-y: auto; font-family: var(--font-code); color: #ccc; }
+
         /* TERMINAL */
-        .term-out { background: #000; flex: 1; padding: 20px; font-family: var(--font-code); color: #0f0; overflow-y: auto; font-size: 16px; }
-        .term-in { display: flex; background: #080808; padding: 15px; border-top: 1px solid #333; }
+        .term-out { flex: 1; padding: 20px; color: #0f0; overflow-y: auto; }
+        .term-in { display: flex; padding: 15px; border-top: 1px solid #333; background: #000; }
         .term-field { flex: 1; background: transparent; border: none; color: #fff; font-family: var(--font-code); font-size: 16px; }
 
-        /* API DOCS STYLE */
-        pre { background: #000; padding: 20px; border: 1px solid var(--border); border-radius: 6px; color: #a5b3ce; overflow-x: auto; }
-        code { color: var(--primary); background: #111; padding: 2px 5px; border-radius: 3px; }
-
-        /* LOADER */
-        .loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000; display: flex; justify-content: center; align-items: center; transition: 0.5s; flex-direction: column; }
-        .load-bar { width: 200px; height: 2px; background: #333; margin-top: 20px; overflow: hidden; }
-        .load-fill { height: 100%; width: 50%; background: var(--primary); animation: load 1s infinite; }
-        @keyframes load { 0%{transform:translateX(-100%)} 100%{transform:translateX(200%)} }
-
-        @media (max-width: 900px) { .layout { flex-direction: column; } .sidebar { width: 100%; order: 2; height: auto; } .editor-area { height: 500px; order: 1; } }
+        @media (max-width: 900px) { .workspace { flex-direction: column; } .sidebar { width: 100%; height: auto; order: 2; } .editor-box { height: 500px; order: 1; } }
     </style>
 </head>
-<body onload="setTimeout(()=>{document.getElementById('loader').style.opacity='0'; setTimeout(()=>document.getElementById('loader').remove(),500)},800)">
+<body>
 
-    <div class="loader" id="loader">
-        <div style="font-family:var(--font-tech); font-size:24px; color:#fff; letter-spacing:5px;">V50 GOD MODE</div>
-        <div class="load-bar"><div class="load-fill"></div></div>
-    </div>
-    <div class="stars"></div>
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSnd(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            
+            if(type==='hover') { osc.frequency.value = 400; gain.gain.value = 0.05; osc.type='sine'; osc.start(); osc.stop(audioCtx.currentTime + 0.05); }
+            if(type==='click') { osc.frequency.value = 150; gain.gain.value = 0.1; osc.type='square'; osc.start(); osc.stop(audioCtx.currentTime + 0.1); }
+            if(type==='success') { osc.frequency.value = 800; gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime+0.5); osc.start(); osc.stop(audioCtx.currentTime + 0.5); }
+        }
+    </script>
+
+    <div class="cyber-map"></div>
+    <div class="grid"></div>
 
     <nav>
-        <div class="brand"><i class="fas fa-biohazard"></i> V50<small style="font-size:12px; color:#666; margin-left:5px;">//GOD_MODE</small></div>
-        <div class="nav-links">
-            <button class="nav-btn" onclick="openModal('term')"><i class="fas fa-terminal"></i> TERMINAL</button>
-            <button class="nav-btn" onclick="openModal('docs')"><i class="fas fa-book-dead"></i> API</button>
-            <button class="nav-btn" onclick="openModal('tos')"><i class="fas fa-scale-balanced"></i> TERMS</button>
+        <div class="logo"><i class="fas fa-radiation"></i> V60 <span>EVENT_HORIZON</span></div>
+        <div class="stat-bar">
+            <div class="stat-item">SYS: ONLINE</div>
+            <div class="stat-item">SEC: MAX</div>
+            <div class="stat-item">PING: 2ms</div>
+        </div>
+        <div style="display:flex; gap:10px;">
+            <button class="sw-btn active" onclick="openModal('term'); playSnd('click')">TERMINAL</button>
+            <button class="sw-btn active" onclick="openModal('docs'); playSnd('click')">API</button>
         </div>
     </nav>
 
-    <div class="layout">
-        <div class="sidebar">
-            <div class="mode-box">
-                <div class="mode-opt active enc" onclick="setMode('encrypt')">ENCRYPT</div>
-                <div class="mode-opt dec" onclick="setMode('decrypt')">DECRYPT</div>
+    <div class="workspace">
+        <div class="sidebar" id="sidebar">
+            <div class="panel-header">
+                <span>CONTROL MATRIX</span>
+                <i class="fas fa-cogs" style="color:var(--neon)"></i>
             </div>
 
-            <div id="encPanel">
-                <div style="font-size:11px; font-weight:700; color:var(--primary); margin-bottom:10px;">TARGET LANGUAGE</div>
-                <select id="langSelect" onchange="setLang(this.value)" style="width:100%; padding:15px; background:#000; color:#fff; border:1px solid var(--border); border-radius:4px; margin-bottom:20px; font-family:var(--font-tech); font-size:14px; cursor:pointer; outline:none;">
-                    <option value="python">PYTHON (Chaos Engine)</option>
-                    <option value="javascript">JAVASCRIPT (Spectral)</option>
-                    <option value="lua">LUA (Abyss VM)</option>
-                    <option value="go">GOLANG (Armor)</option>
-                    <option value="php">PHP (Phantom)</option>
+            <div class="switch">
+                <div class="sw-btn active enc" onclick="setMode('encrypt'); playSnd('click')">ENCRYPT</div>
+                <div class="sw-btn dec" onclick="setMode('decrypt'); playSnd('click')">DECRYPT</div>
+            </div>
+
+            <div id="encPanel" style="display:flex; flex-direction:column; flex:1;">
+                <div style="color:var(--neon-blue); font-size:12px; margin-bottom:10px; font-weight:bold;">TARGET LANGUAGE</div>
+                <select id="langSelect" onchange="setLang(this.value); playSnd('click')" style="width:100%; padding:15px; background:#000; color:#fff; border:1px solid var(--border); margin-bottom:20px; font-family:var(--font-head);">
+                    <option value="python">PYTHON (Black Ops)</option>
+                    <option value="javascript">JAVASCRIPT</option>
+                    <option value="lua">LUA</option>
+                    <option value="go">GOLANG</option>
+                    <option value="php">PHP</option>
                 </select>
 
-                <div style="font-size:11px; font-weight:700; color:var(--primary); margin-bottom:10px;">ENGINES</div>
-                <div id="optsContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
+                <div style="color:var(--neon-blue); font-size:12px; margin-bottom:10px; font-weight:bold;">WARHEADS (FEATURES)</div>
+                <div id="optsContainer" style="display:flex; flex-direction:column; gap:5px;"></div>
 
-                <div style="margin-top:25px; border-top:1px solid var(--border); padding-top:20px;">
-                    <button class="nav-btn" style="width:100%; justify-content:center; margin-bottom:10px;" onclick="document.getElementById('file').click()">
-                        <i class="fas fa-upload"></i> UPLOAD SOURCE
-                    </button>
+                <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:20px;">
+                    <div class="opt-row" onclick="document.getElementById('file').click(); playSnd('click')">
+                        <span class="opt-lbl"><i class="fas fa-upload"></i> INJECT FILE</span>
+                    </div>
                     <input type="file" id="file" hidden>
                 </div>
             </div>
 
-            <div id="decPanel">
-                <i class="fas fa-brain" style="font-size:60px; color:var(--primary); margin-bottom:20px; filter:drop-shadow(0 0 20px var(--primary));"></i>
-                <h3 style="color:#fff; font-family:var(--font-tech);">NEURAL DECRYPTOR</h3>
-                <p style="font-size:13px; color:#888;">Paste encrypted code. The AI will auto-reverse it.</p>
+            <div id="decPanel" style="display:none; flex:1; text-align:center; flex-direction:column; justify-content:center;">
+                <i class="fas fa-eye" style="font-size:60px; color:var(--neon-blue); margin-bottom:20px;"></i>
+                <p>Reverse Engineering Module Active.</p>
             </div>
 
-            <button class="btn-main" id="actionBtn" onclick="process()">EXECUTE GOD MODE</button>
+            <button class="btn-nuke" id="actionBtn" onmouseenter="playSnd('hover')" onclick="process()">LAUNCH PAYLOAD</button>
         </div>
 
-        <div class="editor-area">
-            <div class="editor-bar">
-                <span id="langLabel">PYTHON WORKSPACE</span>
+        <div class="editor-box">
+            <div class="editor-hud">
+                <span>SOURCE_BUFFER</span>
                 <div style="display:flex; gap:15px;">
-                    <i class="fas fa-eraser" style="cursor:pointer;" onclick="editor.setValue('')"></i>
-                    <i class="fas fa-copy" style="cursor:pointer;" onclick="copy()"></i>
-                    <i class="fas fa-download" style="cursor:pointer; color:var(--primary);" onclick="download()"></i>
+                    <i class="fas fa-trash" style="cursor:pointer" onclick="editor.setValue(''); playSnd('click')"></i>
+                    <i class="fas fa-copy" style="cursor:pointer" onclick="copy(); playSnd('click')"></i>
+                    <i class="fas fa-save" style="cursor:pointer" onclick="download(); playSnd('click')"></i>
                 </div>
             </div>
             <textarea id="editor"></textarea>
@@ -183,80 +224,67 @@
     </div>
 
     <div id="termModal" class="overlay">
-        <div class="win">
-            <div class="win-head"><span>// SYSTEM TERMINAL</span> <i class="fas fa-times" style="cursor:pointer;" onclick="closeModal('term')"></i></div>
-            <div class="term-out" id="termOut">EuroShield V50.0 [God Access]<br>Ready...<br></div>
-            <div class="term-in"><span style="color:var(--primary); margin-right:10px;">root@v50:~#</span> <input id="termIn" class="term-field" autofocus></div>
+        <div class="holo-win">
+            <div class="holo-head"><span>// ROOT_ACCESS</span> <i class="fas fa-times" onclick="closeModal('term'); playSnd('click')" style="cursor:pointer"></i></div>
+            <div class="term-out" id="termOut">EuroShield V60.0 [Event Horizon]<br>Awaiting commands...<br></div>
+            <div class="term-in"><span style="color:var(--neon); margin-right:10px;">root@v60:~#</span> <input id="termIn" class="term-field" autofocus></div>
         </div>
     </div>
 
     <div id="docsModal" class="overlay">
-        <div class="win">
-            <div class="win-head"><span>// API REFERENCE</span> <i class="fas fa-times" style="cursor:pointer;" onclick="closeModal('docs')"></i></div>
-            <div class="win-body">
-                <h2>V50 God Mode API</h2>
-                <p>Access the strongest obfuscation engines via REST.</p>
+        <div class="holo-win">
+            <div class="holo-head"><span>// API_NODE</span> <i class="fas fa-times" onclick="closeModal('docs'); playSnd('click')" style="cursor:pointer"></i></div>
+            <div class="holo-body">
+                <h2>REST API Access</h2>
                 <code>POST {{ request.url_root }}process</code>
-                
-                <h3>Engines Table</h3>
-                <ul>
-                    <li><strong>python:</strong> chaos, rename, marshal, dead</li>
-                    <li><strong>javascript:</strong> packer, hex</li>
-                    <li><strong>lua:</strong> vm, hex</li>
-                </ul>
-
-                <h3>Example</h3>
-                <pre>
+                <pre style="background:#111; padding:20px; border:1px solid #333; margin-top:20px; color:#0f0;">
 import requests
 res = requests.post("{{ request.url_root }}process", json={
-    "code": "print('Hello')",
+    "code": "print('V60')",
     "action": "encrypt",
     "lang": "python",
-    "options": ["chaos", "marshal"]
+    "options": ["timelock", "chaos"]
 })
 print(res.json()['result'])</pre>
             </div>
         </div>
     </div>
 
-    <div id="tosModal" class="overlay">
-        <div class="win" style="height:60%;">
-            <div class="win-head"><span>// AGREEMENT</span> <i class="fas fa-times" style="cursor:pointer;" onclick="closeModal('tos')"></i></div>
-            <div class="win-body">
-                <h2>Usage Policy</h2>
-                <p>1. This tool is for educational use only.</p>
-                <p>2. Do not use V50 God Mode to hide malware.</p>
-                <p>3. EuroMoscow is not responsible for misuse.</p>
-            </div>
-        </div>
-    </div>
-
     <script>
-        // CONFIG
+        // --- 3D TILT EFFECT ---
+        document.addEventListener('mousemove', (e) => {
+            const x = (window.innerWidth / 2 - e.pageX) / 50;
+            const y = (window.innerHeight / 2 - e.pageY) / 50;
+            document.getElementById('sidebar').style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
+        });
+
+        // --- CONFIG ---
         let curLang='python', curMode='encrypt';
         const UI = {
-            python: { opts: [{id:'chaos',l:'CHAOS LAMBDA (God Mode) ⚡'}, {id:'rename',l:'Variable Renaming'}, {id:'marshal',l:'Bytecode Marshal'}, {id:'dead',l:'Dead Code'}] },
-            javascript: { opts: [{id:'packer',l:'SPECTRAL PACKER (New) 👻'}, {id:'hex',l:'Hex Encoding'}, {id:'url',l:'URL Escape'}] },
-            lua: { opts: [{id:'vm',l:'ABYSS VM (Exclusive) 🌀'}, {id:'hex',l:'Hex Loader'}] },
-            go: { opts: [{id:'base64',l:'Binary Armor 🛡️'}] },
-            php: { opts: [{id:'ghost',l:'PHANTOM MODE 💀'}, {id:'base64',l:'Base64 Standard'}] },
-            html: { opts: [{id:'hex',l:'Hex Write'}] }
+            python: { c:'#ff003c', opts: [
+                {id:'timelock', l:'LOGIC BOMB (Time Lock) 💣'},
+                {id:'antivm', l:'ANTI-VM / DEBUG 🦠'},
+                {id:'chaos', l:'CHAOS MUTATION 🌪️'},
+                {id:'rename', l:'POLYMORPHIC RENAMING 🧬'},
+                {id:'marshal', l:'BYTECODE COMPRESSION 📦'}
+            ]},
+            javascript: { c:'#facc15', opts: [{id:'hex',l:'Hex Encoding'}, {id:'poly',l:'Polymorph JS'}] },
+            lua: { c:'#22c55e', opts: [{id:'hex',l:'Bytecode Loader'}] },
+            go: { c:'#00add8', opts: [{id:'base64',l:'Binary Armor'}] },
+            php: { c:'#8b5cf6', opts: [{id:'base64',l:'Obfuscated Eval'}] }
         };
 
-        var editor = CodeMirror.fromTextArea(document.getElementById("editor"), { mode: "python", theme: "ayu-mirage", lineNumbers: true });
+        var editor = CodeMirror.fromTextArea(document.getElementById("editor"), { mode: "python", theme: "vibrant-ink", lineNumbers: true });
 
-        // FUNCTIONS
         function setLang(l) {
             curLang = l;
-            editor.setOption("mode", l==='html'?'htmlmixed':l);
-            document.getElementById('langLabel').innerText = l.toUpperCase() + " WORKSPACE";
-            
             const con = document.getElementById('optsContainer'); con.innerHTML = '';
             if(UI[l]) UI[l].opts.forEach(o => {
                 con.innerHTML += `
-                    <label style="display:flex; justify-content:space-between; padding:15px; background:rgba(255,255,255,0.03); border:1px solid transparent; border-radius:4px; cursor:pointer; transition:0.3s;" onmouseover="this.style.borderColor='var(--primary)';this.style.background='rgba(0,240,255,0.05)'" onmouseout="this.style.borderColor='transparent';this.style.background='rgba(255,255,255,0.03)'">
-                        <span style="font-size:13px; font-weight:700; letter-spacing:1px;">${o.l}</span>
-                        <input type="checkbox" id="opt-${o.id}" checked style="accent-color:var(--primary); transform:scale(1.2);">
+                    <label class="opt-row" onmouseenter="playSnd('hover')" onclick="playSnd('click')">
+                        <span class="opt-lbl">${o.l}</span>
+                        <input type="checkbox" id="opt-${o.id}" checked style="display:none">
+                        <div class="check-glow"></div>
                     </label>`;
             });
         }
@@ -264,41 +292,39 @@ print(res.json()['result'])</pre>
 
         function setMode(m) {
             curMode = m;
-            document.querySelectorAll('.mode-opt').forEach(b => b.classList.remove('active'));
-            const btn = document.getElementById('actionBtn');
-            
+            document.querySelectorAll('.sw-btn').forEach(b => b.classList.remove('active'));
             if(m==='encrypt') {
-                const enc = document.getElementById('encPanel');
-                enc.style.display='flex'; enc.style.flexDirection='column'; enc.style.flex='1';
+                document.getElementById('encPanel').style.display='flex';
                 document.getElementById('decPanel').style.display='none';
-                document.querySelector('.mode-opt.enc').classList.add('active');
-                btn.innerText = 'EXECUTE GOD MODE';
+                document.querySelector('.sw-btn.enc').classList.add('active');
+                document.getElementById('actionBtn').innerText = 'LAUNCH PAYLOAD';
             } else {
                 document.getElementById('encPanel').style.display='none';
-                const dec = document.getElementById('decPanel');
-                dec.style.display='flex'; dec.style.flexDirection='column'; dec.style.flex='1';
-                document.querySelector('.mode-opt.dec').classList.add('active');
-                btn.innerText = 'DECRYPT ARTIFACT';
+                document.getElementById('decPanel').style.display='flex';
+                document.querySelector('.sw-btn.dec').classList.add('active');
+                document.getElementById('actionBtn').innerText = 'DECRYPT SIGNAL';
             }
         }
 
         async function process() {
+            playSnd('click');
             const code = editor.getValue(); if(!code.trim()) return alert("BUFFER EMPTY");
             let opts = []; if(curMode==='encrypt') document.querySelectorAll('input:checked').forEach(c=>opts.push(c.id.replace('opt-','')));
             
             const btn = document.getElementById('actionBtn'); btn.innerText = 'PROCESSING...';
             try {
                 const res = await fetch('/process', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code, action:curMode, lang:curLang, options:opts}) });
-                const d = await res.json(); editor.setValue(d.result);
-            } catch { alert("SERVER ERROR"); } finally { btn.innerText = curMode==='encrypt'?'EXECUTE GOD MODE':'DECRYPT ARTIFACT'; }
+                const d = await res.json(); editor.setValue(d.result); playSnd('success');
+            } catch { alert("SYSTEM FAILURE"); } finally { btn.innerText = curMode==='encrypt'?'LAUNCH PAYLOAD':'DECRYPT SIGNAL'; }
         }
 
         // TERMINAL
         const termOut = document.getElementById('termOut');
         document.getElementById('termIn').addEventListener('keypress', async e => {
             if(e.key==='Enter') {
+                playSnd('click');
                 const c = e.target.value; e.target.value='';
-                termOut.innerHTML += `\n<span style="color:var(--primary)">root@v50:~#</span> ${c}`;
+                termOut.innerHTML += `\n<span style="color:var(--neon)">root@v60:~#</span> ${c}`;
                 if(c==='clear') termOut.innerHTML='';
                 else {
                     try{ const r=await fetch('/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:c})}); const d=await r.json(); termOut.innerHTML+=`\n${d.output}`; }
@@ -310,9 +336,8 @@ print(res.json()['result'])</pre>
 
         function openModal(id) { document.getElementById(id+'Modal').style.display='flex'; if(id==='term') document.getElementById('termIn').focus(); }
         function closeModal(id) { document.getElementById(id+'Modal').style.display='none'; }
-        
-        function copy() { navigator.clipboard.writeText(editor.getValue()); alert("COPIED"); }
-        function download() { const b=new Blob([editor.getValue()],{type:'text/plain'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download='Protected.txt'; a.click(); }
+        function copy() { navigator.clipboard.writeText(editor.getValue()); }
+        function download() { const b=new Blob([editor.getValue()],{type:'text/plain'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download='Payload.txt'; a.click(); }
         document.getElementById('file').addEventListener('change', e => { const f=e.target.files[0]; if(f){ const r=new FileReader(); r.onload=ev=>editor.setValue(ev.target.result); r.readAsText(f); } });
     </script>
 </body>
