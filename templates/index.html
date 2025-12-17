@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EuroMoscow | V150 OMNIVERSE</title>
+    <title>EuroMoscow | V170 ARCHITECT</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
     
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;800&family=Rajdhani:wght@600;700&family=JetBrains+Mono:wght@400;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/material-ocean.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
@@ -18,313 +18,294 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/php/php.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/go/go.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/lua/lua.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/ruby/ruby.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/perl/perl.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/rust/rust.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/swift/swift.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
 
     <style>
         :root {
-            --bg: #050509;
-            --panel: rgba(15, 20, 30, 0.95);
-            --primary: #7000ff; /* Omni Purple */
-            --accent: #00ffea; /* Cyber Cyan */
-            --border: rgba(112, 0, 255, 0.2);
+            --bg: #090a0f;
+            --panel: #13151b;
+            --primary: #00d9ff; /* Architect Blue */
+            --accent: #ff0055;
             --text: #e0e0e0;
-            --font-head: 'Orbitron', sans-serif;
+            --border: rgba(0, 217, 255, 0.2);
+            --font-head: 'Exo 2', sans-serif;
             --font-ui: 'Rajdhani', sans-serif;
-            --font-code: 'Fira Code', monospace;
+            --font-code: 'JetBrains Mono', monospace;
         }
 
         * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-ui); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-        /* --- BACKGROUND PARTICLES --- */
-        #omniCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
-        .vignette { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, transparent 30%, #000 100%); pointer-events: none; z-index: 0; }
+        /* --- FX --- */
+        .grid-bg { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
+            background-size: 50px 50px; opacity: 0.1; transform: perspective(500px) rotateX(60deg);
+        }
 
         /* --- NAVBAR --- */
         nav {
-            height: 70px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between;
-            background: rgba(8,8,12,0.95); border-bottom: 1px solid var(--border); z-index: 100;
-            backdrop-filter: blur(10px);
+            height: 70px; padding: 0 30px; display: flex; align-items: center; justify-content: space-between;
+            background: rgba(19, 21, 27, 0.95); border-bottom: 2px solid var(--primary); z-index: 100;
+            box-shadow: 0 0 30px rgba(0, 217, 255, 0.1);
         }
-        .brand { font-family: var(--font-head); font-size: 20px; font-weight: 900; letter-spacing: 2px; color: #fff; }
+        .brand { font-family: var(--font-head); font-size: 24px; font-weight: 800; letter-spacing: 2px; }
         .brand span { color: var(--primary); text-shadow: 0 0 15px var(--primary); }
-        
-        .nav-actions { display: flex; gap: 8px; }
-        .nav-btn {
-            background: rgba(112, 0, 255, 0.1); border: 1px solid var(--border); color: #ccc;
-            padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 11px;
-            font-family: var(--font-head); transition: 0.3s;
-        }
-        .nav-btn:hover { background: var(--primary); color: #fff; box-shadow: 0 0 15px var(--primary); }
+        .mode-toggle { display: flex; background: #000; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+        .mode-btn { padding: 8px 15px; font-size: 11px; font-weight: bold; cursor: pointer; color: #666; transition: 0.3s; }
+        .mode-btn.active { background: var(--primary); color: #000; }
+        .mode-btn.dec-active { background: var(--accent); color: #fff; }
 
-        /* --- LAYOUT GRID --- */
+        /* --- LAYOUT --- */
         .layout { display: flex; flex: 1; overflow: hidden; position: relative; }
         
-        /* SIDEBAR (DESKTOP) */
+        /* SIDEBAR */
         .sidebar {
-            width: 350px; background: var(--panel); border-right: 1px solid var(--border);
+            width: 380px; background: var(--panel); border-right: 1px solid var(--border);
             padding: 20px; display: flex; flex-direction: column; z-index: 10;
             transition: transform 0.3s ease;
         }
 
         /* EDITOR */
-        .editor-container { flex: 1; display: flex; flex-direction: column; background: rgba(0,0,0,0.5); position: relative; }
+        .editor-wrap { flex: 1; display: flex; flex-direction: column; background: #0c0e12; position: relative; }
         .editor-hud {
-            height: 40px; background: rgba(0,0,0,0.8); border-bottom: 1px solid var(--border);
+            height: 45px; background: rgba(0,0,0,0.5); border-bottom: 1px solid var(--border);
             display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
-            font-family: var(--font-code); font-size: 11px; color: var(--accent);
+            font-family: var(--font-code); font-size: 11px; color: var(--primary);
         }
         .CodeMirror { flex: 1; font-family: var(--font-code); font-size: 13px; background: transparent !important; }
-        .cm-s-material-ocean.CodeMirror { background: transparent !important; }
+        .cm-s-dracula.CodeMirror { background: transparent !important; }
 
         /* --- CONTROLS --- */
-        .control-group { margin-bottom: 20px; }
-        .group-title { font-family: var(--font-head); font-size: 10px; color: var(--accent); margin-bottom: 8px; letter-spacing: 1px; display: block; }
+        .section-title { font-family: var(--font-head); font-size: 10px; color: #888; margin-bottom: 8px; display: block; letter-spacing: 1px; margin-top: 15px; }
         
-        /* CUSTOM SELECT */
-        .omni-select {
-            width: 100%; padding: 12px; background: #050508; border: 1px solid var(--border);
-            color: #fff; font-family: var(--font-head); font-size: 11px; border-radius: 4px;
-            cursor: pointer; outline: none; transition: 0.3s;
+        .arch-select {
+            width: 100%; padding: 12px; background: #090a0f; border: 1px solid var(--border);
+            color: #fff; font-family: var(--font-ui); font-weight: 700; cursor: pointer;
+            margin-bottom: 10px; border-radius: 2px; outline: none; transition: 0.3s;
         }
-        .omni-select:focus { border-color: var(--accent); box-shadow: 0 0 10px rgba(0, 255, 234, 0.1); }
+        .arch-select:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(0, 217, 255, 0.2); }
 
-        /* OPTIONS */
-        .opt-row {
+        /* OPTIONS GRID */
+        .opt-grid { display: flex; flex-direction: column; gap: 8px; }
+        .opt-card {
             display: flex; align-items: center; justify-content: space-between; padding: 12px;
-            background: rgba(255,255,255,0.02); border: 1px solid transparent; border-radius: 4px;
-            margin-bottom: 6px; cursor: pointer; transition: 0.2s;
+            background: rgba(255,255,255,0.02); border: 1px solid transparent; border-radius: 2px;
+            cursor: pointer; transition: 0.2s;
         }
-        .opt-row:hover { border-color: var(--primary); background: rgba(112, 0, 255, 0.05); }
-        .opt-label { font-size: 12px; font-weight: 700; color: #bbb; }
-        .opt-status { width: 10px; height: 10px; border-radius: 50%; background: #333; transition: 0.3s; }
-        input:checked + .opt-status { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+        .opt-card:hover { border-color: var(--primary); background: rgba(0, 217, 255, 0.05); }
+        .opt-label { font-size: 12px; font-weight: 700; color: #ccc; }
+        
+        .toggle-switch { width: 30px; height: 16px; background: #333; border-radius: 10px; position: relative; transition: 0.3s; }
+        .toggle-switch::after { content:''; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; background: #fff; border-radius: 50%; transition: 0.3s; }
+        input:checked + .toggle-switch { background: var(--primary); }
+        input:checked + .toggle-switch::after { left: 16px; }
 
-        /* MEGA BUTTON */
-        .btn-omni {
-            width: 100%; padding: 16px; background: var(--primary); color: #fff; border: none;
+        /* PARAMETER INPUTS */
+        .param-input {
+            width: 100%; background: #000; border: 1px solid #333; color: var(--primary);
+            padding: 10px; font-family: var(--font-code); font-size: 11px; margin-bottom: 5px;
+            display: none; border-left: 2px solid var(--primary);
+        }
+        .param-input.show { display: block; animation: slideIn 0.3s; }
+        @keyframes slideIn { from{opacity:0; transform:translateX(-10px);} to{opacity:1; transform:translateX(0);} }
+
+        /* MAIN BUTTON */
+        .btn-arch {
+            width: 100%; padding: 18px; background: var(--primary); color: #000; border: none;
             font-family: var(--font-head); font-weight: 900; font-size: 14px; margin-top: auto;
             cursor: pointer; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-            transition: 0.3s; position: relative; overflow: hidden;
+            transition: 0.3s; text-transform: uppercase; letter-spacing: 1px;
         }
-        .btn-omni:hover { background: #fff; color: var(--primary); box-shadow: 0 0 30px var(--primary); }
+        .btn-arch:hover { background: #fff; box-shadow: 0 0 30px var(--primary); }
 
-        /* --- MODALS --- */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 5000; display: none;
-            justify-content: center; align-items: center; backdrop-filter: blur(10px);
-        }
-        .omni-window {
-            width: 800px; height: 600px; background: #0a0a0e; border: 1px solid var(--primary);
-            display: flex; flex-direction: column; box-shadow: 0 0 100px rgba(112, 0, 255, 0.2);
-            animation: unfold 0.4s ease;
-        }
-        @keyframes unfold { from{transform:scaleY(0.01) scaleX(0);} 50%{transform:scaleY(0.01) scaleX(1);} to{transform:scaleY(1) scaleX(1);} }
-        
-        .win-head { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; font-family: var(--font-head); color: var(--primary); background: rgba(112, 0, 255, 0.05); }
-        .win-body { flex: 1; padding: 20px; overflow-y: auto; color: #ccc; font-family: var(--font-code); font-size: 13px; }
-
-        /* --- RESPONSIVE MOBILE TWEAKS --- */
+        /* --- MOBILE RESPONSIVE --- */
         @media (max-width: 900px) {
             .layout { flex-direction: column; }
             nav { padding: 0 15px; }
-            .brand { font-size: 16px; }
-            .nav-btn { padding: 6px 10px; font-size: 9px; }
+            .brand { font-size: 18px; }
             
-            /* Editor takes top half */
-            .editor-container { height: 50vh; order: 1; border-bottom: 1px solid var(--border); }
+            /* SWAP: Editor Top, Sidebar Bottom */
+            .editor-wrap { height: 50vh; order: 1; border-bottom: 1px solid var(--border); }
+            .sidebar { width: 100%; height: auto; order: 2; border-right: none; padding-bottom: 30px; }
             
-            /* Controls become a scrollable bottom panel */
-            .sidebar { 
-                width: 100%; height: auto; order: 2; border-right: none; 
-                padding-bottom: 80px; /* Space for scroll */
-            }
-            
-            .omni-window { width: 95%; height: 85%; }
+            .opt-card { padding: 15px; }
         }
     </style>
 </head>
 <body>
 
-    <div class="vignette"></div>
-    <canvas id="omniCanvas"></canvas>
+    <div class="grid-bg"></div>
 
     <nav>
-        <div class="brand">V150 <span>OMNIVERSE</span></div>
-        <div class="nav-actions">
-            <div class="nav-btn" onclick="openModal('term')">TERM</div>
-            <div class="nav-btn" onclick="fetchLogs()">LOGS</div>
-            <div class="nav-btn" onclick="openModal('docs')">API</div>
+        <div class="brand">V170 <span>ARCHITECT</span></div>
+        <div class="mode-toggle">
+            <div class="mode-btn active" id="btn-enc" onclick="setMode('encrypt')">ENCRYPT</div>
+            <div class="mode-btn" id="btn-dec" onclick="setMode('decrypt')">DECRYPT</div>
         </div>
     </nav>
 
     <div class="layout">
         <div class="sidebar">
-            <div class="control-group">
-                <span class="group-title">TARGET LANGUAGE [13 SUPPORTED]</span>
-                <select id="lang" class="omni-select" onchange="setLang(this.value)">
-                    <option value="python">PYTHON (Phantom Engine)</option>
-                    <option value="javascript">JAVASCRIPT (Spectre)</option>
-                    <option value="cpp">C++ (XOR Cipher)</option>
-                    <option value="csharp">C# (Byte Loader)</option>
-                    <option value="lua">LUA (Bytecode)</option>
-                    <option value="php">PHP (Octal)</option>
-                    <option value="go">GOLANG (Hex)</option>
-                    <option value="ruby">RUBY (Zlib)</option>
-                    <option value="java">JAVA (Reverse)</option>
-                    <option value="rust">RUST (Bytes)</option>
-                    <option value="swift">SWIFT (Base64)</option>
-                    <option value="perl">PERL (Pack)</option>
-                    <option value="html">HTML (Hex)</option>
+            <div id="enc-controls" style="display:flex; flex-direction:column; flex:1;">
+                <span class="section-title">TARGET SYSTEM</span>
+                <select id="lang" class="arch-select" onchange="updateUI()">
+                    <option value="python">PYTHON (Full Arsenal)</option>
+                    <option value="javascript">JAVASCRIPT</option>
+                    <option value="php">PHP</option>
+                    <option value="cpp">C++</option>
+                    <option value="csharp">C#</option>
+                    <option value="go">GOLANG</option>
+                    <option value="lua">LUA</option>
+                    <option value="ruby">RUBY</option>
+                    <option value="java">JAVA</option>
+                    <option value="rust">RUST</option>
+                    <option value="swift">SWIFT</option>
+                    <option value="perl">PERL</option>
+                    <option value="html">HTML</option>
                 </select>
+
+                <span class="section-title">SECURITY MODULES</span>
+                <div id="opts-container" class="opt-grid">
+                    </div>
+
+                <div id="params-container" style="margin-top:15px;">
+                    <input id="inp-geo" class="param-input" placeholder="Country Code (e.g. EG)">
+                    <input id="inp-kill" class="param-input" placeholder="Kill Switch URL">
+                </div>
+
+                <button class="btn-arch" id="actionBtn" onclick="process()">COMPILE PAYLOAD</button>
             </div>
 
-            <div class="control-group">
-                <span class="group-title">SECURITY MODULES</span>
-                <label class="opt-row">
-                    <span class="opt-label">ANTI-TAMPER</span>
-                    <input type="checkbox" id="opt-tamper" hidden>
-                    <div class="opt-status"></div>
-                </label>
-                <label class="opt-row">
-                    <span class="opt-label">MEMORY GUARD</span>
-                    <input type="checkbox" id="opt-mem" hidden>
-                    <div class="opt-status"></div>
-                </label>
-                <label class="opt-row">
-                    <span class="opt-label">AST OBFUSCATION</span>
-                    <input type="checkbox" id="opt-rename" checked hidden>
-                    <div class="opt-status"></div>
-                </label>
+            <div id="dec-controls" style="display:none; flex:1; justify-content:center; align-items:center; text-align:center;">
+                <h3 style="color:var(--accent); font-family:var(--font-head);">DECRYPTION MODE</h3>
+                <p style="color:#888; font-size:12px;">Paste the artifact.<br>System will attempt to reverse-engineer.</p>
+                <button class="btn-arch" style="background:var(--accent);" onclick="process()">DECRYPT ARTIFACT</button>
             </div>
-
-            <button class="btn-omni" id="btn" onclick="process()">INITIATE SEQUENCE</button>
         </div>
 
-        <div class="editor-container">
+        <div class="editor-wrap">
             <div class="editor-hud">
-                <span id="hudLabel">PYTHON WORKSPACE</span>
-                <div style="display:flex; gap:10px; cursor:pointer;">
-                    <i class="fas fa-copy" onclick="copyCode()"></i>
-                    <i class="fas fa-trash" onclick="editor.setValue('')"></i>
-                </div>
+                <span id="lang-label">PYTHON ENVIRONMENT</span>
+                <div style="cursor:pointer;" onclick="copyCode()"><i class="fas fa-copy"></i> COPY</div>
             </div>
             <textarea id="editor"></textarea>
         </div>
     </div>
 
-    <div id="termModal" class="modal-overlay">
-        <div class="omni-window">
-            <div class="win-head"><span>ROOT_ACCESS</span> <i class="fas fa-times" onclick="closeModal('term')" style="cursor:pointer"></i></div>
-            <div class="win-body" id="termOut" style="color:var(--primary)">Omniverse V150.0 Online.<br>Waiting for input...<br></div>
-            <input id="termIn" style="width:100%; background:#000; border:none; color:#fff; padding:15px; font-family:'Fira Code'; outline:none;" autofocus>
-        </div>
-    </div>
-
-    <div id="logsModal" class="modal-overlay">
-        <div class="omni-window">
-            <div class="win-head"><span>SYSTEM_LOGS</span> <i class="fas fa-times" onclick="closeModal('logs')" style="cursor:pointer"></i></div>
-            <div class="win-body" id="logsBody">Fetching...</div>
-        </div>
-    </div>
-
-    <div id="docsModal" class="modal-overlay">
-        <div class="omni-window">
-            <div class="win-head"><span>API_DOCS</span> <i class="fas fa-times" onclick="closeModal('docs')" style="cursor:pointer"></i></div>
-            <div class="win-body">
-                <h2 style="color:var(--primary)">Omniverse API</h2>
-                <pre style="background:#111; padding:20px; color:#ccc; border:1px solid #333;">
-POST /process
-{
-  "code": "print('Hello')",
-  "lang": "python",
-  "options": ["tamper"]
-}</pre>
-            </div>
-        </div>
-    </div>
-
     <script>
-        // --- PARTICLES ---
-        const cvs = document.getElementById('omniCanvas');
-        const ctx = cvs.getContext('2d');
-        function resize() { cvs.width=window.innerWidth; cvs.height=window.innerHeight; }
-        window.onresize = resize; resize();
-        
-        let p = []; for(let i=0; i<60; i++) p.push({x:Math.random()*cvs.width, y:Math.random()*cvs.height, vx:(Math.random()-0.5), vy:(Math.random()-0.5)});
-        function anim() {
-            ctx.clearRect(0,0,cvs.width,cvs.height);
-            ctx.fillStyle = '#7000ff';
-            p.forEach(d => {
-                d.x+=d.vx; d.y+=d.vy;
-                if(d.x<0||d.x>cvs.width) d.vx*=-1; if(d.y<0||d.y>cvs.height) d.vy*=-1;
-                ctx.beginPath(); ctx.arc(d.x,d.y,1,0,Math.PI*2); ctx.fill();
-            });
-            requestAnimationFrame(anim);
-        }
-        anim();
+        // CONFIG
+        const LANGUAGES = {
+            python: [
+                {id:'chaos', l:'CHAOS LAMBDA (One-Liner)'},
+                {id:'marshal', l:'BYTECODE MARSHAL'},
+                {id:'geo', l:'GEO FENCING (Country Lock)'},
+                {id:'kill', l:'REMOTE KILL SWITCH'},
+                {id:'admin', l:'REQUIRE ADMIN RIGHTS'},
+                {id:'anti_vm', l:'ANTI-VM / SANDBOX'}
+            ],
+            php: [
+                {id:'geo', l:'GEO FENCING'},
+                {id:'kill', l:'KILL SWITCH'}
+            ],
+            cpp: [
+                {id:'kill', l:'KILL SWITCH STUB'}
+            ],
+            // Others use default
+            default: []
+        };
 
-        // --- LOGIC ---
-        var editor = CodeMirror.fromTextArea(document.getElementById("editor"), { mode: "python", theme: "material-ocean", lineNumbers: true });
+        var editor = CodeMirror.fromTextArea(document.getElementById("editor"), { mode: "python", theme: "dracula", lineNumbers: true });
+        let curMode = 'encrypt';
 
-        function setLang(l) {
+        function updateUI() {
+            const l = document.getElementById('lang').value;
+            const container = document.getElementById('opts-container');
+            container.innerHTML = '';
+            
+            // Set Editor Mode
             const m = l==='cpp'||l==='csharp'||l==='java'?'clike':l;
             editor.setOption("mode", m);
-            document.getElementById('hudLabel').innerText = l.toUpperCase() + " WORKSPACE";
+            document.getElementById('lang-label').innerText = l.toUpperCase() + " ENVIRONMENT";
+
+            // Inject Options
+            const opts = LANGUAGES[l] || LANGUAGES.default;
+            if(opts.length === 0) container.innerHTML = '<div style="color:#666; font-size:11px;">Standard Encryption Applied</div>';
+            
+            opts.forEach(o => {
+                const isParam = o.id==='geo' || o.id==='kill';
+                container.innerHTML += `
+                    <label class="opt-card" onclick="${isParam ? `toggleParam('${o.id}')` : ''}">
+                        <span class="opt-label">${o.l}</span>
+                        <input type="checkbox" id="opt-${o.id}" hidden>
+                        <div class="toggle-switch"></div>
+                    </label>`;
+            });
+        }
+
+        function toggleParam(id) {
+            setTimeout(() => {
+                const chk = document.getElementById('opt-'+id);
+                const inp = document.getElementById('inp-'+id);
+                if(chk.checked) inp.classList.add('show'); else inp.classList.remove('show');
+            }, 50);
+        }
+
+        function setMode(m) {
+            curMode = m;
+            const encBtn = document.getElementById('btn-enc');
+            const decBtn = document.getElementById('btn-dec');
+            
+            if(m === 'encrypt') {
+                document.getElementById('enc-controls').style.display = 'flex';
+                document.getElementById('dec-controls').style.display = 'none';
+                encBtn.classList.add('active'); decBtn.classList.remove('active', 'dec-active');
+            } else {
+                document.getElementById('enc-controls').style.display = 'none';
+                document.getElementById('dec-controls').style.display = 'flex';
+                decBtn.classList.add('active', 'dec-active'); encBtn.classList.remove('active');
+            }
         }
 
         async function process() {
             const code = editor.getValue();
             if(!code.trim()) return alert("BUFFER EMPTY");
-            const btn = document.getElementById('btn');
-            btn.innerText = "ENCRYPTING...";
+            
+            const btn = document.getElementById('actionBtn');
+            const prevText = btn.innerText;
+            btn.innerText = "PROCESSING...";
             
             let opts = [];
-            if(document.getElementById('opt-tamper').checked) opts.push('tamper');
-            if(document.getElementById('opt-rename').checked) opts.push('rename');
+            let params = {};
+            
+            if(curMode === 'encrypt') {
+                document.querySelectorAll('input[type="checkbox"]:checked').forEach(c => opts.push(c.id.replace('opt-','')));
+                if(document.getElementById('inp-geo').value) params.geo = document.getElementById('inp-geo').value;
+                if(document.getElementById('inp-kill').value) params.kill = document.getElementById('inp-kill').value;
+            }
 
             try {
                 const res = await fetch('/process', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ code: code, lang: document.getElementById('lang').value, options: opts })
+                    body: JSON.stringify({
+                        code: code, action: curMode, lang: document.getElementById('lang').value,
+                        options: opts, params: params
+                    })
                 });
                 const d = await res.json();
                 editor.setValue(d.result);
-                btn.innerText = "SUCCESS";
             } catch(e) {
-                alert("Error: " + e);
-                btn.innerText = "INITIATE SEQUENCE";
+                alert("SYSTEM ERROR");
+            } finally {
+                btn.innerText = prevText;
             }
         }
 
-        async function fetchLogs() {
-            openModal('logs');
-            const res = await fetch('/history'); const d = await res.json();
-            let h = '<table style="width:100%; text-align:left;"><tr><th>TIME</th><th>LANG</th><th>SIZE</th></tr>';
-            d.forEach(r => h += `<tr><td>${r.time}</td><td>${r.lang}</td><td>${r.size}B</td></tr>`);
-            document.getElementById('logsBody').innerHTML = h + '</table>';
-        }
+        function copyCode() { navigator.clipboard.writeText(editor.getValue()); alert("COPIED"); }
 
-        // TERMINAL
-        const tOut = document.getElementById('termOut');
-        document.getElementById('termIn').addEventListener('keypress', async e => {
-            if(e.key==='Enter') {
-                const c = e.target.value; e.target.value='';
-                tOut.innerHTML += `<br><span style="color:var(--primary)">root@omni:~#</span> ${c}`;
-                try{ const r=await fetch('/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:c})}); const d=await r.json(); tOut.innerHTML+=`<br>${d.output}`; }
-                catch{ tOut.innerHTML+='<br>Error'; }
-            }
-        });
-
-        function openModal(id) { document.getElementById(id+'Modal').style.display='flex'; }
-        function closeModal(id) { document.getElementById(id+'Modal').style.display='none'; }
-        function copyCode() { navigator.clipboard.writeText(editor.getValue()); alert("Copied!"); }
+        // Init
+        updateUI();
     </script>
 </body>
 </html>
