@@ -3,123 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EuroMoscow | V80 TITAN</title>
+    <title>EuroMoscow | V90 HYPERION</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
     
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;900&family=Rajdhani:wght@600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Rajdhani:wght@600;800&family=JetBrains+Mono:wght@400;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/pastel-on-dark.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/ayu-mirage.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/lua/lua.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/go/go.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/php/php.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
 
     <style>
         :root {
-            --bg: #030405;
-            --panel: rgba(10, 15, 20, 0.9);
-            --border: rgba(0, 255, 170, 0.15);
-            --primary: #00ffaa; /* Titan Green */
-            --accent: #00d0ff;
-            --alert: #ff2a2a;
-            --font-head: 'Orbitron', sans-serif;
+            --bg: #010203;
+            --panel: rgba(8, 12, 18, 0.95);
+            --border: rgba(255, 255, 255, 0.08);
+            --primary: #ff0055; /* Hyperion Magenta */
+            --secondary: #00f3ff; /* Cyan Accent */
+            --font-head: 'Syncopate', sans-serif;
             --font-ui: 'Rajdhani', sans-serif;
-            --font-code: 'Share Tech Mono', monospace;
+            --font-code: 'JetBrains Mono', monospace;
         }
 
-        * { box-sizing: border-box; outline: none; }
+        /* --- BASE & SCROLLBAR --- */
+        * { box-sizing: border-box; outline: none; user-select: none; }
         body { margin: 0; background: var(--bg); color: #fff; font-family: var(--font-ui); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #050505; }
+        ::-webkit-scrollbar-thumb { background: #333; border: 1px solid var(--primary); }
 
-        /* --- BACKGROUND (NEURAL NETWORK) --- */
-        #neuralNet { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.3; }
-        .vignette { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, transparent 40%, #000 100%); pointer-events: none; z-index: 0; }
-
-        /* --- SCROLLBAR --- */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #080808; }
-        ::-webkit-scrollbar-thumb { background: #222; border: 1px solid var(--primary); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--primary); box-shadow: 0 0 10px var(--primary); }
+        /* --- FX & BACKGROUND --- */
+        #dataGrid { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.4; }
+        .scanline { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.2) 51%); background-size: 100% 4px; pointer-events: none; z-index: 900; }
+        
+        /* Chromatic Aberration Hover Effect */
+        .chroma-hover { position: relative; transition: 0.3s; }
+        .chroma-hover:hover { animation: glitch-skew 0.5s infinite linear alternate-reverse; }
+        .chroma-hover:hover::before, .chroma-hover:hover::after {
+            content: attr(data-text); position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0.8;
+        }
+        .chroma-hover:hover::before { color: var(--secondary); z-index: -1; animation: glitch-shift 0.3s infinite; }
+        .chroma-hover:hover::after { color: var(--primary); z-index: -2; animation: glitch-shift 0.3s infinite reverse; }
+        @keyframes glitch-shift { 0% { transform: translate(2px, 0); } 100% { transform: translate(-2px, 0); } }
 
         /* --- NAVBAR --- */
         nav {
             height: 80px; display: flex; align-items: center; justify-content: space-between; padding: 0 40px;
-            background: rgba(3,4,5,0.95); border-bottom: 1px solid var(--border); z-index: 100;
-            box-shadow: 0 5px 30px rgba(0, 255, 170, 0.05);
+            background: rgba(1,2,3,0.9); border-bottom: 1px solid var(--border); z-index: 100; backdrop-filter: blur(20px);
         }
-        .brand { font-family: var(--font-head); font-size: 26px; font-weight: 900; letter-spacing: 2px; color: #fff; display: flex; gap: 12px; align-items: center; }
-        .brand span { color: var(--primary); text-shadow: 0 0 20px var(--primary); }
-        
-        .sys-stat { font-family: var(--font-code); font-size: 11px; color: var(--primary); display: flex; gap: 20px; opacity: 0.8; }
-        .stat-dot { width: 8px; height: 8px; background: var(--primary); border-radius: 50%; display: inline-block; animation: blink 1s infinite; margin-right: 5px; }
-        @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+        .brand { font-family: var(--font-head); font-size: 22px; font-weight: 700; letter-spacing: 2px; display: flex; gap: 15px; align-items: center; }
+        .brand span { color: var(--primary); text-shadow: 0 0 15px var(--primary); }
+        .nav-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #ccc; padding: 10px 18px; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 12px; font-family: var(--font-head); display: flex; align-items: center; gap: 8px; }
+        .nav-btn:hover { border-color: var(--primary); color: #fff; background: rgba(255,0,85,0.1); }
 
         /* --- LAYOUT --- */
         .layout { display: flex; flex: 1; overflow: hidden; }
-        .sidebar { 
-            width: 400px; background: var(--panel); border-right: 1px solid var(--border); 
-            padding: 30px; display: flex; flex-direction: column; z-index: 10; backdrop-filter: blur(15px);
-        }
+        .sidebar { width: 400px; background: var(--panel); border-right: 1px solid var(--border); padding: 30px; display: flex; flex-direction: column; z-index: 10; position: relative; transition: 0.3s; }
 
-        /* --- CONTROLS --- */
-        .mode-tabs { display: flex; background: #000; padding: 4px; border: 1px solid var(--border); margin-bottom: 25px; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); }
-        .mode-btn { flex: 1; text-align: center; padding: 12px; font-weight: 800; font-size: 14px; color: #555; cursor: pointer; transition: 0.3s; font-family: var(--font-head); letter-spacing: 1px; }
-        .mode-btn.active { background: #111; color: #fff; }
+        /* --- CONTROLS (Deck) --- */
+        #controlDeck { display: flex; flex-direction: column; flex: 1; transition: 0.3s; }
+        .mode-switch { display: flex; background: #000; padding: 4px; border: 1px solid var(--border); margin-bottom: 30px; clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); }
+        .mode-btn { flex: 1; text-align: center; padding: 12px; font-weight: 800; font-size: 13px; color: #666; cursor: pointer; transition: 0.3s; font-family: var(--font-head); }
+        .mode-btn.active { background: #151515; color: #fff; }
         .mode-btn.active.enc { color: var(--primary); text-shadow: 0 0 10px var(--primary); }
-        .mode-btn.active.dec { color: var(--alert); text-shadow: 0 0 10px var(--alert); }
+        .mode-btn.active.dec { color: var(--secondary); text-shadow: 0 0 10px var(--secondary); }
 
-        /* AUTO PILOT BUTTON */
-        .btn-auto {
-            width: 100%; padding: 15px; background: linear-gradient(90deg, rgba(0,255,170,0.1), transparent);
-            border: 1px solid var(--primary); color: var(--primary); font-family: var(--font-head);
-            font-size: 12px; cursor: pointer; margin-bottom: 25px; display: flex; align-items: center; justify-content: center; gap: 10px;
-            transition: 0.3s;
-        }
-        .btn-auto:hover { background: var(--primary); color: #000; box-shadow: 0 0 30px var(--primary); }
-        .btn-auto i { animation: spin-slow 4s infinite linear; }
-        @keyframes spin-slow { 100% { transform: rotate(360deg); } }
-
-        /* OPTIONS */
-        .opt-item {
-            display: flex; align-items: center; justify-content: space-between; padding: 15px;
-            background: rgba(255,255,255,0.02); border-left: 2px solid #333; margin-bottom: 8px;
-            cursor: pointer; transition: 0.3s;
-        }
-        .opt-item:hover { border-left-color: var(--primary); background: rgba(0,255,170,0.05); padding-left: 20px; }
-        .opt-check { width: 18px; height: 18px; border: 2px solid #555; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        .lang-select { width: 100%; padding: 15px; background: #050505; color: #fff; border: 1px solid var(--border); font-family: var(--font-head); font-size: 12px; margin-bottom: 20px; cursor: pointer; }
+        .opt-item { display: flex; align-items: center; justify-content: space-between; padding: 15px; background: rgba(255,255,255,0.02); border-left: 2px solid #333; margin-bottom: 8px; cursor: pointer; transition: 0.3s; }
+        .opt-item:hover { border-left-color: var(--primary); background: rgba(255,0,85,0.05); padding-left: 20px; }
+        .opt-check { width: 16px; height: 16px; border: 2px solid #555; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
         input:checked + .opt-check { background: var(--primary); border-color: var(--primary); box-shadow: 0 0 10px var(--primary); }
-        input:checked + .opt-check i { opacity: 1; transform: scale(1); }
-        .opt-check i { font-size: 10px; color: #000; opacity: 0; transition: 0.2s; }
+        input:checked + .opt-check i { opacity: 1; font-size: 10px; color: #000; }
 
-        /* MEGA BUTTON */
-        .btn-titan {
-            width: 100%; padding: 22px; background: var(--primary); color: #000; border: none;
-            font-family: var(--font-head); font-weight: 900; font-size: 18px; cursor: pointer; margin-top: auto;
-            clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
-            transition: 0.3s; letter-spacing: 2px;
-        }
-        .btn-titan:hover { transform: scale(1.02); box-shadow: 0 0 50px var(--primary); filter: brightness(1.2); }
+        .btn-hyper { width: 100%; padding: 20px; background: var(--primary); color: #000; border: none; font-family: var(--font-head); font-weight: 900; font-size: 16px; cursor: pointer; margin-top: auto; clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px); transition: 0.3s; position: relative; overflow: hidden; }
+        .btn-hyper:hover { transform: scale(1.02); box-shadow: 0 0 50px var(--primary); }
 
-        /* EDITOR */
-        .editor-wrap { flex: 1; display: flex; flex-direction: column; background: #050505; }
-        .editor-hud {
-            height: 50px; background: rgba(0,0,0,0.5); border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: space-between; padding: 0 30px;
-            font-family: var(--font-code); color: var(--primary); font-size: 12px;
-        }
+        /* --- THE FORGE (Real-time Console) --- */
+        #forgePanel { display: none; flex: 1; flex-direction: column; background: #000; border: 1px solid var(--primary); padding: 20px; font-family: var(--font-code); font-size: 12px; color: var(--primary); overflow-y: auto; box-shadow: inset 0 0 30px rgba(255,0,85,0.2); }
+        .forge-log { margin-bottom: 5px; opacity: 0; animation: fadeIn 0.2s forwards; }
+        @keyframes fadeIn { to { opacity: 1; } }
+        .forge-spinner { display: inline-block; width: 10px; height: 10px; border: 2px solid var(--primary); border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; }
+
+        /* --- EDITOR & DRAG DROP --- */
+        .editor-wrap { flex: 1; display: flex; flex-direction: column; background: #050508; position: relative; }
+        .editor-wrap.drag-over::after { content: 'DROP FILE TO INJECT'; position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(255,0,85,0.2); border: 2px dashed var(--primary); z-index: 99; display: flex; justify-content: center; align-items: center; font-family: var(--font-head); font-size: 20px; color: var(--primary); pointer-events: none; }
+        .editor-hud { height: 50px; background: rgba(0,0,0,0.6); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; font-family: var(--font-code); color: #666; font-size: 11px; }
         .CodeMirror { flex: 1; font-family: var(--font-code); font-size: 14px; background: transparent !important; }
-        .cm-s-pastel-on-dark.CodeMirror { background: transparent !important; }
+        .cm-s-ayu-mirage.CodeMirror { background: transparent !important; }
 
-        /* MODALS */
-        .modal-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; display: none; justify-content: center; align-items: center; }
-        .titan-win { width: 85%; height: 80%; background: #080a0c; border: 1px solid var(--primary); display: flex; flex-direction: column; box-shadow: 0 0 100px rgba(0,255,170,0.2); animation: scaleUp 0.3s ease; }
-        @keyframes scaleUp { from{transform:scale(0.9);opacity:0;} to{transform:scale(1);opacity:1;} }
-        
-        .win-head { padding: 20px 30px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; font-family: var(--font-head); color: var(--primary); background: rgba(0,255,170,0.05); }
+        /* --- MODALS --- */
+        .modal-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
+        .hyper-win { width: 85%; height: 80%; background: #0a0c10; border: 1px solid var(--primary); display: flex; flex-direction: column; box-shadow: 0 0 80px rgba(255,0,85,0.15); animation: unfold 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); }
+        @keyframes unfold { from{transform:scaleY(0.01) scaleX(0);} 50%{transform:scaleY(0.01) scaleX(1);} to{transform:scaleY(1) scaleX(1);} }
+        .win-head { padding: 20px 30px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; font-family: var(--font-head); color: var(--primary); background: rgba(255,0,85,0.05); }
         .win-body { flex: 1; padding: 30px; overflow-y: auto; color: #ccc; font-family: var(--font-code); font-size: 14px; }
 
         /* TERMINAL */
@@ -130,86 +111,60 @@
     </style>
 </head>
 <body>
-
-    <script>
-        // SOUND ENGINE V2 (Spatial Audio)
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playSnd(type) {
-            if(audioCtx.state==='suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            
-            if(type==='click') { osc.type='square'; osc.frequency.setValueAtTime(150, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime+0.1); gain.gain.value=0.1; osc.start(); osc.stop(audioCtx.currentTime+0.1); }
-            if(type==='hover') { osc.type='sine'; osc.frequency.value=800; gain.gain.value=0.02; osc.start(); osc.stop(audioCtx.currentTime+0.05); }
-            if(type==='success') { osc.type='triangle'; osc.frequency.setValueAtTime(400, audioCtx.currentTime); osc.frequency.linearRampToValueAtTime(800, audioCtx.currentTime+0.3); gain.gain.value=0.2; osc.start(); osc.stop(audioCtx.currentTime+0.3); }
-            if(type==='error') { osc.type='sawtooth'; osc.frequency.setValueAtTime(100, audioCtx.currentTime); gain.gain.value=0.2; osc.start(); osc.stop(audioCtx.currentTime+0.3); }
-        }
-    </script>
-
-    <div class="vignette"></div>
-    <canvas id="neuralNet"></canvas>
+    <div class="scanline"></div>
+    <canvas id="dataGrid"></canvas>
 
     <nav>
-        <div class="brand">V80 <span>TITAN</span></div>
-        <div class="sys-stat">
-            <span><div class="stat-dot"></div> SYSTEM ONLINE</span>
-            <span><div class="stat-dot"></div> CORE SECURE</span>
-        </div>
+        <div class="brand">V90 <span>HYPERION</span></div>
         <div style="display:flex; gap:10px;">
-            <button class="nav-btn" onclick="openModal('term'); playSnd('click')"><i class="fas fa-terminal"></i> TERMINAL</button>
-            <button class="nav-btn" onclick="openModal('docs'); playSnd('click')"><i class="fas fa-book"></i> API</button>
+            <button class="nav-btn chroma-hover" data-text="TERMINAL" onclick="openModal('term')"><i class="fas fa-terminal"></i> TERMINAL</button>
+            <button class="nav-btn chroma-hover" data-text="API DOCS" onclick="openModal('docs')"><i class="fas fa-book"></i> API DOCS</button>
         </div>
     </nav>
 
     <div class="layout">
         <div class="sidebar">
-            <div class="mode-tabs">
-                <div class="mode-btn active enc" onclick="setMode('encrypt'); playSnd('click')">ENCRYPT</div>
-                <div class="mode-btn dec" onclick="setMode('decrypt'); playSnd('click')">DECRYPT</div>
-            </div>
-
-            <div id="encPanel" style="display:flex; flex-direction:column; flex:1;">
-                <button class="btn-auto" onclick="autoPilot(); playSnd('success')">
-                    <i class="fas fa-robot"></i> ACTIVATE AI AUTO-PILOT
-                </button>
-
-                <div style="color:var(--primary); font-size:11px; font-weight:bold; margin-bottom:10px;">TARGET LANGUAGE</div>
-                <select id="langSelect" onchange="setLang(this.value); playSnd('click')" style="width:100%; padding:15px; background:#000; color:#fff; border:1px solid var(--border); margin-bottom:20px; font-family:var(--font-head);">
-                    <option value="python">PYTHON (Titan Core)</option>
-                    <option value="javascript">JAVASCRIPT</option>
-                    <option value="lua">LUA</option>
-                    <option value="go">GOLANG</option>
-                    <option value="php">PHP</option>
-                </select>
-
-                <div style="color:var(--primary); font-size:11px; font-weight:bold; margin-bottom:10px;">ACTIVE MODULES</div>
-                <div id="optsContainer" style="display:flex; flex-direction:column; gap:5px;"></div>
-
-                <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:20px;">
-                    <div class="opt-item" onclick="document.getElementById('file').click(); playSnd('click')">
-                        <span style="font-size:13px; font-weight:bold;"><i class="fas fa-upload" style="color:var(--primary)"></i> IMPORT FILE</span>
-                    </div>
-                    <input type="file" id="file" hidden>
+            <div id="controlDeck">
+                <div class="mode-switch">
+                    <div class="mode-btn active enc" onclick="setMode('encrypt')">ENCRYPT</div>
+                    <div class="mode-btn dec" onclick="setMode('decrypt')">DECRYPT</div>
                 </div>
+
+                <div id="encPanel" style="display:flex; flex-direction:column; flex:1;">
+                    <div style="color:var(--primary); font-size:11px; font-weight:bold; margin-bottom:10px; font-family:var(--font-head);">TARGET SYSTEM</div>
+                    <select id="langSelect" class="lang-select" onchange="setLang(this.value)">
+                        <option value="python">PYTHON (Hyper Core)</option>
+                        <option value="javascript">JAVASCRIPT</option>
+                        <option value="lua">LUA</option>
+                        <option value="go">GOLANG</option>
+                        <option value="php">PHP</option>
+                    </select>
+
+                    <div style="color:var(--primary); font-size:11px; font-weight:bold; margin-bottom:10px; font-family:var(--font-head);">HYPER MODULES</div>
+                    <div id="optsContainer" style="display:flex; flex-direction:column; gap:5px;"></div>
+                </div>
+
+                <div id="decPanel" style="display:none; flex:1; align-items:center; justify-content:center; flex-direction:column; text-align:center;">
+                    <i class="fas fa-dna" style="font-size:60px; color:var(--secondary); margin-bottom:20px; animation:spin 5s infinite linear;"></i>
+                    <h3 style="color:#fff; font-family:var(--font-head);">NEURAL DECODER</h3>
+                    <p style="color:#888; font-size:12px;">Paste payload. The system will reconstruct the source.</p>
+                </div>
+
+                <button class="btn-hyper chroma-hover" data-text="INITIATE HYPERION" id="actionBtn" onclick="process()">INITIATE HYPERION</button>
             </div>
 
-            <div id="decPanel" style="display:none; flex:1; align-items:center; justify-content:center; flex-direction:column; text-align:center;">
-                <i class="fas fa-radar" style="font-size:60px; color:var(--primary); margin-bottom:20px; animation:spin-slow 4s infinite linear;"></i>
-                <h3 style="color:#fff; font-family:var(--font-head);">SIGNAL DECODER</h3>
-                <p style="color:#888; font-size:12px;">The Titan system will extract the payload.</p>
+            <div id="forgePanel">
+                <div style="margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;">HYPERION FORGE // PROCESSING RUNTIME</div>
+                <div id="forgeLogs"></div>
             </div>
-
-            <button class="btn-titan" id="actionBtn" onmouseenter="playSnd('hover')" onclick="process()">INITIATE SEQUENCE</button>
         </div>
 
-        <div class="editor-wrap">
+        <div class="editor-wrap" id="dropZone">
             <div class="editor-hud">
-                <span>TITAN WORKSPACE</span>
+                <span>HYPERION WORKSPACE // DRAG & DROP READY</span>
                 <div style="display:flex; gap:15px;">
-                    <i class="fas fa-eraser" style="cursor:pointer" onclick="editor.setValue(''); playSnd('click')"></i>
-                    <i class="fas fa-copy" style="cursor:pointer" onclick="copy(); playSnd('click')"></i>
-                    <i class="fas fa-download" style="cursor:pointer" onclick="download(); playSnd('click')"></i>
+                    <i class="fas fa-eraser" style="cursor:pointer" onclick="editor.setValue('')"></i>
+                    <i class="fas fa-copy" style="cursor:pointer" onclick="copy()"></i>
                 </div>
             </div>
             <textarea id="editor"></textarea>
@@ -217,27 +172,27 @@
     </div>
 
     <div id="termModal" class="modal-bg">
-        <div class="titan-win">
-            <div class="win-head"><span>// ROOT_ACCESS</span> <i class="fas fa-times" onclick="closeModal('term'); playSnd('click')" style="cursor:pointer"></i></div>
-            <div class="term-out" id="termOut">EuroShield Titan v80.0<br>System Ready.<br></div>
+        <div class="hyper-win">
+            <div class="win-head"><span>// ROOT_ACCESS</span> <i class="fas fa-times" onclick="closeModal('term')" style="cursor:pointer"></i></div>
+            <div class="term-out" id="termOut">HyperionOS v90.0.1 (tty1)<br>Login successful. Type 'help' for commands.<br></div>
             <input id="termIn" class="term-in" autofocus>
         </div>
     </div>
 
     <div id="docsModal" class="modal-bg">
-        <div class="titan-win">
-            <div class="win-head"><span>// API_NODE</span> <i class="fas fa-times" onclick="closeModal('docs'); playSnd('click')" style="cursor:pointer"></i></div>
+        <div class="hyper-win">
+            <div class="win-head"><span>// API_NODE</span> <i class="fas fa-times" onclick="closeModal('docs')" style="cursor:pointer"></i></div>
             <div class="win-body">
-                <h2 style="color:var(--primary)">Titan REST API</h2>
+                <h2 style="color:var(--primary)">Hyperion REST API</h2>
                 <code>POST {{ request.url_root }}process</code>
                 <pre style="background:#111; padding:20px; border:1px solid #333; margin-top:20px; color:#fff;">
 import requests
-# Using Auto-Pilot Mode
+# Uses V80 Titan Backend Engine
 res = requests.post("{{ request.url_root }}process", json={
-    "code": "print('V80')",
+    "code": "print('V90 Hyperion')",
     "action": "encrypt",
     "lang": "python",
-    "options": ["autopilot"]
+    "options": ["rename", "dead", "marshal"]
 })
 print(res.json()['result'])</pre>
             </div>
@@ -245,57 +200,80 @@ print(res.json()['result'])</pre>
     </div>
 
     <script>
-        // --- CANVAS NEURAL NET ---
-        const cvs = document.getElementById('neuralNet');
+        // --- DYNAMIC BACKGROUND (Data Flow) ---
+        const cvs = document.getElementById('dataGrid');
         const ctx = cvs.getContext('2d');
         cvs.width = window.innerWidth; cvs.height = window.innerHeight;
-        let nodes = [];
-        for(let i=0; i<60; i++) nodes.push({x:Math.random()*cvs.width, y:Math.random()*cvs.height, vx:(Math.random()-0.5), vy:(Math.random()-0.5)});
-        
-        function drawNet() {
+        let nodes = [], packets = [];
+        for(let i=0; i<50; i++) nodes.push({x:Math.random()*cvs.width, y:Math.random()*cvs.height, vx:(Math.random()-0.5)*0.5, vy:(Math.random()-0.5)*0.5});
+
+        function draw() {
             ctx.clearRect(0,0,cvs.width,cvs.height);
             ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary');
-            nodes.forEach(n => {
+            
+            // Draw Nodes & Connections
+            nodes.forEach((n, i) => {
                 n.x+=n.vx; n.y+=n.vy;
                 if(n.x<0||n.x>cvs.width) n.vx*=-1; if(n.y<0||n.y>cvs.height) n.vy*=-1;
                 ctx.beginPath(); ctx.arc(n.x,n.y,1.5,0,Math.PI*2); ctx.fill();
-                nodes.forEach(n2 => {
+                nodes.slice(i+1).forEach(n2 => {
                     let d = Math.hypot(n.x-n2.x, n.y-n2.y);
-                    if(d<120) {
-                        ctx.strokeStyle = ctx.fillStyle; ctx.globalAlpha = 1 - d/120;
+                    if(d<150) {
+                        ctx.strokeStyle = ctx.fillStyle; ctx.globalAlpha = 1 - d/150;
                         ctx.beginPath(); ctx.moveTo(n.x,n.y); ctx.lineTo(n2.x,n2.y); ctx.stroke(); ctx.globalAlpha=1;
+                        // Chance to spawn data packet
+                        if(Math.random()>0.998) packets.push({gx:n.x, gy:n.y, tx:n2.x, ty:n2.y, p:0});
                     }
                 });
             });
-            requestAnimationFrame(drawNet);
+            
+            // Draw Packets
+            ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--secondary');
+            packets = packets.filter(p => p.p < 1);
+            packets.forEach(p => {
+                p.p += 0.02;
+                let cx = p.gx + (p.tx - p.gx) * p.p;
+                let cy = p.gy + (p.ty - p.gy) * p.p;
+                ctx.beginPath(); ctx.arc(cx,cy,2.5,0,Math.PI*2); ctx.fill();
+            });
+            requestAnimationFrame(draw);
         }
-        drawNet();
+        draw();
 
-        // --- LOGIC ---
+        // --- LOGIC & UI ---
         let curLang='python', curMode='encrypt';
         const UI = {
-            python: { c:'#00ffaa', opts: [{id:'dead',l:'DEAD CODE STORM'}, {id:'rename',l:'AST RENAMING'}, {id:'marshal',l:'MARSHAL COMPRESSION'}] },
-            javascript: { c:'#facc15', opts: [{id:'hex',l:'HEX ENCODING'}, {id:'packer',l:'TITAN PACKER'}] },
-            lua: { c:'#00d4ff', opts: [{id:'vm',l:'VIRTUAL MACHINE'}, {id:'hex',l:'HEX LOADER'}] },
-            // Generic
-            generic: { c:'#fff', opts: [{id:'base64',l:'BASE64 WRAPPER'}] }
+            python: { c:'#ff0055', opts: [{id:'dead',l:'DEAD CODE INJECTION'}, {id:'rename',l:'AST SYMBOL RENAMING'}, {id:'marshal',l:'BYTECODE MARSHALING'}] },
+            javascript: { c:'#facc15', opts: [{id:'hex',l:'HEXADECIMAL ENCODING'}, {id:'packer',l:'RUNTIME PACKER'}] },
+            generic: { c:'#00f3ff', opts: [{id:'base64',l:'STANDARD BASE64 WRAPPER'}] }
         };
+        var editor = CodeMirror.fromTextArea(document.getElementById("editor"), { mode: "python", theme: "ayu-mirage", lineNumbers: true });
 
-        var editor = CodeMirror.fromTextArea(document.getElementById("editor"), { mode: "python", theme: "pastel-on-dark", lineNumbers: true });
+        // DRAG & DROP
+        const dropZone = document.getElementById('dropZone');
+        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+        dropZone.addEventListener('dragleave', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); });
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault(); dropZone.classList.remove('drag-over');
+            const f = e.dataTransfer.files[0];
+            if(f) { const r = new FileReader(); r.onload = ev => editor.setValue(ev.target.result); r.readAsText(f); }
+        });
 
         function setLang(l) {
             curLang = l;
             const conf = UI[l] || UI.generic;
             document.documentElement.style.setProperty('--primary', conf.c);
+            document.documentElement.style.setProperty('--secondary', l==='python'?'#00f3ff':'#ff0055');
             const con = document.getElementById('optsContainer'); con.innerHTML = '';
             (conf.opts || []).forEach(o => {
                 con.innerHTML += `
-                    <label class="opt-item" onmouseenter="playSnd('hover')" onclick="playSnd('click')">
+                    <label class="opt-item">
                         <span style="font-weight:700; font-size:12px; letter-spacing:1px;">${o.l}</span>
-                        <input type="checkbox" id="opt-${o.id}" class="opt-chk" hidden>
+                        <input type="checkbox" id="opt-${o.id}" class="opt-chk" checked hidden>
                         <div class="opt-check"><i class="fas fa-check"></i></div>
                     </label>`;
             });
+            document.querySelector('.btn-hyper').setAttribute('data-text', 'INITIATE HYPERION');
         }
         setLang('python');
 
@@ -304,57 +282,88 @@ print(res.json()['result'])</pre>
             document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
             const btn = document.getElementById('actionBtn');
             if(m==='encrypt') {
-                document.getElementById('encPanel').style.display='flex';
-                document.getElementById('encPanel').style.flexDirection='column';
+                document.getElementById('encPanel').style.display='flex'; document.getElementById('encPanel').style.flexDirection='column';
                 document.getElementById('decPanel').style.display='none';
                 document.querySelector('.mode-btn.enc').classList.add('active');
-                btn.innerText = 'INITIATE SEQUENCE';
+                btn.innerText = 'INITIATE HYPERION'; btn.setAttribute('data-text', 'INITIATE HYPERION');
             } else {
                 document.getElementById('encPanel').style.display='none';
                 document.getElementById('decPanel').style.display='flex';
                 document.querySelector('.mode-btn.dec').classList.add('active');
-                btn.innerText = 'DECRYPT ARTIFACT';
+                btn.innerText = 'DECRYPT ARTIFACT'; btn.setAttribute('data-text', 'DECRYPT ARTIFACT');
             }
         }
 
-        function autoPilot() {
-            // Smart Selection Logic
-            document.querySelectorAll('.opt-chk').forEach(c => c.checked = true);
-            alert("TITAN AUTO-PILOT: OPTIMAL CONFIGURATION APPLIED.");
+        // THE FORGE (REAL-TIME CONSOLE ANIMATION)
+        async function runForgeSequence(logs) {
+            const deck = document.getElementById('controlDeck');
+            const forge = document.getElementById('forgePanel');
+            const logCon = document.getElementById('forgeLogs');
+            deck.style.display = 'none'; forge.style.display = 'flex';
+            logCon.innerHTML = '';
+
+            for (const log of logs) {
+                logCon.innerHTML += `<div class="forge-log"><span class="forge-spinner"></span> ${log}</div>`;
+                logCon.scrollTop = logCon.scrollHeight;
+                await new Promise(r => setTimeout(r, 600 + Math.random()*800)); // Simulate work
+            }
+        }
+        function stopForge() {
+            document.getElementById('controlDeck').style.display = 'flex';
+            document.getElementById('forgePanel').style.display = 'none';
         }
 
         async function process() {
-            playSnd('click');
             const code = editor.getValue(); if(!code.trim()) return alert("BUFFER EMPTY");
+            let opts = []; if(curMode==='encrypt') document.querySelectorAll('.opt-chk:checked').forEach(c=>opts.push(c.id.replace('opt-','')));
             
-            // Build options array
-            let opts = [];
-            if(curMode==='encrypt') document.querySelectorAll('.opt-chk:checked').forEach(c=>opts.push(c.id.replace('opt-','')));
-            
-            const btn = document.getElementById('actionBtn'); btn.innerText = 'PROCESSING...';
+            if(curMode === 'encrypt') {
+                // Fake Forge Sequence
+                const logs = [
+                    `Initializing Hyperion Core (${curLang.toUpperCase()})...`,
+                    "Analyzing Abstract Syntax Tree (AST)...",
+                    ...opts.map(o => `Applying Module: [${o.toUpperCase()}]...`),
+                    "Flattening Control Flow Graph...",
+                    "Compiling Final Bytecode Payload...",
+                    "Finalizing Artifact..."
+                ];
+                await runForgeSequence(logs || ["Processing..."]);
+            }
+
             try {
                 const res = await fetch('/process', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code, action:curMode, lang:curLang, options:opts}) });
-                const d = await res.json(); editor.setValue(d.result); playSnd('success');
-            } catch { playSnd('error'); alert("SYSTEM FAILURE"); } finally { btn.innerText = curMode==='encrypt'?'INITIATE SEQUENCE':'DECRYPT ARTIFACT'; }
+                const d = await res.json(); editor.setValue(d.result);
+            } catch { alert("SYSTEM FAILURE"); } finally { stopForge(); }
         }
 
-        // TERMINAL
+        // ADVANCED TERMINAL
         const tOut = document.getElementById('termOut');
         document.getElementById('termIn').addEventListener('keypress', async e => {
             if(e.key==='Enter') {
-                playSnd('click');
-                const c = e.target.value; e.target.value='';
-                tOut.innerHTML += `<br><span style="color:var(--primary)">root@titan:~#</span> ${c}`;
-                try{ const r=await fetch('/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:c})}); const d=await r.json(); tOut.innerHTML+=`<br>${d.output}`; }
-                catch{ tOut.innerHTML+='<br>Error'; }
+                const c = e.target.value.trim(); e.target.value='';
+                tOut.innerHTML += `<br><span style="color:var(--primary)">root@hyperion:~#</span> ${c}`;
+                
+                // Pseudo-commands before hitting server
+                let output = "";
+                switch(c.toLowerCase()) {
+                    case 'help': output = "Available commands: help, clear, whoami, date, sysinfo, scan, exit"; break;
+                    case 'clear': tOut.innerHTML = "HyperionOS v90.0.1 (tty1)<br>"; return;
+                    case 'whoami': output = "root (uid=0, gid=0)"; break;
+                    case 'date': output = new Date().toUTCString(); break;
+                    case 'sysinfo': output = "Host: Hyperion-Node-X99<br>Kernel: Linux 6.5.0-hyper<br>CPU: Quantum Core i9 (128 Cores)<br>Memory: 512 GB DDR6"; break;
+                    case 'scan': output = "Scanning network...<br>[+] Target found: 192.168.1.55 (Vulnerable)<br>[+] Target found: 10.0.0.2 (Secure)"; break;
+                    default:
+                         try{ const r=await fetch('/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:c})}); const d=await r.json(); output=d.output; }
+                         catch{ output='Connection Error'; }
+                }
+                tOut.innerHTML += `<br>${output}`;
+                tOut.scrollTop = tOut.scrollHeight;
             }
         });
 
         function openModal(id) { document.getElementById(id+'Modal').style.display='flex'; }
         function closeModal(id) { document.getElementById(id+'Modal').style.display='none'; }
         function copy() { navigator.clipboard.writeText(editor.getValue()); }
-        function download() { const b=new Blob([editor.getValue()],{type:'text/plain'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download='Titan.txt'; a.click(); }
-        document.getElementById('file').addEventListener('change', e => { const f=e.target.files[0]; if(f){ const r=new FileReader(); r.onload=ev=>editor.setValue(ev.target.result); r.readAsText(f); } });
     </script>
 </body>
 </html>
