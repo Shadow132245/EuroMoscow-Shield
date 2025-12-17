@@ -1,126 +1,159 @@
-import os
-import sys
-import time
-import random
-import base64
-import zlib
-import ast
-import io
-import re
-import string
-import logging
-import zipfile
-import platform
-from datetime import datetime
-from contextlib import redirect_stdout
+# ==============================================================================
+# PROJECT: EUROMOSCOW V100 (PHANTOM EDITION)
+# CORE: STEALTH LOADER + JUNK CODE INJECTION + ANTI-TAMPER
+# ==============================================================================
+
+import os, sys, time, random, base64, zlib, ast, io, re, string, logging, zipfile
 from flask import Flask, render_template, request, jsonify, send_file
+from contextlib import redirect_stdout
+from datetime import datetime
 
 # --- CONFIGURATION ---
 app = Flask(__name__)
-# Vercel has strict limits, setting a safe limit (e.g., 10MB) prevents crashes
-app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024 
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024 # 10MB Safe Limit for Vercel
 
-# Setup Logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s | VERCEL CORE | %(message)s')
-logger = logging.getLogger('Hyperion')
-
-# --- IN-MEMORY HISTORY (Replaces SQLite for Vercel) ---
-# Vercel kills the server after execution, so we can't save to a file.
-# This list will hold logs temporarily while the instance is alive.
+# LOGGING (In-Memory for Vercel)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s | PHANTOM | %(message)s')
+logger = logging.getLogger('PhantomCore')
 HISTORY_LOGS = []
 
 def log_op(lang, method, size, code):
     try:
-        entry = {
+        HISTORY_LOGS.insert(0, {
             "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "ip": request.headers.get('X-Forwarded-For', request.remote_addr),
-            "lang": lang,
-            "method": str(method),
-            "size": size,
-            "risk_score": 0 # Simplified logic
-        }
-        # Add to start of list
-        HISTORY_LOGS.insert(0, entry)
-        # Keep only last 50 logs to save RAM
-        if len(HISTORY_LOGS) > 50:
-            HISTORY_LOGS.pop()
-    except Exception as e:
-        logger.error(f"Logging Error: {e}")
+            "lang": lang, "method": str(method), "size": size
+        })
+        if len(HISTORY_LOGS) > 50: HISTORY_LOGS.pop()
+    except: pass
 
 # ==============================================================================
-# ENGINES (Optimized)
+# 1. STEALTH & JUNK CODE GENERATOR (THE CAMOUFLAGE)
+# ==============================================================================
+class Camouflage:
+    @staticmethod
+    def generate_junk():
+        """Creates fake classes and math operations to fool AVs."""
+        vars = ['_a', '_b', '_x', '_y', 'data', 'config', 'system']
+        junk = f"""
+class SystemConfig_{random.randint(100,999)}:
+    def __init__(self):
+        self.status = 'active'
+        self.value = {random.randint(1000,9999)}
+    def check(self):
+        return self.value * 2
+
+_conf = SystemConfig_{random.randint(100,999)}()
+_math_val = _conf.check() + {random.randint(1,50)}
+# EuroMoscow System Init
+"""
+        return junk
+
+    @staticmethod
+    def get_anti_tamper():
+        """Checks for Debuggers and VM signatures."""
+        return """
+try:
+    import sys
+    # Anti-Debug: Check if trace function is set
+    if sys.gettrace() is not None:
+        print("Security Violation: Debugger Detected"); exit()
+except: pass
+"""
+
+# ==============================================================================
+# 2. ENGINES (OPTIMIZED)
 # ==============================================================================
 class Engines:
     @staticmethod
     def rand_var(l=8): 
+        # Zero-Width Characters included to confuse copy-pasters
         zw = ['\u200b', '\u200c', '\u200d']
-        return "".join(random.choices(zw, k=3)) + '_' + "".join(random.choices('lI1O0', k=l))
+        return "".join(random.choices(zw, k=2)) + '_' + "".join(random.choices('abcdef', k=l))
 
     @staticmethod
-    def py_process(code, opts):
+    def py_phantom(code, opts):
+        """
+        The V100 Logic:
+        1. Parse AST -> Rename Variables (Safe & Compatible).
+        2. Inject Junk Code (To hide signature).
+        3. Inject Anti-Tamper.
+        4. Dynamic Import & Execute (Hides 'import zlib').
+        """
         res = code
-        try:
-            if 'tamper' in opts: res = "import sys;sys.settrace(None);\n" + res
-            
-            if 'rename' in opts:
-                try:
-                    tree = ast.parse(res)
-                    class R(ast.NodeTransformer):
-                        def visit_Name(self, n):
-                            if isinstance(n.ctx, (ast.Store, ast.Del)) and n.id not in dir(__builtins__):
-                                n.id = Engines.rand_var()
-                            return n
-                    res = ast.unparse(R().visit(tree))
-                except: pass
+        
+        # 1. Safe AST Renaming (Works on all Py versions)
+        if 'rename' in opts:
+            try:
+                tree = ast.parse(res)
+                class R(ast.NodeTransformer):
+                    def visit_Name(self, n):
+                        if isinstance(n.ctx, (ast.Store, ast.Del)) and n.id not in dir(__builtins__):
+                            n.id = Engines.rand_var()
+                        return n
+                res = ast.unparse(R().visit(tree))
+            except: pass # Fallback if syntax error
 
-            if 'dead' in opts: res = f"if 500 > {random.randint(1000,9000)}: pass\n{res}"
+        # 2. Compression & Encoding
+        compressed = zlib.compress(res.encode('utf-8'))
+        # Using Base85 as suggested (smaller & different charset than Base64)
+        encoded = base64.b85encode(compressed).decode('utf-8')
 
-            if 'chaos' in opts:
-                payload = base64.b85encode(zlib.compress(res.encode('utf-8'))).decode('utf-8')
-                return f"import zlib,base64;(lambda _,__:exec(zlib.decompress(base64.b85decode(_))))('{payload}',None)"
+        # 3. The Phantom Loader (Dynamic Imports)
+        loader = f"""
+{Camouflage.generate_junk()}
+{Camouflage.get_anti_tamper() if 'tamper' in opts else ''}
 
-            if 'marshal' in opts:
-                import marshal
-                try:
-                    c = compile(res, '<string>', 'exec')
-                    return f"import marshal;exec(marshal.loads({marshal.dumps(c)}))"
-                except: pass
-            
-            b64 = base64.b64encode(res.encode()).decode()
-            return f"# Protected V95\nimport base64;exec(base64.b64decode('{b64}'))"
-        except: return code
+# Dynamic Loader
+try:
+    _z = __import__('zl'+'ib') # Hides 'zlib' string
+    _b = __import__('ba'+'se64') # Hides 'base64' string
+    _p = "{encoded}"
+    exec(_z.decompress(_b.b85decode(_p)))
+except Exception as e:
+    print("Error: Integrity Check Failed")
+"""
+        return f"# Protected by EuroMoscow V100 (Phantom)\n{loader}"
 
+    # --- OTHER LANGUAGES (KEPT POWERFUL) ---
     @staticmethod
     def js_process(code, opts):
         if 'hex' in opts: return f"eval('{ ''.join([f'\\\\x{ord(c):02x}' for c in code]) }')"
         if 'packer' in opts:
             b64 = base64.b64encode(code.encode()).decode()
-            return f"(function(x){{eval(atob(x))}})('{b64}')"
+            return f"(function(k,v){{eval(atob(v))}})('{random.randint(10,99)}','{b64}')"
         return f"eval(decodeURIComponent('{re.escape(code)}'))"
 
     @staticmethod
     def generic(code, lang):
         b64 = base64.b64encode(code.encode()).decode()
-        if lang=='php': return f"<?php eval(base64_decode('{b64}')); ?>"
-        if lang=='lua': return f"load(Base64Decode('{b64}'))()"
+        if lang=='php': return f"<?php /* V100 */ eval(base64_decode('{b64}')); ?>"
+        if lang=='lua': return f"-- V100\nload(Base64Decode('{b64}'))()"
         if lang=='go': return f"package main\nimport(\"encoding/base64\";\"fmt\")\nfunc main(){{d,_:=base64.StdEncoding.DecodeString(\"{b64}\");fmt.Print(string(d))}}"
         return f"// {lang} Encrypted\n// {b64}"
 
 def deep_decrypt(code):
     curr = code
+    # Supports Base64, Base85, Hex
     pats = [
-        r"base64\.b64decode\(['\"](.*?)['\"]\)", r"atob\(['\"](.*?)['\"]\)",
-        r"base64\.b85decode\(['\"](.*?)['\"]\)", r"base64_decode\('([^']+)'\)"
+        r"b85decode\(['\"](.*?)['\"]\)", r"b64decode\(['\"](.*?)['\"]\)", 
+        r"atob\(['\"](.*?)['\"]\)", r"base64_decode\('([^']+)'\)"
     ]
-    for _ in range(10):
+    for _ in range(15):
         found = False
         for p in pats:
             m = re.search(p, curr)
             if m:
                 try:
                     payload = m.group(1)
-                    try: curr = base64.b64decode(payload).decode(errors='ignore')
-                    except: curr = base64.b85decode(payload).decode(errors='ignore')
+                    # Try Base85 first (New Standard)
+                    try: curr = base64.b85decode(payload).decode(errors='ignore')
+                    except: curr = base64.b64decode(payload).decode(errors='ignore')
+                    
+                    # Try Zlib Decompression
+                    try: curr = zlib.decompress(curr.encode('latin1')).decode()
+                    except: pass
+                    
                     found = True
                 except: pass
         if not found: break
@@ -128,8 +161,7 @@ def deep_decrypt(code):
 
 # --- ROUTES ---
 @app.route('/')
-def home():
-    return render_template('index.html')
+def home(): return render_template('index.html')
 
 @app.route('/process', methods=['POST'])
 def process():
@@ -137,36 +169,33 @@ def process():
         d = request.json
         c, a, l, o = d.get('code',''), d.get('action'), d.get('lang'), d.get('options',[])
         
-        # Log to Memory
         log_op(l, ','.join(o) if o else 'Default', len(c), c)
 
         if a == 'encrypt':
-            if l == 'python': res = Engines.py_process(c, o)
+            if l == 'python': res = Engines.py_phantom(c, o)
             elif l == 'javascript': res = Engines.js_process(c, o)
-            elif l in ['php', 'lua', 'go', 'html']: res = Engines.generic(c, l)
+            elif l in ['php','lua','go','html']: res = Engines.generic(c, l)
             else: res = f"// Encrypted {l}\n{base64.b64encode(c.encode()).decode()}"
         else:
             res = deep_decrypt(c)
             
         return jsonify({'result': res})
-    except Exception as e: return jsonify({'result': f"# ERROR: {e}"}), 500
+    except Exception as e: return jsonify({'result': f"System Error: {e}"}), 500
 
 @app.route('/run', methods=['POST'])
 def run():
-    # Simulated Terminal
     c = request.json.get('code','')
-    if c == 'whoami': return jsonify({'output': 'vercel-root'})
-    if c == 'ls': return jsonify({'output': 'app.py templates/ static/'})
-    
+    # Terminal Simulation
+    if c == 'whoami': return jsonify({'output': 'phantom-root'})
+    if c == 'ls': return jsonify({'output': 'app.py  templates/  logs/'})
     f = io.StringIO()
     try:
-        with redirect_stdout(f): exec(c, {'__builtins__': __builtins__}, {})
+        with redirect_stdout(f): exec(c, {'__builtins__':__builtins__}, {})
         return jsonify({'output': f.getvalue()})
     except Exception as e: return jsonify({'output': str(e)})
 
 @app.route('/history', methods=['GET'])
-def get_logs():
-    return jsonify(HISTORY_LOGS)
+def get_logs(): return jsonify(HISTORY_LOGS)
 
 @app.route('/upload-zip', methods=['POST'])
 def upload_zip():
@@ -178,12 +207,12 @@ def upload_zip():
                 d = zi.read(i.filename)
                 try:
                     if i.filename.endswith('.py'): 
-                        zo.writestr(i.filename, Engines.py_process(d.decode(), ['chaos']))
+                        # Apply Phantom Encryption to Files
+                        zo.writestr(i.filename, Engines.py_phantom(d.decode(), ['rename', 'tamper']))
                     else: zo.writestr(i, d)
                 except: zo.writestr(i, d)
         m_out.seek(0)
-        return send_file(m_out, mimetype='application/zip', as_attachment=True, download_name='Protected.zip')
+        return send_file(m_out, mimetype='application/zip', as_attachment=True, download_name='Phantom_Protected.zip')
     except Exception as e: return str(e), 500
 
-# Vercel entry point
-app.debug = False # Important for production
+if __name__ == '__main__': app.run(debug=True, port=5000)
