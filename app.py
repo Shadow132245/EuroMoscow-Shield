@@ -1,73 +1,96 @@
-import os, sys, time, random, base64, zlib, ast, io, re, string, logging, zipfile, binascii
+import os, sys, time, random, base64, zlib, re, string, logging, binascii, urllib.parse
 from flask import Flask, render_template, request, jsonify
 from datetime import datetime
 
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024 
+app.config['MAX_CONTENT_LENGTH'] = 4 * 1024 * 1024 
 HISTORY = []
 
 # ==============================================================================
-# 6-MODE ENCRYPTION ENGINE (HEXA-CORE)
+# SAFE ENCRYPTION ENGINE
 # ==============================================================================
 class ChromaEngine:
-    
     @staticmethod
     def encrypt(code, lang, mode):
-        # --- PYTHON MODES ---
-        if lang == 'python':
-            if mode == '1': return f"# Py Mode 1 (Zlib)\nimport zlib,base64;exec(zlib.decompress(base64.b64decode('{base64.b64encode(zlib.compress(code.encode())).decode()}')))"
-            if mode == '2': return f"# Py Mode 2 (Base64)\nimport base64;exec(base64.b64decode('{base64.b64encode(code.encode()).decode()}'))"
-            if mode == '3': return f"# Py Mode 3 (Hex)\nexec(bytes.fromhex('{binascii.hexlify(code.encode()).decode()}').decode())"
-            if mode == '4': return f"# Py Mode 4 (Marshal)\nimport marshal;exec(marshal.loads({str(binascii.hexlify(code.encode()))})) # Simulated"
-            if mode == '5': return f"# Py Mode 5 (Reverse)\nexec('{code[::-1]}'[::-1])"
-            if mode == '6': return f"# Py Mode 6 (Bin)\nexec(''.join(chr(int(x,2)) for x in '{' '.join(format(ord(x), 'b') for x in code)}'.split()))"
+        try:
+            if len(code) > 500000 and mode in ['4', '5', '6']:
+                return f"# Code too large for Mode {mode}. Using Mode 2.\nimport base64;exec(base64.b64decode('{base64.b64encode(code.encode()).decode()}'))"
 
-        # --- JAVASCRIPT MODES ---
-        if lang == 'javascript':
+            # PYTHON
+            if lang == 'python':
+                if mode == '1': return f"import zlib,base64;exec(zlib.decompress(base64.b85decode('{base64.b85encode(zlib.compress(code.encode())).decode()}')))"
+                if mode == '2': return f"import base64;exec(base64.b64decode('{base64.b64encode(code.encode()).decode()}'))"
+                if mode == '3': return f"exec(bytes.fromhex('{binascii.hexlify(code.encode()).decode()}').decode())"
+                if mode == '4': import marshal; return f"import marshal;exec(marshal.loads({str(marshal.dumps(compile(code, '', 'exec')))}))"
+                if mode == '5': return f"exec('{code[::-1]}'[::-1])"
+                if mode == '6': 
+                    binary = ' '.join(format(ord(x), 'b') for x in code)
+                    return f"exec(''.join(chr(int(x,2)) for x in '{binary}'.split()))"
+
+            # JAVASCRIPT
+            if lang == 'javascript':
+                b64 = base64.b64encode(code.encode()).decode()
+                if mode == '1': return f"eval(atob('{b64}'))"
+                if mode == '2': return f"eval(decodeURIComponent('{urllib.parse.quote(code)}'))"
+                if mode == '3': return f"eval('{ ''.join([f'\\\\x{ord(c):02x}' for c in code]) }')"
+                if mode == '4': return f"eval(String.fromCharCode({','.join([str(ord(c)) for c in code])}))"
+                if mode == '5': return f"(function(){{eval(atob('{b64}'))}})()"
+                if mode == '6': return f"setTimeout(function(){{eval(atob('{b64}'))}}, 10);"
+
+            # GENERIC FALLBACK
             b64 = base64.b64encode(code.encode()).decode()
-            if mode == '1': return f"eval(atob('{b64}'))"
-            if mode == '2': return f"eval(decodeURIComponent('{re.escape(code)}'))"
-            if mode == '3': return f"/* Hex */ eval('{ ''.join([f'\\\\x{ord(c):02x}' for c in code]) }')"
-            if mode == '4': return f"/* CharCode */ eval(String.fromCharCode({','.join([str(ord(c)) for c in code])}))"
-            if mode == '5': return f"/* Packer */ (function(x){{eval(atob(x))}})('{b64}')"
-            if mode == '6': return f"/* URL */ eval(unescape('{re.escape(code)}'))"
+            return f"// {lang.upper()} Encrypted\n// {b64}"
 
-        # --- PHP MODES ---
-        if lang == 'php':
-            b64 = base64.b64encode(code.encode()).decode()
-            if mode == '1': return f"<?php eval(base64_decode('{b64}')); ?>"
-            if mode == '2': return f"<?php eval(gzuncompress(base64_decode('{base64.b64encode(zlib.compress(code.encode())).decode()}'))); ?>"
-            if mode == '3': return f"<?php eval(hex2bin('{binascii.hexlify(code.encode()).decode()}')); ?>"
-            if mode == '4': return f"<?php eval(str_rot13('{code.encode('rot_13')}')); ?>" # Simulated
-            if mode == '5': return f"<?php // Octal\neval(\"{''.join(['\\\\'+oct(ord(c))[2:] for c in code])}\"); ?>"
-            if mode == '6': return f"<?php eval(base64_decode(strrev('{b64[::-1]}'))); ?>"
+        except Exception as e: return f"# SYSTEM ERROR: {str(e)}"
 
-        # --- GENERIC FOR OTHERS (GO, C++, LUA, RUBY, HTML...) ---
-        # Automating 6 modes for generic compiled/script languages
-        b64 = base64.b64encode(code.encode()).decode()
-        hex_s = binascii.hexlify(code.encode()).decode()
-        
-        if mode == '1': return f"// {lang} Base64 Encoded\n// {b64}"
-        if mode == '2': return f"// {lang} Hex Dump\n// {hex_s}"
-        if mode == '3': return f"// {lang} Binary Stream\n// {' '.join(format(ord(x), 'b') for x in code)}"
-        if mode == '4': return f"// {lang} Reversed Source\n// {code[::-1]}"
-        if mode == '5': return f"// {lang} Rot13 Obfuscation\n// [Protected Content]"
-        if mode == '6': return f"// {lang} Advanced Packer V190\n// {b64[:20]}..."
-
-        return code
-
-# --- DECRYPTION ---
+# ==============================================================================
+# GENIUS DECRYPTOR (UPDATED TO FIX YOUR ISSUE)
+# ==============================================================================
 def smart_decrypt(code):
     try:
-        # 1. Try Base64
-        if 'base64' in code or 'b64' in code:
-            m = re.search(r"['\"]([A-Za-z0-9+/=]{20,})['\"]", code)
-            if m: return base64.b64decode(m.group(1)).decode()
-        # 2. Try Hex
-        if '\\x' in code:
-            return code.replace('\\x','').replace("'","") # Mock
-        return "# Decryption Engine: Could not identify layer automatically."
-    except: return "# Decryption Failed."
+        curr = code.strip()
+        
+        # 1. DETECT REVERSE MODE (Python Mode 5)
+        # Pattern: exec('... '[::-1])
+        if "[::-1]" in curr:
+            m = re.search(r"['\"](.*?)['\"]", curr)
+            if m: return m.group(1)[::-1] # Reverse it back!
+
+        # 2. DETECT BINARY MODE (Python Mode 6)
+        # Pattern: int(x,2)
+        if "int(x,2)" in curr:
+            m = re.search(r"['\"]([01\s]+)['\"]", curr)
+            if m:
+                binary_str = m.group(1)
+                return "".join([chr(int(b, 2)) for b in binary_str.split()])
+
+        # 3. DETECT HEX (Python Mode 3 / JS Mode 3)
+        if "bytes.fromhex" in curr or "\\x" in curr:
+            # Try to clean and decode hex
+            clean_hex = re.sub(r"[^0-9a-fA-F]", "", curr)
+            try: return binascii.unhexlify(clean_hex).decode()
+            except: pass
+
+        # 4. DETECT URL ENCODE (JS Mode 2)
+        if "decodeURIComponent" in curr:
+            m = re.search(r"['\"](.*?)['\"]", curr)
+            if m: return urllib.parse.unquote(m.group(1))
+
+        # 5. DETECT BASE64 / ZLIB (Standard)
+        # Finds the longest string that looks like Base64
+        b64_matches = re.findall(r"['\"]([A-Za-z0-9+/=]{20,})['\"]", curr)
+        for match in b64_matches:
+            try:
+                # Try Zlib first (Mode 1)
+                try: return zlib.decompress(base64.b85decode(match)).decode()
+                except: pass
+                
+                # Try Standard Base64 (Mode 2)
+                return base64.b64decode(match).decode()
+            except: continue
+
+        return "# Decryption Engine: Layer too complex or not supported yet."
+    except Exception as e: return f"# Decryption Failed: {str(e)}"
 
 # --- ROUTES ---
 @app.route('/')
@@ -80,13 +103,13 @@ def process():
         c, l, a, m = d.get('code',''), d.get('lang','python'), d.get('action'), d.get('mode','1')
         
         # Log
+        if len(HISTORY) > 50: HISTORY.pop()
         HISTORY.insert(0, {
             "time": datetime.now().strftime("%H:%M:%S"),
             "lang": l.upper(),
             "method": f"{a.upper()} (M{m})",
             "ip": request.headers.get('X-Forwarded-For', request.remote_addr)
         })
-        if len(HISTORY)>50: HISTORY.pop()
 
         if a == 'encrypt': res = ChromaEngine.encrypt(c, l, m)
         else: res = smart_decrypt(c)
