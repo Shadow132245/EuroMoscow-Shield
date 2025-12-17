@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EuroMoscow | V35 Black Hole</title>
+    <title>EuroMoscow | V40 Singularity</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
     
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -20,349 +20,306 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
 
     <style>
-        /* --- CORE VARIABLES --- */
         :root {
-            --bg: #050508;
-            --panel: rgba(20, 20, 25, 0.6);
+            --bg: #020204;
+            --panel: rgba(15, 15, 20, 0.7);
             --border: rgba(255, 255, 255, 0.08);
-            --primary: #00f0ff; /* Dynamic Color */
-            --secondary: #7000ff;
+            --primary: #00f0ff;
             --text: #ffffff;
-            --font-main: 'Rajdhani', sans-serif;
+            --font-ui: 'Rajdhani', sans-serif;
             --font-tech: 'Orbitron', sans-serif;
             --font-code: 'JetBrains Mono', monospace;
         }
 
-        * { box-sizing: border-box; outline: none; user-select: none; }
-        body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-main); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        * { box-sizing: border-box; outline: none; }
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-ui); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-        /* --- BACKGROUND FX --- */
-        #particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
-        .vignette { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, transparent 50%, #000 100%); pointer-events: none; z-index: 0; }
-
-        /* --- SCROLLBAR --- */
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
-
-        /* --- NAVBAR --- */
-        nav {
-            height: 75px; display: flex; align-items: center; justify-content: space-between; padding: 0 40px;
-            background: rgba(5,5,8,0.8); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border);
-            z-index: 100;
+        /* ANIMATED BG */
+        .grid-bg {
+            position: fixed; top: 0; left: 0; width: 200%; height: 200%; z-index: -2;
+            background: linear-gradient(rgba(0,240,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,240,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px; transform: perspective(500px) rotateX(60deg); animation: grid 20s linear infinite;
         }
-        .brand { font-family: var(--font-tech); font-size: 24px; font-weight: 900; letter-spacing: 2px; color: #fff; display: flex; align-items: center; gap: 12px; text-shadow: 0 0 15px var(--primary); }
-        .brand i { color: var(--primary); animation: pulse 2s infinite; }
+        @keyframes grid { 0% { transform: perspective(500px) rotateX(60deg) translateY(0); } 100% { transform: perspective(500px) rotateX(60deg) translateY(40px); } }
+
+        /* NAVBAR */
+        nav { height: 75px; padding: 0 30px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: rgba(2,2,4,0.9); backdrop-filter: blur(10px); z-index: 100; }
+        .brand { font-family: var(--font-tech); font-size: 22px; font-weight: 900; letter-spacing: 1px; display: flex; gap: 10px; align-items: center; text-shadow: 0 0 15px var(--primary); }
+        .brand i { color: var(--primary); }
         
-        .nav-center { display: flex; gap: 5px; background: rgba(255,255,255,0.03); padding: 5px; border-radius: 12px; border: 1px solid var(--border); }
-        .lang-btn {
-            padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 12px; color: #888; cursor: pointer; transition: 0.3s;
-            display: flex; align-items: center; gap: 6px;
+        .nav-links { display: flex; gap: 10px; }
+        .nav-btn {
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #ccc;
+            padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 700; transition: 0.3s;
+            display: flex; align-items: center; gap: 6px; font-size: 12px;
         }
-        .lang-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
-        .lang-btn.active { background: var(--primary); color: #000; box-shadow: 0 0 20px var(--primary); }
+        .nav-btn:hover { border-color: var(--primary); color: #fff; background: rgba(0,240,255,0.1); box-shadow: 0 0 15px var(--primary); }
 
-        .nav-right { display: flex; gap: 15px; }
-        .icon-btn { width: 40px; height: 40px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
-        .icon-btn:hover { border-color: var(--primary); background: rgba(0, 240, 255, 0.1); box-shadow: 0 0 15px var(--primary); }
-
-        /* --- LAYOUT --- */
-        .main { display: flex; flex: 1; height: calc(100vh - 75px); }
-        
-        /* SIDEBAR */
-        .sidebar { width: 360px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 25px; backdrop-filter: blur(10px); z-index: 10; transition: 0.3s; }
+        /* LAYOUT */
+        .layout { display: flex; flex: 1; overflow: hidden; }
+        .sidebar { width: 350px; background: var(--panel); border-right: 1px solid var(--border); padding: 25px; display: flex; flex-direction: column; z-index: 10; backdrop-filter: blur(20px); }
         
         /* MODE SWITCH */
-        .switch-box { display: flex; background: #000; padding: 4px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 25px; }
-        .switch-opt { flex: 1; text-align: center; padding: 10px; font-size: 13px; font-weight: 800; color: #666; cursor: pointer; border-radius: 6px; transition: 0.3s; font-family: var(--font-tech); }
-        .switch-opt.active { background: #1a1a1a; color: #fff; border: 1px solid var(--border); }
-        .switch-opt.active.enc { color: var(--primary); text-shadow: 0 0 10px var(--primary); }
-        .switch-opt.active.dec { color: #ff0055; text-shadow: 0 0 10px #ff0055; }
+        .mode-box { display: flex; background: #000; padding: 4px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 25px; }
+        .mode-opt { flex: 1; text-align: center; padding: 10px; font-weight: 800; font-size: 13px; color: #666; cursor: pointer; border-radius: 6px; transition: 0.3s; font-family: var(--font-tech); }
+        .mode-opt.active { background: #151515; color: #fff; border: 1px solid var(--border); }
+        .mode-opt.active.enc { color: var(--primary); text-shadow: 0 0 10px var(--primary); }
+        .mode-opt.active.dec { color: #ff0055; text-shadow: 0 0 10px #ff0055; }
 
-        /* OPTIONS */
-        .opt-title { font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--primary); margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
-        .opt-item {
-            display: flex; align-items: center; justify-content: space-between; padding: 12px 15px;
-            background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px;
-            margin-bottom: 8px; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden;
-        }
-        .opt-item:hover { border-color: var(--primary); background: rgba(0, 240, 255, 0.05); }
-        .opt-item span { font-weight: 600; font-size: 13px; }
-        
-        .check-circle { width: 18px; height: 18px; border: 2px solid #444; border-radius: 50%; transition: 0.3s; display: flex; align-items: center; justify-content: center; }
-        .check-circle i { font-size: 10px; opacity: 0; transform: scale(0); transition: 0.3s; color: #000; }
-        input:checked + .check-circle { background: var(--primary); border-color: var(--primary); box-shadow: 0 0 10px var(--primary); }
-        input:checked + .check-circle i { opacity: 1; transform: scale(1); }
-
-        /* ACTION BUTTONS */
-        .btn-mega {
+        /* BUTTONS */
+        .btn-main {
             width: 100%; padding: 16px; background: var(--primary); color: #000; border: none; border-radius: 8px;
-            font-family: var(--font-tech); font-weight: 900; font-size: 16px; letter-spacing: 1px;
-            cursor: pointer; margin-top: auto; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-            transition: 0.3s;
+            font-family: var(--font-tech); font-weight: 900; font-size: 15px; cursor: pointer; margin-top: auto;
+            transition: 0.3s; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
         }
-        .btn-mega:hover { transform: translateY(-3px); box-shadow: 0 0 40px var(--primary); }
-        
-        .btn-outline {
-            width: 100%; padding: 12px; background: transparent; border: 1px solid var(--border); color: #aaa;
-            font-weight: 700; font-size: 12px; border-radius: 8px; cursor: pointer; margin-top: 10px; transition: 0.3s;
-        }
-        .btn-outline:hover { border-color: var(--primary); color: #fff; background: rgba(255,255,255,0.05); }
+        .btn-main:hover { transform: translateY(-2px); box-shadow: 0 0 30px var(--primary); }
 
         /* EDITOR */
-        .editor-box { flex: 1; display: flex; flex-direction: column; background: #08080c; position: relative; }
-        .editor-toolbar {
-            height: 45px; background: rgba(0,0,0,0.3); border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: space-between; padding: 0 25px;
-            font-family: var(--font-tech); font-size: 11px; color: #666;
-        }
+        .editor-area { flex: 1; display: flex; flex-direction: column; background: #08080c; position: relative; }
+        .editor-bar { height: 45px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 25px; font-size: 11px; font-weight: 700; color: #666; background: rgba(0,0,0,0.3); font-family: var(--font-tech); }
         .CodeMirror { flex: 1; font-family: var(--font-code); font-size: 14px; background: transparent !important; }
         .cm-s-ayu-mirage.CodeMirror { background: transparent !important; }
 
-        /* OVERLAYS (Terminal & API) */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 200; display: none;
-            justify-content: center; align-items: center; backdrop-filter: blur(15px);
-        }
-        .modal {
-            width: 80%; height: 70%; background: #0a0a0e; border: 1px solid var(--primary);
-            border-radius: 12px; display: flex; flex-direction: column; overflow: hidden;
-            box-shadow: 0 0 100px rgba(0, 240, 255, 0.2); animation: holo-open 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-        }
-        @keyframes holo-open { from{transform:scaleY(0);opacity:0;} to{transform:scaleY(1);opacity:1;} }
+        /* OVERLAYS (MODALS) */
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 999; display: none; justify-content: center; align-items: center; backdrop-filter: blur(15px); }
+        .win { width: 85%; height: 85%; background: #0b0b0f; border: 1px solid var(--primary); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 80px rgba(0,240,255,0.15); animation: zoom 0.3s ease; }
+        @keyframes zoom { from{transform:scale(0.9);opacity:0;} to{transform:scale(1);opacity:1;} }
         
-        .modal-head { padding: 15px 25px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-family: var(--font-tech); color: var(--primary); background: rgba(0, 240, 255, 0.05); }
-        .modal-body { flex: 1; padding: 25px; overflow-y: auto; font-family: var(--font-code); color: #ccc; }
+        .win-head { padding: 15px 30px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-family: var(--font-tech); color: var(--primary); background: rgba(0,240,255,0.05); }
+        .win-body { flex: 1; padding: 40px; overflow-y: auto; color: #ccc; font-size: 14px; line-height: 1.6; }
+        
+        /* CONTENT STYLES */
+        h2 { color: #fff; margin-top: 0; font-family: var(--font-tech); }
+        h3 { color: var(--primary); margin-top: 25px; font-size: 16px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        p { color: #aaa; }
+        pre { background: #000; padding: 20px; border-radius: 8px; border: 1px solid var(--border); font-family: var(--font-code); color: #0f0; overflow-x: auto; }
+        code { background: #222; padding: 2px 6px; border-radius: 4px; font-family: var(--font-code); color: #fff; }
         
         /* TERMINAL */
-        .term-body { background: #050505; color: #0f0; padding: 20px; font-family: var(--font-code); flex: 1; overflow-y: auto; }
+        .term-out { background: #000; flex: 1; padding: 20px; font-family: var(--font-code); color: #0f0; overflow-y: auto; font-size: 16px; }
         .term-in { display: flex; background: #080808; padding: 15px; border-top: 1px solid #333; }
         .term-field { flex: 1; background: transparent; border: none; color: #fff; font-family: var(--font-code); font-size: 16px; }
 
         /* LOADER */
-        .loader-wrap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 999; display: flex; justify-content: center; align-items: center; transition: 0.5s; }
-        .loader-circle { width: 80px; height: 80px; border: 4px solid #111; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        .loader { position: absolute; top:0; left:0; width:100%; height:100%; background:#000; z-index:2000; display:flex; justify-content:center; align-items:center; transition:0.5s; }
+        .spinner { width:60px; height:60px; border:4px solid #333; border-top:4px solid var(--primary); border-radius:50%; animation:spin 1s linear infinite; }
         @keyframes spin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
-        @keyframes pulse { 0%{opacity:1;} 50%{opacity:0.5;} 100%{opacity:1;} }
 
-        @media(max-width: 900px){ .layout{flex-direction: column;} .sidebar{width:100%; order:2;} .editor-box{height:500px; order:1;} .nav-center{display:none;} }
+        @media (max-width: 900px) { .layout { flex-direction: column; } .sidebar { width: 100%; order: 2; height: auto; } .editor-area { height: 500px; order: 1; } }
     </style>
 </head>
-<body onload="initParticles()">
-    
-    <div class="loader-wrap" id="pageLoader"><div class="loader-circle"></div></div>
-    <div class="vignette"></div>
-    <canvas id="particles"></canvas>
+<body onload="document.getElementById('loader').style.opacity='0'; setTimeout(()=>document.getElementById('loader').remove(),500)">
+
+    <div class="loader" id="loader"><div class="spinner"></div></div>
+    <div class="grid-bg"></div>
 
     <nav>
-        <div class="brand"><i class="fas fa-shield-halved"></i> V35<small style="font-size:12px; color:#666;">//BLACKHOLE</small></div>
-        <div class="nav-center">
-            <div class="lang-btn active" onclick="setLang('python', '#00f0ff')"><i class="fab fa-python"></i> PY</div>
-            <div class="lang-btn" onclick="setLang('javascript', '#facc15')"><i class="fab fa-js"></i> JS</div>
-            <div class="lang-btn" onclick="setLang('lua', '#22c55e')"><i class="fas fa-gamepad"></i> LUA</div>
-            <div class="lang-btn" onclick="setLang('go', '#00add8')"><i class="fab fa-golang"></i> GO</div>
-            <div class="lang-btn" onclick="setLang('php', '#8b5cf6')"><i class="fab fa-php"></i> PHP</div>
-            <div class="lang-btn" onclick="setLang('html', '#f97316')"><i class="fab fa-html5"></i> WEB</div>
-        </div>
-        <div class="nav-right">
-            <button class="icon-btn" onclick="openModal('term')"><i class="fas fa-terminal"></i></button>
-            <button class="icon-btn" onclick="openModal('docs')"><i class="fas fa-book-journal-whills"></i></button>
+        <div class="brand"><i class="fas fa-atom"></i> V40<small style="font-size:12px; color:#666;">//SINGULARITY</small></div>
+        <div class="nav-links">
+            <button class="nav-btn" onclick="openModal('term')"><i class="fas fa-terminal"></i> TERMINAL</button>
+            <button class="nav-btn" onclick="openModal('docs')"><i class="fas fa-book"></i> API DOCS</button>
+            <button class="nav-btn" onclick="openModal('tos')"><i class="fas fa-scale-balanced"></i> TERMS</button>
         </div>
     </nav>
 
-    <div class="main">
+    <div class="layout">
         <div class="sidebar">
-            <div class="switch-box">
-                <div class="switch-opt active enc" onclick="setMode('encrypt')">ENCRYPT</div>
-                <div class="switch-opt dec" onclick="setMode('decrypt')">DECRYPT</div>
+            <div class="mode-box">
+                <div class="mode-opt active enc" onclick="setMode('encrypt')">ENCRYPT</div>
+                <div class="mode-opt dec" onclick="setMode('decrypt')">DECRYPT</div>
             </div>
 
-            <div id="encPanel" style="flex:1; display:flex; flex-direction:column;">
-                <div class="opt-title"><span>PROTECTION LAYERS</span> <i class="fas fa-layer-group"></i></div>
-                <div id="dynamicOpts"></div>
+            <div id="encPanel" style="flex:1;">
+                <div style="font-size:11px; font-weight:700; color:var(--primary); margin-bottom:15px; display:flex; justify-content:space-between;">
+                    <span>LANGUAGES</span> <span>01</span>
+                </div>
+                <select id="langSelect" onchange="setLang(this.value)" style="width:100%; padding:12px; background:#000; color:#fff; border:1px solid var(--border); border-radius:6px; margin-bottom:20px;">
+                    <option value="python">Python (Recommended)</option>
+                    <option value="javascript">JavaScript</option>
+                    <option value="lua">Lua (Roblox/FiveM)</option>
+                    <option value="go">GoLang</option>
+                    <option value="php">PHP</option>
+                </select>
 
-                <div class="opt-title" style="margin-top:25px;"><span>FILE OPERATIONS</span> <i class="fas fa-folder-open"></i></div>
-                <label class="opt-item" onclick="document.getElementById('file').click()">
-                    <span><i class="fas fa-file-code" style="margin-right:8px; color:var(--primary)"></i> Import Source Code</span>
-                    <i class="fas fa-chevron-right" style="font-size:10px; color:#666;"></i>
-                </label>
-                <input type="file" id="file" hidden>
-                <label class="opt-item" onclick="document.getElementById('zip').click()">
-                    <span><i class="fas fa-file-zipper" style="margin-right:8px; color:var(--primary)"></i> Import Project (ZIP)</span>
-                    <i class="fas fa-chevron-right" style="font-size:10px; color:#666;"></i>
-                </label>
-                <input type="file" id="zip" hidden accept=".zip">
+                <div style="font-size:11px; font-weight:700; color:var(--primary); margin-bottom:15px;">
+                    <span>LAYERS</span> <span>02</span>
+                </div>
+                <div id="optsContainer"></div>
+
+                <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:20px;">
+                    <button class="nav-btn" style="width:100%; justify-content:center; margin-bottom:10px;" onclick="document.getElementById('file').click()">
+                        <i class="fas fa-upload"></i> Upload File
+                    </button>
+                    <input type="file" id="file" hidden>
+                </div>
             </div>
 
             <div id="decPanel" style="display:none; flex:1; text-align:center; flex-direction:column; justify-content:center;">
-                <i class="fas fa-unlock-alt" style="font-size:50px; color:var(--primary); margin-bottom:20px; filter:drop-shadow(0 0 20px var(--primary));"></i>
-                <h3 style="font-family:var(--font-tech); color:#fff;">NEURAL DECRYPTOR</h3>
-                <p style="font-size:13px; color:#888;">Paste encrypted code. The system will auto-detect the algorithm.</p>
+                <i class="fas fa-unlock" style="font-size:50px; color:var(--primary); margin-bottom:20px;"></i>
+                <p>Paste code. Auto-detection active.</p>
             </div>
 
-            <button class="btn-mega" id="actionBtn" onclick="process()">INITIATE SEQUENCE</button>
-            <button class="btn-outline" onclick="download()">DOWNLOAD ARTIFACT</button>
+            <button class="btn-main" onclick="process()">INITIATE SEQUENCE</button>
         </div>
 
-        <div class="editor-box">
-            <div class="editor-toolbar">
+        <div class="editor-area">
+            <div class="editor-bar">
                 <span id="langLabel">PYTHON ENVIRONMENT</span>
                 <div style="display:flex; gap:15px;">
-                    <i class="fas fa-broom" style="cursor:pointer; color:#888;" onclick="editor.setValue('')"></i>
-                    <i class="fas fa-copy" style="cursor:pointer; color:#888;" onclick="copy()"></i>
+                    <i class="fas fa-eraser" style="cursor:pointer;" onclick="editor.setValue('')"></i>
+                    <i class="fas fa-copy" style="cursor:pointer;" onclick="copy()"></i>
+                    <i class="fas fa-download" style="cursor:pointer; color:var(--primary);" onclick="download()"></i>
                 </div>
             </div>
             <textarea id="editor"></textarea>
         </div>
     </div>
 
-    <div id="termModal" class="modal-overlay">
-        <div class="modal">
-            <div class="modal-head"><span>// SYSTEM TERMINAL</span> <i class="fas fa-times" style="cursor:pointer;" onclick="closeModal('term')"></i></div>
-            <div class="term-body" id="termOut">EuroShield OS v35.0 [Root Access]<br>Ready...</div>
-            <div class="term-in">
-                <span style="color:var(--primary); margin-right:10px;">root@v35:~#</span>
-                <input id="termIn" class="term-field" autofocus>
+    <div id="termModal" class="overlay">
+        <div class="win">
+            <div class="win-head"><span>// SYSTEM TERMINAL</span> <i class="fas fa-times" style="cursor:pointer;" onclick="closeModal('term')"></i></div>
+            <div class="term-out" id="termOut">EuroShield OS v40.0 [Root Access]<br>Type 'help' for commands...<br></div>
+            <div class="term-in"><span style="color:var(--primary); margin-right:10px;">root@v40:~#</span> <input id="termIn" class="term-field" autofocus></div>
+        </div>
+    </div>
+
+    <div id="docsModal" class="overlay">
+        <div class="win">
+            <div class="win-head"><span>// API DOCUMENTATION</span> <i class="fas fa-times" style="cursor:pointer;" onclick="closeModal('docs')"></i></div>
+            <div class="win-body">
+                <h2>EuroMoscow Shield API</h2>
+                <p>Integrate our advanced obfuscation engine into your applications.</p>
+                
+                <h3>Endpoint</h3>
+                <code>POST {{ request.url_root }}process</code>
+
+                <h3>Parameters</h3>
+                <table style="width:100%; border-collapse:collapse; margin-top:10px;">
+                    <tr style="text-align:left; color:var(--primary);"><th>Key</th><th>Type</th><th>Description</th></tr>
+                    <tr><td>code</td><td>String</td><td>The source code.</td></tr>
+                    <tr><td>lang</td><td>String</td><td>python, javascript, lua, go, php</td></tr>
+                    <tr><td>action</td><td>String</td><td>encrypt | decrypt</td></tr>
+                </table>
+
+                <h3>Python Example</h3>
+                <pre>
+import requests
+
+url = "{{ request.url_root }}process"
+payload = {
+    "code": "print('Hello World')",
+    "action": "encrypt",
+    "lang": "python",
+    "options": ["rename", "deadcode"]
+}
+
+response = requests.post(url, json=payload)
+print(response.json()['result'])</pre>
             </div>
         </div>
     </div>
 
-    <div id="docsModal" class="modal-overlay">
-        <div class="modal" style="height:auto;">
-            <div class="modal-head"><span>// API REFERENCE</span> <i class="fas fa-times" style="cursor:pointer;" onclick="closeModal('docs')"></i></div>
-            <div class="modal-body">
-                <h3 style="color:var(--primary);">POST /process</h3>
-                <p>Secure code programmatically.</p>
-                <pre style="background:#111; padding:15px; border:1px solid #333; color:#0f0;">
-import requests
-res = requests.post("{{ request.url_root }}process", json={
-    "code": "print('Hello')",
-    "action": "encrypt",
-    "lang": "python"
-})
-print(res.json()['result'])</pre>
+    <div id="tosModal" class="overlay">
+        <div class="win" style="height:70%;">
+            <div class="win-head"><span>// TERMS OF SERVICE</span> <i class="fas fa-times" style="cursor:pointer;" onclick="closeModal('tos')"></i></div>
+            <div class="win-body">
+                <h2>User Agreement</h2>
+                <p>By using EuroMoscow Shield V40, you agree to the following terms:</p>
+                
+                <h3>1. Purpose</h3>
+                <p>This tool is designed for <strong>educational and security research purposes only</strong>. It is intended to help developers protect their intellectual property.</p>
+
+                <h3>2. Prohibited Use</h3>
+                <p>You may NOT use this service to obfuscate malicious code, malware, spyware, or any software intended to harm systems or violate privacy.</p>
+
+                <h3>3. No Warranty</h3>
+                <p>The software is provided "as is", without warranty of any kind. EuroMoscow is not liable for any damages arising from the use of this tool.</p>
+
+                <div style="margin-top:40px; padding:15px; background:rgba(255,0,0,0.1); border:1px solid red; color:#ff5555;">
+                    <i class="fas fa-exclamation-triangle"></i> Violation of these terms will result in an immediate IP ban.
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // --- CONFIG ---
+        // CONFIG
         let curLang='python', curMode='encrypt';
         const UI = {
-            python: { c:'#00f0ff', m:'python', o:[{id:'dead',l:'Dead Code Injection'}, {id:'rename',l:'Variable Renaming'}, {id:'marshal',l:'Bytecode (Marshal)'}, {id:'xor',l:'Poly-XOR Shield'}] },
-            javascript: { c:'#facc15', m:'javascript', o:[{id:'hex',l:'Hex Encoding'}, {id:'url',l:'URL Escape'}] },
-            lua: { c:'#22c55e', m:'lua', o:[{id:'reverse',l:'String Reversal'}, {id:'hex',l:'Hex Loader'}] },
-            go: { c:'#00add8', m:'go', o:[{id:'base64',l:'Base64 Wrap'}] },
-            php: { c:'#8b5cf6', m:'php', o:[{id:'base64',l:'Gzip + Base64'}] },
-            html: { c:'#f97316', m:'htmlmixed', o:[{id:'hex',l:'Hex Write'}] }
+            python: { opts: [{id:'rename',l:'Variable Renaming'}, {id:'marshal',l:'Bytecode (Marshal)'}, {id:'dead',l:'Dead Code Injection'}, {id:'xor',l:'Poly-XOR Shield'}] },
+            javascript: { opts: [{id:'hex',l:'Hex Encoding'}, {id:'url',l:'URL Escape'}] },
+            lua: { opts: [{id:'hex',l:'Hex Loader'}] },
+            go: { opts: [{id:'base64',l:'Base64 Wrap'}] },
+            php: { opts: [{id:'base64',l:'Gzip + Base64'}] },
+            html: { opts: [{id:'hex',l:'Hex Write'}] }
         };
 
         var editor = CodeMirror.fromTextArea(document.getElementById("editor"), { mode: "python", theme: "ayu-mirage", lineNumbers: true });
 
-        // --- PARTICLES ---
-        function initParticles() {
-            const cvs = document.getElementById('particles');
-            const ctx = cvs.getContext('2d');
-            cvs.width = window.innerWidth; cvs.height = window.innerHeight;
-            let particles = [];
-            for(let i=0; i<50; i++) particles.push({x:Math.random()*cvs.width, y:Math.random()*cvs.height, vx:(Math.random()-0.5)*0.5, vy:(Math.random()-0.5)*0.5});
-            
-            function anim() {
-                ctx.clearRect(0,0,cvs.width,cvs.height);
-                ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary');
-                particles.forEach(p => {
-                    p.x+=p.vx; p.y+=p.vy;
-                    if(p.x<0||p.x>cvs.width) p.vx*=-1; if(p.y<0||p.y>cvs.height) p.vy*=-1;
-                    ctx.beginPath(); ctx.arc(p.x,p.y,1,0,Math.PI*2); ctx.fill();
-                    particles.forEach(p2 => {
-                        let d = Math.hypot(p.x-p2.x, p.y-p2.y);
-                        if(d<100) {
-                            ctx.strokeStyle = ctx.fillStyle;
-                            ctx.globalAlpha = 1 - d/100;
-                            ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(p2.x,p2.y); ctx.stroke();
-                            ctx.globalAlpha = 1;
-                        }
-                    });
-                });
-                requestAnimationFrame(anim);
-            }
-            anim();
-            document.getElementById('pageLoader').style.opacity = '0';
-            setTimeout(()=>document.getElementById('pageLoader').remove(), 500);
-        }
-
-        // --- LOGIC ---
-        function setLang(l, c) {
+        // FUNCTIONS
+        function setLang(l) {
             curLang = l;
-            document.documentElement.style.setProperty('--primary', c);
-            editor.setOption("mode", UI[l].m);
-            document.getElementById('langLabel').innerText = l.toUpperCase() + " SOURCE";
-            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+            editor.setOption("mode", l==='html'?'htmlmixed':l);
+            document.getElementById('langLabel').innerText = l.toUpperCase() + " ENVIRONMENT";
             
-            const con = document.getElementById('dynamicOpts'); con.innerHTML = '';
-            UI[l].o.forEach(o => {
+            const con = document.getElementById('optsContainer'); con.innerHTML = '';
+            if(UI[l]) UI[l].opts.forEach(o => {
                 con.innerHTML += `
-                    <label class="opt-item">
-                        <span>${o.l}</span>
-                        <input type="checkbox" id="opt-${o.id}" checked style="display:none">
-                        <div class="check-circle"><i class="fas fa-check"></i></div>
+                    <label style="display:flex; justify-content:space-between; padding:10px; background:rgba(255,255,255,0.03); margin-bottom:5px; border-radius:4px; cursor:pointer;">
+                        <span style="font-size:13px; font-weight:600;">${o.l}</span>
+                        <input type="checkbox" id="opt-${o.id}" checked>
                     </label>`;
             });
         }
-        setLang('python', '#00f0ff');
+        setLang('python');
 
         function setMode(m) {
             curMode = m;
-            document.querySelectorAll('.switch-opt').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.mode-opt').forEach(b => b.classList.remove('active'));
             if(m==='encrypt') {
                 document.getElementById('encPanel').style.display='flex';
                 document.getElementById('decPanel').style.display='none';
-                document.querySelector('.switch-opt.enc').classList.add('active');
-                document.getElementById('actionBtn').innerText = 'INITIATE SEQUENCE';
+                document.querySelector('.mode-opt.enc').classList.add('active');
             } else {
                 document.getElementById('encPanel').style.display='none';
                 document.getElementById('decPanel').style.display='flex';
-                document.querySelector('.switch-opt.dec').classList.add('active');
-                document.getElementById('actionBtn').innerText = 'DECRYPT ARTIFACT';
+                document.querySelector('.mode-opt.dec').classList.add('active');
             }
         }
 
         async function process() {
-            const code = editor.getValue(); if(!code.trim()) return alert("NO DATA DETECTED");
-            let opts = []; if(curMode==='encrypt') document.querySelectorAll('input:checked').forEach(c => opts.push(c.id.replace('opt-','')));
+            const code = editor.getValue(); if(!code.trim()) return alert("NO CODE DETECTED");
+            let opts = []; if(curMode==='encrypt') document.querySelectorAll('input:checked').forEach(c=>opts.push(c.id.replace('opt-','')));
             
-            const btn = document.getElementById('actionBtn'); btn.innerText = 'PROCESSING...';
+            const btn = document.querySelector('.btn-main'); btn.innerText = 'PROCESSING...';
             try {
                 const res = await fetch('/process', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code, action:curMode, lang:curLang, options:opts}) });
                 const d = await res.json(); editor.setValue(d.result);
-            } catch { alert("SYSTEM FAILURE"); } finally { btn.innerText = curMode==='encrypt'?'INITIATE SEQUENCE':'DECRYPT ARTIFACT'; }
+            } catch { alert("Error connecting to server."); } finally { btn.innerText = 'INITIATE SEQUENCE'; }
         }
 
-        // --- TERMINAL ---
-        const tOut = document.getElementById('termOut');
+        // TERMINAL
+        const termOut = document.getElementById('termOut');
         document.getElementById('termIn').addEventListener('keypress', async e => {
             if(e.key==='Enter') {
                 const c = e.target.value; e.target.value='';
-                tOut.innerHTML += `\n<span style="color:var(--primary)">root@v35:~#</span> ${c}`;
-                if(c==='clear') tOut.innerHTML='';
+                termOut.innerHTML += `\n<span style="color:var(--primary)">root@v40:~#</span> ${c}`;
+                if(c==='clear') termOut.innerHTML='';
                 else {
-                    try{ const r = await fetch('/run', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code:c})});
-                    const d = await r.json(); tOut.innerHTML += `\n${d.output}`; } catch { tOut.innerHTML+="\nConnection Error"; }
+                    try{ const r=await fetch('/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:c})}); const d=await r.json(); termOut.innerHTML+=`\n${d.output}`; }
+                    catch{ termOut.innerHTML+='\nConnection Error'; }
                 }
-                tOut.scrollTop = tOut.scrollHeight;
+                termOut.scrollTop = termOut.scrollHeight;
             }
         });
 
-        function openModal(id) { document.getElementById(id+'Modal').style.display='flex'; }
+        // MODALS
+        function openModal(id) { document.getElementById(id+'Modal').style.display='flex'; if(id==='term') document.getElementById('termIn').focus(); }
         function closeModal(id) { document.getElementById(id+'Modal').style.display='none'; }
         
-        document.getElementById('file').addEventListener('change', e => { const f=e.target.files[0]; if(f){ const r=new FileReader(); r.onload=ev=>editor.setValue(ev.target.result); r.readAsText(f); } });
-        document.getElementById('zip').addEventListener('change', async e => { const f=e.target.files[0]; if(!f)return; const fd=new FormData(); fd.append('file',f); fd.append('options','rename'); try{const r=await fetch('/zip',{method:'POST',body:fd}); const b=await r.blob(); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download='Protected.zip'; a.click();}catch{alert('Error');} });
-        function download() { const b=new Blob([editor.getValue()],{type:'text/plain'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download=`Result.${curLang==='python'?'py':curLang==='javascript'?'js':'txt'}`; a.click(); }
         function copy() { navigator.clipboard.writeText(editor.getValue()); alert("Copied!"); }
+        function download() { const b=new Blob([editor.getValue()],{type:'text/plain'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download='Protected.txt'; a.click(); }
+        document.getElementById('file').addEventListener('change', e => { const f=e.target.files[0]; if(f){ const r=new FileReader(); r.onload=ev=>editor.setValue(ev.target.result); r.readAsText(f); } });
     </script>
 </body>
 </html>
