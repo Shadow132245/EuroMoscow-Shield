@@ -3,267 +3,287 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EuroMoscow | V170 ARCHITECT</title>
+    <title>EuroMoscow | V180 GODFATHER</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
     
-    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;800&family=Rajdhani:wght@600;700&family=JetBrains+Mono:wght@400;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/matrix.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clike/clike.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/php/php.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/go/go.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/lua/lua.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clike/clike.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
 
     <style>
+        /* --- GODFATHER THEME --- */
         :root {
-            --bg: #090a0f;
-            --panel: #13151b;
-            --primary: #00d9ff; /* Architect Blue */
-            --accent: #ff0055;
-            --text: #e0e0e0;
-            --border: rgba(0, 217, 255, 0.2);
-            --font-head: 'Exo 2', sans-serif;
+            --bg: #000000;
+            --panel: rgba(10, 10, 10, 0.85);
+            --primary: #00ff00; /* Matrix Green */
+            --secondary: #008f11;
+            --accent: #ffffff;
+            --glass: rgba(0, 255, 0, 0.05);
+            --border: 1px solid rgba(0, 255, 0, 0.3);
+            --font-head: 'Orbitron', sans-serif;
             --font-ui: 'Rajdhani', sans-serif;
-            --font-code: 'JetBrains Mono', monospace;
+            --font-code: 'Share Tech Mono', monospace;
         }
 
-        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-ui); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; user-select: none; }
+        body { margin: 0; background: var(--bg); color: var(--primary); font-family: var(--font-ui); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-        /* --- FX --- */
-        .grid-bg { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
-            background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
-            background-size: 50px 50px; opacity: 0.1; transform: perspective(500px) rotateX(60deg);
-        }
+        /* --- MATRIX RAIN CANVAS --- */
+        #matrix { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.2; }
 
-        /* --- NAVBAR --- */
+        /* --- SCROLLBAR --- */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: var(--secondary); border: 1px solid #000; }
+
+        /* --- HEADER --- */
         nav {
             height: 70px; padding: 0 30px; display: flex; align-items: center; justify-content: space-between;
-            background: rgba(19, 21, 27, 0.95); border-bottom: 2px solid var(--primary); z-index: 100;
-            box-shadow: 0 0 30px rgba(0, 217, 255, 0.1);
+            background: rgba(0,0,0,0.9); border-bottom: var(--border); z-index: 100;
+            box-shadow: 0 0 20px rgba(0,255,0,0.1);
         }
-        .brand { font-family: var(--font-head); font-size: 24px; font-weight: 800; letter-spacing: 2px; }
-        .brand span { color: var(--primary); text-shadow: 0 0 15px var(--primary); }
-        .mode-toggle { display: flex; background: #000; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
-        .mode-btn { padding: 8px 15px; font-size: 11px; font-weight: bold; cursor: pointer; color: #666; transition: 0.3s; }
-        .mode-btn.active { background: var(--primary); color: #000; }
-        .mode-btn.dec-active { background: var(--accent); color: #fff; }
+        .brand { font-family: var(--font-head); font-size: 24px; letter-spacing: 3px; color: #fff; text-shadow: 0 0 10px var(--primary); }
+        .brand span { color: var(--primary); }
+        .status-badge { font-size: 10px; border: var(--border); padding: 5px 10px; border-radius: 20px; background: var(--glass); color: #fff; }
 
-        /* --- LAYOUT --- */
-        .layout { display: flex; flex: 1; overflow: hidden; position: relative; }
+        /* --- LAYOUT GRID (DESKTOP) --- */
+        .layout { display: flex; flex: 1; overflow: hidden; }
         
-        /* SIDEBAR */
+        /* SIDEBAR (CONTROLS) */
         .sidebar {
-            width: 380px; background: var(--panel); border-right: 1px solid var(--border);
+            width: 320px; background: var(--panel); border-right: var(--border);
             padding: 20px; display: flex; flex-direction: column; z-index: 10;
-            transition: transform 0.3s ease;
+            backdrop-filter: blur(10px);
         }
 
-        /* EDITOR */
-        .editor-wrap { flex: 1; display: flex; flex-direction: column; background: #0c0e12; position: relative; }
-        .editor-hud {
-            height: 45px; background: rgba(0,0,0,0.5); border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
-            font-family: var(--font-code); font-size: 11px; color: var(--primary);
-        }
-        .CodeMirror { flex: 1; font-family: var(--font-code); font-size: 13px; background: transparent !important; }
-        .cm-s-dracula.CodeMirror { background: transparent !important; }
-
-        /* --- CONTROLS --- */
-        .section-title { font-family: var(--font-head); font-size: 10px; color: #888; margin-bottom: 8px; display: block; letter-spacing: 1px; margin-top: 15px; }
+        /* EDITOR AREA */
+        .editor-box { flex: 1; display: flex; flex-direction: column; background: rgba(0,0,0,0.5); position: relative; }
         
-        .arch-select {
-            width: 100%; padding: 12px; background: #090a0f; border: 1px solid var(--border);
-            color: #fff; font-family: var(--font-ui); font-weight: 700; cursor: pointer;
-            margin-bottom: 10px; border-radius: 2px; outline: none; transition: 0.3s;
+        /* LOGS PANEL (RIGHT SIDE) */
+        .logs-panel {
+            width: 250px; background: var(--panel); border-left: var(--border);
+            padding: 15px; display: flex; flex-direction: column; z-index: 10;
+            backdrop-filter: blur(10px);
         }
-        .arch-select:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(0, 217, 255, 0.2); }
 
-        /* OPTIONS GRID */
-        .opt-grid { display: flex; flex-direction: column; gap: 8px; }
-        .opt-card {
-            display: flex; align-items: center; justify-content: space-between; padding: 12px;
-            background: rgba(255,255,255,0.02); border: 1px solid transparent; border-radius: 2px;
-            cursor: pointer; transition: 0.2s;
-        }
-        .opt-card:hover { border-color: var(--primary); background: rgba(0, 217, 255, 0.05); }
-        .opt-label { font-size: 12px; font-weight: 700; color: #ccc; }
+        /* --- UI COMPONENTS --- */
+        .section-title { font-family: var(--font-head); font-size: 10px; color: #fff; margin: 15px 0 8px 0; letter-spacing: 1px; border-bottom: 1px solid #333; padding-bottom: 5px; }
         
-        .toggle-switch { width: 30px; height: 16px; background: #333; border-radius: 10px; position: relative; transition: 0.3s; }
-        .toggle-switch::after { content:''; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; background: #fff; border-radius: 50%; transition: 0.3s; }
-        input:checked + .toggle-switch { background: var(--primary); }
-        input:checked + .toggle-switch::after { left: 16px; }
-
-        /* PARAMETER INPUTS */
-        .param-input {
-            width: 100%; background: #000; border: 1px solid #333; color: var(--primary);
-            padding: 10px; font-family: var(--font-code); font-size: 11px; margin-bottom: 5px;
-            display: none; border-left: 2px solid var(--primary);
+        /* SELECTORS */
+        .god-select {
+            width: 100%; padding: 12px; background: #000; border: var(--border); color: var(--primary);
+            font-family: var(--font-code); cursor: pointer; outline: none; transition: 0.3s;
         }
-        .param-input.show { display: block; animation: slideIn 0.3s; }
-        @keyframes slideIn { from{opacity:0; transform:translateX(-10px);} to{opacity:1; transform:translateX(0);} }
+        .god-select:hover { box-shadow: 0 0 15px var(--glass); }
 
-        /* MAIN BUTTON */
-        .btn-arch {
+        /* MODE TABS */
+        .mode-tabs { display: flex; border: var(--border); margin-bottom: 20px; background: #000; }
+        .tab-btn { flex: 1; text-align: center; padding: 12px; cursor: pointer; font-weight: bold; font-size: 12px; color: #666; transition: 0.3s; font-family: var(--font-head); }
+        .tab-btn.active { background: var(--glass); color: #fff; text-shadow: 0 0 5px #fff; }
+        .tab-btn.active.enc { border-bottom: 2px solid var(--primary); }
+        .tab-btn.active.dec { border-bottom: 2px solid red; color: red; text-shadow: 0 0 5px red; }
+
+        /* RADIO CARDS (3 OPTIONS) */
+        .radio-group { display: flex; flex-direction: column; gap: 8px; }
+        .radio-card {
+            display: flex; align-items: center; padding: 12px; border: 1px solid #222;
+            background: rgba(0,0,0,0.5); cursor: pointer; transition: 0.3s;
+        }
+        .radio-card:hover { border-color: var(--primary); background: var(--glass); }
+        .radio-card.selected { border-color: var(--primary); background: rgba(0,255,0,0.1); box-shadow: inset 0 0 10px var(--glass); }
+        
+        .radio-circle { width: 14px; height: 14px; border: 1px solid #666; border-radius: 50%; margin-right: 10px; display: flex; align-items: center; justify-content: center; }
+        .radio-card.selected .radio-circle { border-color: var(--primary); }
+        .radio-card.selected .radio-circle::after { content: ''; width: 6px; height: 6px; background: var(--primary); border-radius: 50%; }
+        .radio-label { font-size: 12px; font-weight: bold; font-family: var(--font-ui); color: #ccc; }
+
+        /* BUTTONS */
+        .btn-god {
             width: 100%; padding: 18px; background: var(--primary); color: #000; border: none;
-            font-family: var(--font-head); font-weight: 900; font-size: 14px; margin-top: auto;
-            cursor: pointer; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-            transition: 0.3s; text-transform: uppercase; letter-spacing: 1px;
+            font-family: var(--font-head); font-weight: 900; font-size: 14px; margin-top: auto; cursor: pointer;
+            text-transform: uppercase; letter-spacing: 1px; transition: 0.3s;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
         }
-        .btn-arch:hover { background: #fff; box-shadow: 0 0 30px var(--primary); }
+        .btn-god:hover { background: #fff; box-shadow: 0 0 30px var(--primary); }
+
+        /* EDITOR STYLING */
+        .editor-bar { height: 40px; background: rgba(0,0,0,0.8); border-bottom: var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; font-size: 11px; }
+        .CodeMirror { flex: 1; font-family: var(--font-code); font-size: 13px; background: transparent !important; color: var(--primary) !important; }
+        .cm-s-matrix .CodeMirror-gutters { background: #050505; border-right: 1px solid #222; }
+        .cm-s-matrix .CodeMirror-linenumber { color: #444; }
+
+        /* LOGS LIST */
+        .log-item { font-size: 10px; border-bottom: 1px solid #222; padding: 8px 0; color: #888; font-family: var(--font-code); }
+        .log-item span { color: var(--primary); }
 
         /* --- MOBILE RESPONSIVE --- */
         @media (max-width: 900px) {
             .layout { flex-direction: column; }
+            .logs-panel { display: none; } /* Hide logs on mobile */
+            
             nav { padding: 0 15px; }
             .brand { font-size: 18px; }
             
-            /* SWAP: Editor Top, Sidebar Bottom */
-            .editor-wrap { height: 50vh; order: 1; border-bottom: 1px solid var(--border); }
-            .sidebar { width: 100%; height: auto; order: 2; border-right: none; padding-bottom: 30px; }
-            
-            .opt-card { padding: 15px; }
+            /* Order: Editor Top, Controls Bottom */
+            .editor-box { height: 50vh; order: 1; border-bottom: var(--border); }
+            .sidebar { 
+                width: 100%; height: auto; order: 2; border-right: none; 
+                padding-bottom: 80px; /* Space for scroll */
+            }
+            .radio-group { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
         }
     </style>
 </head>
 <body>
 
-    <div class="grid-bg"></div>
+    <canvas id="matrix"></canvas>
 
     <nav>
-        <div class="brand">V170 <span>ARCHITECT</span></div>
-        <div class="mode-toggle">
-            <div class="mode-btn active" id="btn-enc" onclick="setMode('encrypt')">ENCRYPT</div>
-            <div class="mode-btn" id="btn-dec" onclick="setMode('decrypt')">DECRYPT</div>
-        </div>
+        <div class="brand">V180 <span>GODFATHER</span></div>
+        <div class="status-badge">SYSTEM: ONLINE</div>
     </nav>
 
     <div class="layout">
         <div class="sidebar">
-            <div id="enc-controls" style="display:flex; flex-direction:column; flex:1;">
-                <span class="section-title">TARGET SYSTEM</span>
-                <select id="lang" class="arch-select" onchange="updateUI()">
-                    <option value="python">PYTHON (Full Arsenal)</option>
+            <div class="mode-tabs">
+                <div class="tab-btn active enc" onclick="setTab('enc')">ENCRYPT</div>
+                <div class="tab-btn dec" onclick="setTab('dec')">DECRYPT</div>
+            </div>
+
+            <div id="enc-ui" style="display:flex; flex-direction:column; flex:1;">
+                <span class="section-title">TARGET SYSTEM (13 LANGS)</span>
+                <select id="lang" class="god-select" onchange="updateOptions()">
+                    <option value="python">PYTHON</option>
                     <option value="javascript">JAVASCRIPT</option>
+                    <option value="lua">LUA</option>
                     <option value="php">PHP</option>
+                    <option value="go">GOLANG</option>
                     <option value="cpp">C++</option>
                     <option value="csharp">C#</option>
-                    <option value="go">GOLANG</option>
-                    <option value="lua">LUA</option>
-                    <option value="ruby">RUBY</option>
                     <option value="java">JAVA</option>
+                    <option value="ruby">RUBY</option>
                     <option value="rust">RUST</option>
                     <option value="swift">SWIFT</option>
                     <option value="perl">PERL</option>
                     <option value="html">HTML</option>
                 </select>
 
-                <span class="section-title">SECURITY MODULES</span>
-                <div id="opts-container" class="opt-grid">
+                <span class="section-title">ENCRYPTION PROTOCOL (SELECT ONE)</span>
+                <div id="opts-container" class="radio-group">
                     </div>
 
-                <div id="params-container" style="margin-top:15px;">
-                    <input id="inp-geo" class="param-input" placeholder="Country Code (e.g. EG)">
-                    <input id="inp-kill" class="param-input" placeholder="Kill Switch URL">
-                </div>
-
-                <button class="btn-arch" id="actionBtn" onclick="process()">COMPILE PAYLOAD</button>
+                <button class="btn-god" id="actionBtn" onclick="process()">EXECUTE</button>
             </div>
 
-            <div id="dec-controls" style="display:none; flex:1; justify-content:center; align-items:center; text-align:center;">
-                <h3 style="color:var(--accent); font-family:var(--font-head);">DECRYPTION MODE</h3>
-                <p style="color:#888; font-size:12px;">Paste the artifact.<br>System will attempt to reverse-engineer.</p>
-                <button class="btn-arch" style="background:var(--accent);" onclick="process()">DECRYPT ARTIFACT</button>
+            <div id="dec-ui" style="display:none; flex:1; align-items:center; justify-content:center; text-align:center;">
+                <i class="fas fa-unlock" style="font-size:50px; color:red; margin-bottom:20px;"></i>
+                <h3 style="color:#fff; font-family:var(--font-head);">UNIVERSAL DECRYPTOR</h3>
+                <p style="color:#666; font-size:11px;">The system will attempt to identify and break the encryption layer.</p>
+                <button class="btn-god" style="background:red; color:#fff;" onclick="process()">START DECRYPTION</button>
             </div>
         </div>
 
-        <div class="editor-wrap">
-            <div class="editor-hud">
-                <span id="lang-label">PYTHON ENVIRONMENT</span>
-                <div style="cursor:pointer;" onclick="copyCode()"><i class="fas fa-copy"></i> COPY</div>
+        <div class="editor-box">
+            <div class="editor-bar">
+                <span id="status-text">READY</span>
+                <div style="cursor:pointer" onclick="copyCode()"><i class="fas fa-copy"></i> COPY</div>
             </div>
             <textarea id="editor"></textarea>
+        </div>
+
+        <div class="logs-panel">
+            <span class="section-title">LIVE TRAFFIC</span>
+            <div id="logs-container" style="flex:1; overflow-y:auto;">
+                <div class="log-item">Waiting for data...</div>
+            </div>
         </div>
     </div>
 
     <script>
-        // CONFIG
-        const LANGUAGES = {
-            python: [
-                {id:'chaos', l:'CHAOS LAMBDA (One-Liner)'},
-                {id:'marshal', l:'BYTECODE MARSHAL'},
-                {id:'geo', l:'GEO FENCING (Country Lock)'},
-                {id:'kill', l:'REMOTE KILL SWITCH'},
-                {id:'admin', l:'REQUIRE ADMIN RIGHTS'},
-                {id:'anti_vm', l:'ANTI-VM / SANDBOX'}
-            ],
-            php: [
-                {id:'geo', l:'GEO FENCING'},
-                {id:'kill', l:'KILL SWITCH'}
-            ],
-            cpp: [
-                {id:'kill', l:'KILL SWITCH STUB'}
-            ],
-            // Others use default
-            default: []
+        // --- MATRIX EFFECT ---
+        const c = document.getElementById("matrix");
+        const ctx = c.getContext("2d");
+        c.width = window.innerWidth; c.height = window.innerHeight;
+        const chars = "01EUROMOSCOW"; const font_size = 14;
+        const columns = c.width/font_size; const drops = [];
+        for(let x=0; x<columns; x++) drops[x] = 1;
+        function drawMatrix() {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)"; ctx.fillRect(0, 0, c.width, c.height);
+            ctx.fillStyle = "#0F0"; ctx.font = font_size + "px arial";
+            for(let i=0; i<drops.length; i++) {
+                const text = chars[Math.floor(Math.random()*chars.length)];
+                ctx.fillText(text, i*font_size, drops[i]*font_size);
+                if(drops[i]*font_size > c.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 35);
+
+        // --- DATA ---
+        const OPTS = {
+            python: [{id:'mode1', l:'CHAOS LAMBDA (One-Liner)'}, {id:'mode2', l:'MARSHAL BYTECODE'}, {id:'mode3', l:'FERNET AES MILITARY'}],
+            javascript: [{id:'mode1', l:'HEX ENCODING'}, {id:'mode2', l:'BASE64 PACKER'}, {id:'mode3', l:'CHARCODE OBFUSCATION'}],
+            lua: [{id:'mode1', l:'STRING.CHAR ARRAY'}, {id:'mode2', l:'BASE64 WRAPPER'}, {id:'mode3', l:'REVERSE LOGIC'}],
+            php: [{id:'mode1', l:'BASE64 EVAL'}, {id:'mode2', l:'GZIP COMPRESSION'}, {id:'mode3', l:'HEX BINARY'}],
+            go: [{id:'mode1', l:'HEX LOADER'}, {id:'mode2', l:'BASE64 LOADER'}, {id:'mode3', l:'BYTE ARRAY'}],
+            cpp: [{id:'mode1', l:'XOR CIPHER'}, {id:'mode2', l:'HEX DUMP'}, {id:'mode3', l:'REVERSE STRING'}],
+            // Generic for others
+            default: [{id:'mode1', l:'BASE64 STANDARD'}, {id:'mode2', l:'HEX STANDARD'}, {id:'mode3', l:'REVERSE STANDARD'}]
         };
 
-        var editor = CodeMirror.fromTextArea(document.getElementById("editor"), { mode: "python", theme: "dracula", lineNumbers: true });
+        // --- LOGIC ---
+        var editor = CodeMirror.fromTextArea(document.getElementById("editor"), { mode: "python", theme: "matrix", lineNumbers: true });
         let curMode = 'encrypt';
+        let selectedOpt = 'mode1';
 
-        function updateUI() {
+        function updateOptions() {
             const l = document.getElementById('lang').value;
             const container = document.getElementById('opts-container');
             container.innerHTML = '';
             
-            // Set Editor Mode
+            const list = OPTS[l] || OPTS.default;
+            list.forEach((o, index) => {
+                const isActive = index === 0 ? 'selected' : '';
+                if(index === 0) selectedOpt = o.id;
+                container.innerHTML += `
+                    <div class="radio-card ${isActive}" onclick="selectOpt(this, '${o.id}')">
+                        <div class="radio-circle"></div>
+                        <span class="radio-label">${o.l}</span>
+                    </div>`;
+            });
+            
+            // Update Editor Mode
             const m = l==='cpp'||l==='csharp'||l==='java'?'clike':l;
             editor.setOption("mode", m);
-            document.getElementById('lang-label').innerText = l.toUpperCase() + " ENVIRONMENT";
-
-            // Inject Options
-            const opts = LANGUAGES[l] || LANGUAGES.default;
-            if(opts.length === 0) container.innerHTML = '<div style="color:#666; font-size:11px;">Standard Encryption Applied</div>';
-            
-            opts.forEach(o => {
-                const isParam = o.id==='geo' || o.id==='kill';
-                container.innerHTML += `
-                    <label class="opt-card" onclick="${isParam ? `toggleParam('${o.id}')` : ''}">
-                        <span class="opt-label">${o.l}</span>
-                        <input type="checkbox" id="opt-${o.id}" hidden>
-                        <div class="toggle-switch"></div>
-                    </label>`;
-            });
         }
 
-        function toggleParam(id) {
-            setTimeout(() => {
-                const chk = document.getElementById('opt-'+id);
-                const inp = document.getElementById('inp-'+id);
-                if(chk.checked) inp.classList.add('show'); else inp.classList.remove('show');
-            }, 50);
+        function selectOpt(el, id) {
+            document.querySelectorAll('.radio-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedOpt = id;
         }
 
-        function setMode(m) {
-            curMode = m;
-            const encBtn = document.getElementById('btn-enc');
-            const decBtn = document.getElementById('btn-dec');
+        function setTab(t) {
+            curMode = (t === 'enc') ? 'encrypt' : 'decrypt';
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.tab-btn.${t}`).classList.add('active');
             
-            if(m === 'encrypt') {
-                document.getElementById('enc-controls').style.display = 'flex';
-                document.getElementById('dec-controls').style.display = 'none';
-                encBtn.classList.add('active'); decBtn.classList.remove('active', 'dec-active');
+            if(curMode === 'encrypt') {
+                document.getElementById('enc-ui').style.display = 'flex';
+                document.getElementById('dec-ui').style.display = 'none';
             } else {
-                document.getElementById('enc-controls').style.display = 'none';
-                document.getElementById('dec-controls').style.display = 'flex';
-                decBtn.classList.add('active', 'dec-active'); encBtn.classList.remove('active');
+                document.getElementById('enc-ui').style.display = 'none';
+                document.getElementById('dec-ui').style.display = 'flex';
             }
         }
 
@@ -271,41 +291,40 @@
             const code = editor.getValue();
             if(!code.trim()) return alert("BUFFER EMPTY");
             
-            const btn = document.getElementById('actionBtn');
-            const prevText = btn.innerText;
-            btn.innerText = "PROCESSING...";
-            
-            let opts = [];
-            let params = {};
-            
-            if(curMode === 'encrypt') {
-                document.querySelectorAll('input[type="checkbox"]:checked').forEach(c => opts.push(c.id.replace('opt-','')));
-                if(document.getElementById('inp-geo').value) params.geo = document.getElementById('inp-geo').value;
-                if(document.getElementById('inp-kill').value) params.kill = document.getElementById('inp-kill').value;
-            }
+            const btn = document.getElementById(curMode === 'encrypt' ? 'actionBtn' : 'actionBtn'); // Just a trigger
+            const originalText = document.getElementById('actionBtn').innerText;
+            document.getElementById('actionBtn').innerText = "PROCESSING...";
 
             try {
                 const res = await fetch('/process', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
-                        code: code, action: curMode, lang: document.getElementById('lang').value,
-                        options: opts, params: params
+                        code: code, action: curMode, lang: document.getElementById('lang').value, mode: selectedOpt
                     })
                 });
                 const d = await res.json();
                 editor.setValue(d.result);
+                fetchLogs();
             } catch(e) {
-                alert("SYSTEM ERROR");
+                alert("ERROR: " + e);
             } finally {
-                btn.innerText = prevText;
+                document.getElementById('actionBtn').innerText = originalText;
             }
         }
 
-        function copyCode() { navigator.clipboard.writeText(editor.getValue()); alert("COPIED"); }
+        async function fetchLogs() {
+            const res = await fetch('/history'); const d = await res.json();
+            let h = '';
+            d.forEach(r => h += `<div class="log-item"><span>[${r.time}]</span> ${r.action} (${r.lang})</div>`);
+            document.getElementById('logs-container').innerHTML = h;
+        }
+
+        function copyCode() { navigator.clipboard.writeText(editor.getValue()); alert("COPIED TO CLIPBOARD"); }
 
         // Init
-        updateUI();
+        updateOptions();
+        setInterval(fetchLogs, 5000); // Auto update logs
     </script>
 </body>
 </html>
