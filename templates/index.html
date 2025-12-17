@@ -2,207 +2,376 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EuroMoscow | V120 OMEGA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>EuroMoscow | V130 APEX</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Rajdhani:wght@500;700&family=JetBrains+Mono:wght@400;800&display=swap" rel="stylesheet">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/ayu-mirage.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/abbott.min.css"> <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/lua/lua.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/go/go.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/php/php.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clike/clike.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/ruby/ruby.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/perl/perl.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/rust/rust.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/swift/swift.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
 
     <style>
+        /* --- CORE VARIABLES --- */
         :root {
-            --bg: #050505;
-            --primary: #00ff41; /* Toxic Green */
-            --secondary: #008f11;
-            --text: #e0e0e0;
-            --border: rgba(0, 255, 65, 0.2);
+            --bg: #030005;
+            --panel: rgba(8, 10, 15, 0.95);
+            --primary: #00f3ff; /* Apex Cyan */
+            --secondary: #ff003c; /* Apex Red */
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(0, 243, 255, 0.15);
             --font-head: 'Orbitron', sans-serif;
             --font-ui: 'Rajdhani', sans-serif;
+            --font-code: 'Fira Code', monospace;
         }
 
-        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-ui); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; user-select: none; }
+        body { margin: 0; background: var(--bg); color: #fff; font-family: var(--font-ui); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-        /* SCROLLBAR */
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: #000; }
-        ::-webkit-scrollbar-thumb { background: var(--secondary); border-radius: 2px; }
+        /* --- BACKGROUND FX --- */
+        #apexCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        .grid-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; z-index: -1; opacity: 0.5; }
 
-        /* NAVBAR */
+        /* --- SCROLLBAR --- */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #020202; }
+        ::-webkit-scrollbar-thumb { background: #333; border: 1px solid var(--primary); border-radius: 2px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); box-shadow: 0 0 10px var(--primary); }
+
+        /* --- NAVBAR --- */
         nav {
-            height: 70px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between;
-            background: rgba(0,0,0,0.95); border-bottom: 1px solid var(--border); z-index: 100;
+            height: 75px; padding: 0 30px; display: flex; align-items: center; justify-content: space-between;
+            background: rgba(2,2,4,0.9); border-bottom: 1px solid var(--border); z-index: 100;
+            box-shadow: 0 5px 20px rgba(0, 243, 255, 0.05); backdrop-filter: blur(10px);
         }
-        .brand { font-family: var(--font-head); font-size: 18px; font-weight: 900; letter-spacing: 1px; color: #fff; }
-        .brand span { color: var(--primary); text-shadow: 0 0 10px var(--primary); }
+        .brand { font-family: var(--font-head); font-size: 22px; font-weight: 900; letter-spacing: 2px; color: #fff; display: flex; align-items: center; gap: 10px; }
+        .brand i { color: var(--primary); animation: pulse 2s infinite; }
+        .brand span { color: var(--primary); text-shadow: 0 0 15px var(--primary); }
         
-        .nav-items { display: flex; gap: 8px; }
+        .nav-dock { display: flex; gap: 10px; }
         .nav-btn {
-            background: rgba(0,255,65,0.05); border: 1px solid var(--border); color: #aaa;
-            padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 10px;
-            font-family: var(--font-head); transition: 0.3s;
+            background: var(--glass); border: 1px solid var(--border); color: #aaa;
+            padding: 8px 16px; border-radius: 2px; cursor: pointer; font-weight: 700; transition: 0.3s;
+            font-family: var(--font-head); font-size: 10px; display: flex; align-items: center; gap: 6px;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
         }
-        .nav-btn:hover { border-color: var(--primary); color: #fff; background: rgba(0,255,65,0.1); }
+        .nav-btn:hover { border-color: var(--primary); color: #fff; background: rgba(0, 243, 255, 0.1); box-shadow: 0 0 15px var(--primary); }
 
-        /* LAYOUT (RESPONSIVE GRID) */
+        /* --- LAYOUT --- */
         .layout { display: flex; flex: 1; overflow: hidden; }
-        .sidebar {
-            width: 350px; background: rgba(10,12,10,0.95); border-right: 1px solid var(--border);
-            padding: 20px; display: flex; flex-direction: column; overflow-y: auto;
+        .sidebar { 
+            width: 380px; background: var(--panel); border-right: 1px solid var(--border); 
+            padding: 25px; display: flex; flex-direction: column; z-index: 10; overflow-y: auto;
         }
-        .editor-wrap { flex: 1; display: flex; flex-direction: column; background: #080808; position: relative; }
 
-        /* CONTROLS */
-        .section-label { font-family: var(--font-head); font-size: 10px; color: var(--primary); margin: 15px 0 8px 0; letter-spacing: 1px; }
+        /* --- CONTROLS --- */
+        .mode-switch { display: flex; background: #000; padding: 3px; border: 1px solid var(--border); margin-bottom: 25px; }
+        .mode-btn { flex: 1; text-align: center; padding: 12px; font-weight: 800; font-size: 12px; color: #666; cursor: pointer; transition: 0.3s; font-family: var(--font-head); letter-spacing: 1px; }
+        .mode-btn.active { background: #111; color: #fff; }
+        .mode-btn.active.enc { color: var(--primary); text-shadow: 0 0 10px var(--primary); border-bottom: 2px solid var(--primary); }
+        .mode-btn.active.dec { color: var(--secondary); text-shadow: 0 0 10px var(--secondary); border-bottom: 2px solid var(--secondary); }
+
+        .section-head { font-family: var(--font-head); font-size: 10px; color: var(--primary); margin: 15px 0 8px 0; letter-spacing: 1px; display: flex; justify-content: space-between; border-bottom: 1px solid #222; padding-bottom: 5px; }
         
+        .apex-select { width: 100%; background: #000; border: 1px solid var(--border); color: #fff; padding: 12px; font-family: var(--font-ui); font-weight: bold; cursor: pointer; outline: none; transition: 0.3s; }
+        .apex-select:hover { border-color: var(--primary); box-shadow: 0 0 10px rgba(0, 243, 255, 0.1); }
+
+        /* OPTIONS GRID */
         .opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .opt-card {
-            display: flex; align-items: center; justify-content: space-between; padding: 10px;
-            background: rgba(255,255,255,0.02); border: 1px solid #222; border-radius: 4px; cursor: pointer; transition: 0.2s;
+            display: flex; align-items: center; justify-content: space-between; padding: 12px;
+            background: var(--glass); border: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: 0.2s; position: relative; overflow: hidden;
         }
-        .opt-card:hover { border-color: var(--primary); background: rgba(0,255,65,0.05); }
-        .opt-txt { font-size: 11px; font-weight: 700; }
-        .opt-box { width: 12px; height: 12px; border: 1px solid #666; display: flex; align-items: center; justify-content: center; }
-        input:checked + .opt-box { background: var(--primary); border-color: var(--primary); }
+        .opt-card::before { content:''; position: absolute; left: 0; top: 0; width: 3px; height: 100%; background: var(--primary); transform: scaleY(0); transition: 0.3s; }
+        .opt-card:hover { border-color: var(--primary); background: rgba(0, 243, 255, 0.05); }
+        .opt-card:hover::before { transform: scaleY(1); }
+        
+        .opt-txt { font-size: 11px; font-weight: 700; color: #ccc; }
+        .opt-box { width: 14px; height: 14px; border: 1px solid #555; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        input:checked + .opt-box { background: var(--primary); border-color: var(--primary); box-shadow: 0 0 8px var(--primary); }
+        input:checked + .opt-box::after { content: ''; width: 6px; height: 6px; background: #000; }
 
-        .inp-omega {
-            width: 100%; background: #000; border: 1px solid #333; color: var(--primary);
-            padding: 10px; font-family: 'JetBrains Mono'; font-size: 11px; margin-bottom: 8px; display: none;
+        /* INPUTS */
+        .apex-input { width: 100%; background: #050505; border: 1px solid #333; color: var(--primary); padding: 12px; font-family: var(--font-code); font-size: 11px; margin-top: 5px; display: none; transition: 0.3s; }
+        .apex-input:focus { border-color: var(--primary); box-shadow: inset 0 0 10px rgba(0, 243, 255, 0.1); }
+        .apex-input.show { display: block; animation: slideDown 0.3s ease; }
+        @keyframes slideDown { from{opacity:0; transform:translateY(-10px);} to{opacity:1; transform:translateY(0);} }
+
+        /* MAIN BUTTON */
+        .btn-apex {
+            width: 100%; padding: 18px; background: var(--primary); color: #000; border: none;
+            font-family: var(--font-head); font-weight: 900; font-size: 14px; margin-top: auto; cursor: pointer;
+            clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+            transition: 0.3s; letter-spacing: 2px; position: relative; overflow: hidden;
         }
-        .inp-omega.show { display: block; animation: fade 0.3s; }
-        @keyframes fade { from{opacity:0;} to{opacity:1;} }
+        .btn-apex:hover { background: #fff; box-shadow: 0 0 40px var(--primary); }
+        .btn-apex:active { transform: scale(0.98); }
 
-        .btn-omega {
-            width: 100%; padding: 14px; background: var(--primary); color: #000; border: none;
-            font-family: var(--font-head); font-weight: 900; margin-top: auto; cursor: pointer;
-            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-            transition: 0.3s; letter-spacing: 1px;
+        /* --- EDITOR --- */
+        .editor-wrap { flex: 1; display: flex; flex-direction: column; background: #050508; position: relative; }
+        .editor-hud { 
+            height: 45px; background: rgba(0,0,0,0.6); border-bottom: 1px solid var(--border); 
+            display: flex; align-items: center; justify-content: space-between; padding: 0 20px; 
+            font-family: var(--font-code); font-size: 11px; color: #666; 
         }
-        .btn-omega:hover { box-shadow: 0 0 20px var(--primary); letter-spacing: 2px; }
+        .hud-actions i { cursor: pointer; margin-left: 15px; color: #888; transition: 0.3s; }
+        .hud-actions i:hover { color: var(--primary); text-shadow: 0 0 10px var(--primary); }
+        
+        .CodeMirror { flex: 1; font-family: var(--font-code); font-size: 13px; background: transparent !important; }
+        .cm-s-abbott.CodeMirror { background: transparent !important; color: #e0e0e0; }
+        .cm-s-abbott .CodeMirror-gutters { background: #0a0a0a; border-right: 1px solid #222; }
+        .cm-s-abbott .CodeMirror-linenumber { color: #444; }
 
-        /* EDITOR */
-        .CodeMirror { flex: 1; font-family: 'JetBrains Mono'; font-size: 13px; background: transparent; }
-        .cm-s-ayu-mirage.CodeMirror { background: transparent; }
-
-        /* MODALS */
-        .modal-wrap {
+        /* --- MODALS --- */
+        .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 2000; display: none;
-            justify-content: center; align-items: center; backdrop-filter: blur(5px);
+            background: rgba(0,0,0,0.95); z-index: 2000; display: none;
+            justify-content: center; align-items: center; backdrop-filter: blur(10px);
         }
-        .modal-box {
-            width: 800px; height: 600px; background: #0a0a0a; border: 1px solid var(--primary);
-            display: flex; flex-direction: column; box-shadow: 0 0 50px rgba(0,255,65,0.1);
+        .apex-win {
+            width: 800px; height: 600px; background: #050505; border: 1px solid var(--primary);
+            display: flex; flex-direction: column; box-shadow: 0 0 100px rgba(0, 243, 255, 0.1);
+            animation: holoOpen 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); position: relative;
         }
-        .modal-head { padding: 15px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; color: var(--primary); font-family: var(--font-head); }
-        .modal-body { flex: 1; padding: 20px; overflow-y: auto; color: #ccc; font-family: 'JetBrains Mono'; font-size: 12px; }
+        .apex-win::before { content:''; position:absolute; top:0; left:0; width:100%; height:2px; background:linear-gradient(90deg, transparent, var(--primary), transparent); animation:scan 2s infinite; }
+        @keyframes holoOpen { 0%{transform:scale(0.8); opacity:0;} 100%{transform:scale(1); opacity:1;} }
+        @keyframes scan { 0%{left:-100%;} 100%{left:100%;} }
 
-        /* MOBILE RESPONSIVE */
+        .win-head { padding: 15px 25px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; color: var(--primary); font-family: var(--font-head); background: rgba(0, 243, 255, 0.05); }
+        .win-body { flex: 1; padding: 25px; overflow-y: auto; color: #ccc; font-family: var(--font-code); font-size: 12px; }
+
+        /* --- LOADER --- */
+        .loader-screen { position: fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index: 5000; display:flex; flex-direction:column; justify-content:center; align-items:center; transition: 0.5s; }
+        .loader-spin { width: 60px; height: 60px; border: 4px solid #111; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s infinite linear; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* --- MOBILE RESPONSIVE --- */
         @media (max-width: 900px) {
             body { height: auto; min-height: 100vh; overflow-y: auto; }
             .layout { flex-direction: column; }
-            
             nav { padding: 0 15px; }
             .brand { font-size: 16px; }
-            
-            /* Editor on TOP for Mobile */
+            .nav-btn { padding: 6px 10px; font-size: 9px; }
+            /* FLIP ORDER: Editor First, Controls Second */
             .editor-wrap { height: 50vh; order: 1; border-bottom: 1px solid var(--border); }
-            
-            /* Sidebar on BOTTOM for Mobile */
-            .sidebar { width: 100%; height: auto; order: 2; padding-bottom: 40px; border-right: none; }
-            
-            .modal-box { width: 95%; height: 80%; }
+            .sidebar { width: 100%; height: auto; order: 2; border-right: none; padding-bottom: 50px; }
+            .apex-win { width: 95%; height: 85%; }
             .opt-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function sfx(t) {
+            if(audioCtx.state==='suspended') audioCtx.resume();
+            const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+            o.connect(g); g.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+            
+            if(t==='hover') { o.type='sine'; o.frequency.setValueAtTime(400,now); g.gain.value=0.02; o.start(); o.stop(now+0.05); }
+            if(t==='click') { o.type='square'; o.frequency.setValueAtTime(150,now); o.frequency.exponentialRampToValueAtTime(40,now+0.1); g.gain.value=0.05; o.start(); o.stop(now+0.1); }
+            if(t==='type') { o.type='triangle'; o.frequency.setValueAtTime(800,now); g.gain.value=0.01; o.start(); o.stop(now+0.03); }
+            if(t==='success') { o.type='sawtooth'; o.frequency.setValueAtTime(200,now); o.frequency.linearRampToValueAtTime(600,now+0.3); g.gain.value=0.1; o.start(); o.stop(now+0.3); }
+        }
+    </script>
+
+    <div class="loader-screen" id="loader">
+        <div class="loader-spin"></div>
+        <div style="margin-top:15px; font-family:var(--font-head); color:var(--primary); letter-spacing:2px;">INITIALIZING V130...</div>
+    </div>
+
+    <div id="apexCanvas"></div>
+    <div class="grid-overlay"></div>
+
     <nav>
-        <div class="brand">V120 <span>OMEGA</span></div>
-        <div class="nav-items">
-            <div class="nav-btn" onclick="copyCode()">COPY</div>
-            <div class="nav-btn" onclick="openModal('term')">TERM</div>
-            <div class="nav-btn" onclick="location.reload()">RESET</div>
+        <div class="brand"><i class="fas fa-biohazard"></i> V130 <span>APEX</span></div>
+        <div class="nav-dock">
+            <div class="nav-btn" onclick="openModal('term'); sfx('click')"><i class="fas fa-terminal"></i> TERM</div>
+            <div class="nav-btn" onclick="fetchLogs(); sfx('click')"><i class="fas fa-history"></i> LOGS</div>
+            <div class="nav-btn" onclick="openModal('docs'); sfx('click')"><i class="fas fa-book"></i> API</div>
         </div>
     </nav>
 
     <div class="layout">
         <div class="sidebar">
-            <span class="section-label">LANGUAGE CORE</span>
-            <select id="lang" style="width:100%; padding:10px; background:#000; color:#fff; border:1px solid #333;">
-                <option value="python">PYTHON (Omega Engine)</option>
-                <option value="javascript">JAVASCRIPT</option>
-                <option value="lua">LUA</option>
-            </select>
-
-            <span class="section-label">OMEGA ARSENAL (FEATURES)</span>
-            <div class="opt-grid">
-                <label class="opt-card" onclick="toggleInp('geo')">
-                    <span class="opt-txt">GEO FENCE (Country) 🌍</span>
-                    <input type="checkbox" id="opt-geo" hidden><div class="opt-box"></div>
-                </label>
-                <label class="opt-card" onclick="toggleInp('kill')">
-                    <span class="opt-txt">KILL SWITCH (URL) 💀</span>
-                    <input type="checkbox" id="opt-killswitch" hidden><div class="opt-box"></div>
-                </label>
-                <label class="opt-card">
-                    <span class="opt-txt">ANTI-SNIFFER 🛑</span>
-                    <input type="checkbox" id="opt-sniffer" hidden><div class="opt-box"></div>
-                </label>
-                <label class="opt-card">
-                    <span class="opt-txt">ADMIN CHECK 🛡️</span>
-                    <input type="checkbox" id="opt-admin" hidden><div class="opt-box"></div>
-                </label>
-                <label class="opt-card">
-                    <span class="opt-txt">SILENT MODE 🔇</span>
-                    <input type="checkbox" id="opt-silent" hidden><div class="opt-box"></div>
-                </label>
-                <label class="opt-card">
-                    <span class="opt-txt">SELF DESTRUCT ⏳</span>
-                    <input type="checkbox" id="opt-suicide" hidden><div class="opt-box"></div>
-                </label>
-                <label class="opt-card">
-                    <span class="opt-txt">AST RENAMING 📝</span>
-                    <input type="checkbox" id="opt-rename" checked hidden><div class="opt-box"></div>
-                </label>
+            <div class="mode-switch">
+                <div class="mode-btn active enc" onclick="setMode('encrypt'); sfx('click')">ENCRYPT</div>
+                <div class="mode-btn dec" onclick="setMode('decrypt'); sfx('click')">DECRYPT</div>
             </div>
 
-            <div style="margin-top:10px;">
-                <input id="inp-geo" class="inp-omega" placeholder="Country Code (e.g. EG, US)">
-                <input id="inp-kill" class="inp-omega" placeholder="Raw Text URL (Content: RUN)">
+            <div id="encPanel" style="display:flex; flex-direction:column; flex:1;">
+                <div class="section-head"><span>LANGUAGE CORE</span> <span>[13/13]</span></div>
+                <select id="lang" class="apex-select" onchange="setLang(this.value); sfx('click')">
+                    <option value="python">PYTHON (Omega Engine)</option>
+                    <option value="javascript">JAVASCRIPT</option>
+                    <option value="lua">LUA</option>
+                    <option value="php">PHP</option>
+                    <option value="go">GOLANG</option>
+                    <option value="html">HTML</option>
+                    <option value="ruby">RUBY</option>
+                    <option value="cpp">C++</option>
+                    <option value="csharp">C#</option>
+                    <option value="java">JAVA</option>
+                    <option value="rust">RUST</option>
+                    <option value="swift">SWIFT</option>
+                    <option value="perl">PERL</option>
+                </select>
+
+                <div class="section-head"><span>OMEGA ARSENAL</span> <span>MODULES</span></div>
+                <div class="opt-grid">
+                    <label class="opt-card" onmouseenter="sfx('hover')" onclick="toggleInp('geo'); sfx('click')">
+                        <span class="opt-txt">GEO FENCE 🌍</span><input type="checkbox" id="opt-geo" hidden><div class="opt-box"></div>
+                    </label>
+                    <label class="opt-card" onmouseenter="sfx('hover')" onclick="toggleInp('kill'); sfx('click')">
+                        <span class="opt-txt">KILL SWITCH 💀</span><input type="checkbox" id="opt-killswitch" hidden><div class="opt-box"></div>
+                    </label>
+                    <label class="opt-card" onmouseenter="sfx('hover')" onclick="toggleInp('webhook'); sfx('click')">
+                        <span class="opt-txt">DISCORD SPY 📡</span><input type="checkbox" id="opt-webhook" hidden><div class="opt-box"></div>
+                    </label>
+                    <label class="opt-card" onmouseenter="sfx('hover')" onclick="sfx('click')">
+                        <span class="opt-txt">ANTI-SNIFFER 🛑</span><input type="checkbox" id="opt-sniffer" hidden><div class="opt-box"></div>
+                    </label>
+                    <label class="opt-card" onmouseenter="sfx('hover')" onclick="sfx('click')">
+                        <span class="opt-txt">ADMIN CHECK 🛡️</span><input type="checkbox" id="opt-admin" hidden><div class="opt-box"></div>
+                    </label>
+                    <label class="opt-card" onmouseenter="sfx('hover')" onclick="sfx('click')">
+                        <span class="opt-txt">SILENT MODE 🔇</span><input type="checkbox" id="opt-silent" hidden><div class="opt-box"></div>
+                    </label>
+                    <label class="opt-card" onmouseenter="sfx('hover')" onclick="sfx('click')">
+                        <span class="opt-txt">SELF DESTRUCT ⏳</span><input type="checkbox" id="opt-suicide" hidden><div class="opt-box"></div>
+                    </label>
+                    <label class="opt-card" onmouseenter="sfx('hover')" onclick="sfx('click')">
+                        <span class="opt-txt">AST RENAMING 📝</span><input type="checkbox" id="opt-rename" checked hidden><div class="opt-box"></div>
+                    </label>
+                    <label class="opt-card" onmouseenter="sfx('hover')" onclick="sfx('click')">
+                        <span class="opt-txt">MILITARY AES 🔒</span><input type="checkbox" id="opt-fernet" hidden><div class="opt-box"></div>
+                    </label>
+                    <label class="opt-card" onmouseenter="sfx('hover')" onclick="sfx('click')">
+                        <span class="opt-txt">NTP LOCK ⏰</span><input type="checkbox" id="opt-ntp" hidden><div class="opt-box"></div>
+                    </label>
+                </div>
+
+                <div style="margin-top:15px;">
+                    <input id="inp-geo" class="apex-input" placeholder="Country Code (e.g. EG, US)">
+                    <input id="inp-kill" class="apex-input" placeholder="Raw URL (Content: RUN)">
+                    <input id="inp-webhook" class="apex-input" placeholder="Discord Webhook URL">
+                </div>
+
+                <button class="btn-apex" id="btn" onmouseenter="sfx('hover')" onclick="process()">DEPLOY APEX PAYLOAD</button>
             </div>
 
-            <button class="btn-omega" id="btn" onclick="process()">DEPLOY PAYLOAD</button>
+            <div id="decPanel" style="display:none; flex:1; justify-content:center; align-items:center; text-align:center;">
+                <i class="fas fa-microchip" style="font-size:60px; color:var(--primary); margin-bottom:20px;"></i>
+                <h3 style="color:#fff; font-family:var(--font-head)">NEURAL DECODER</h3>
+                <p style="color:#888; font-size:12px;">Paste encrypted artifact to reverse engineer.</p>
+            </div>
         </div>
 
         <div class="editor-wrap">
+            <div class="editor-hud">
+                <span id="langLabel">PYTHON ENVIRONMENT</span>
+                <div class="hud-actions">
+                    <i class="fas fa-eraser" onclick="editor.setValue(''); sfx('click')"></i>
+                    <i class="fas fa-copy" onclick="copyCode(); sfx('click')"></i>
+                    <i class="fas fa-save" onclick="download(); sfx('click')"></i>
+                </div>
+            </div>
             <textarea id="editor"></textarea>
         </div>
     </div>
 
-    <div id="termModal" class="modal-wrap">
-        <div class="modal-box">
-            <div class="modal-head"><span>ROOT_ACCESS</span> <span onclick="closeModal('term')" style="cursor:pointer">X</span></div>
-            <div class="modal-body" id="termOut">Omega Protocol v120.0<br>System Ready.<br></div>
-            <input id="termIn" style="width:100%; background:#000; border:none; color:#fff; padding:10px; font-family:'JetBrains Mono'; outline:none;">
+    <div id="termModal" class="modal-overlay">
+        <div class="apex-win">
+            <div class="win-head"><span>ROOT_ACCESS</span> <span onclick="closeModal('term'); sfx('click')" style="cursor:pointer">X</span></div>
+            <div class="win-body" id="termOut" style="color:var(--primary)">ApexOS v130.0 [Secure]<br>System Ready.<br></div>
+            <input id="termIn" style="width:100%; background:#000; border:none; color:#fff; padding:15px; font-family:'Fira Code'; outline:none;" autofocus>
+        </div>
+    </div>
+
+    <div id="logsModal" class="modal-overlay">
+        <div class="apex-win">
+            <div class="win-head"><span>OPERATION_LOGS</span> <span onclick="closeModal('logs'); sfx('click')" style="cursor:pointer">X</span></div>
+            <div class="win-body" id="logsBody">Fetching data...</div>
+        </div>
+    </div>
+
+    <div id="docsModal" class="modal-overlay">
+        <div class="apex-win">
+            <div class="win-head"><span>API_DOCUMENTATION</span> <span onclick="closeModal('docs'); sfx('click')" style="cursor:pointer">X</span></div>
+            <div class="win-body">
+                <h2 style="color:var(--primary)">Apex REST API</h2>
+                <code>POST {{ request.url_root }}process</code>
+                <pre style="background:#111; padding:20px; border:1px solid #333; margin-top:10px;">
+import requests
+res = requests.post("{{ request.url_root }}process", json={
+    "code": "print('V130')",
+    "action": "encrypt",
+    "lang": "python",
+    "options": ["webhook", "geo"],
+    "params": {"geo_code": "EG"}
+})
+print(res.json()['result'])</pre>
+            </div>
         </div>
     </div>
 
     <script>
-        var editor = CodeMirror.fromTextArea(document.getElementById("editor"), { mode: "python", theme: "ayu-mirage", lineNumbers: true });
+        // --- INIT ---
+        window.onload = function() {
+            setTimeout(() => { document.getElementById('loader').style.opacity='0'; setTimeout(()=>document.getElementById('loader').remove(),500); }, 1000);
+            drawBg();
+        };
+
+        // --- BACKGROUND ---
+        function drawBg() {
+            const el = document.getElementById('apexCanvas');
+            // Simplified particle effect for performance
+            // In a real file I'd put full canvas logic here, but for copy-paste size, we use CSS Grid overlay mainly.
+        }
+
+        // --- EDITOR & LOGIC ---
+        var editor = CodeMirror.fromTextArea(document.getElementById("editor"), { mode: "python", theme: "abbott", lineNumbers: true });
+        editor.on("change", () => sfx('type'));
+
+        function setLang(l) {
+            const m = l==='cpp'||l==='csharp'||l==='java'?'clike':l;
+            editor.setOption("mode", m);
+            document.getElementById('langLabel').innerText = l.toUpperCase() + " ENVIRONMENT";
+        }
 
         function toggleInp(id) {
             const el = document.getElementById('inp-'+id);
             const chk = document.getElementById('opt-'+(id=='kill'?'killswitch':id));
-            setTimeout(() => {
-                if(chk.checked) el.classList.add('show'); else el.classList.remove('show');
-            }, 50);
+            setTimeout(() => { if(chk.checked) el.classList.add('show'); else el.classList.remove('show'); }, 50);
+        }
+
+        function setMode(m) {
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            if(m==='encrypt') {
+                document.getElementById('encPanel').style.display='flex';
+                document.getElementById('encPanel').style.flexDirection='column';
+                document.getElementById('decPanel').style.display='none';
+                document.querySelector('.mode-btn.enc').classList.add('active');
+                document.getElementById('btn').innerText = 'DEPLOY APEX PAYLOAD';
+            } else {
+                document.getElementById('encPanel').style.display='none';
+                document.getElementById('decPanel').style.display='flex';
+                document.querySelector('.mode-btn.dec').classList.add('active');
+                document.getElementById('btn').innerText = 'DECRYPT ARTIFACT';
+            }
         }
 
         async function process() {
@@ -218,40 +387,50 @@
             let params = {};
             if(document.getElementById('inp-geo').value) params.geo_code = document.getElementById('inp-geo').value;
             if(document.getElementById('inp-kill').value) params.kill_url = document.getElementById('inp-kill').value;
+            if(document.getElementById('inp-webhook').value) params.webhook_url = document.getElementById('inp-webhook').value;
 
             try {
                 const res = await fetch('/process', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
-                        code: code, action: 'encrypt', lang: document.getElementById('lang').value,
+                        code: code, action: document.querySelector('.mode-btn.enc.active') ? 'encrypt' : 'decrypt',
+                        lang: document.getElementById('lang').value,
                         options: opts, params: params
                     })
                 });
                 const data = await res.json();
                 editor.setValue(data.result);
-                btn.innerText = "SUCCESS";
+                btn.innerText = "SUCCESS"; sfx('success');
             } catch(e) {
                 alert("ERROR: " + e);
-                btn.innerText = "DEPLOY PAYLOAD";
+                btn.innerText = "DEPLOY APEX PAYLOAD";
             }
         }
 
-        function copyCode() { navigator.clipboard.writeText(editor.getValue()); alert("COPIED"); }
-        
-        // Terminal
+        async function fetchLogs() {
+            openModal('logs');
+            const res = await fetch('/history'); const data = await res.json();
+            let h = '<table style="width:100%; text-align:left;"><tr><th>TIME</th><th>LANG</th><th>METHOD</th></tr>';
+            data.forEach(r => h += `<tr><td>${r.date}</td><td>${r.lang}</td><td>${r.method}</td></tr>`);
+            document.getElementById('logsBody').innerHTML = h + '</table>';
+        }
+
+        // TERMINAL
         const tOut = document.getElementById('termOut');
         document.getElementById('termIn').addEventListener('keypress', async e => {
             if(e.key==='Enter') {
-                const c = e.target.value; e.target.value='';
-                tOut.innerHTML += `<br><span style="color:var(--primary)">root@omega:~#</span> ${c}`;
+                const c = e.target.value; e.target.value=''; sfx('click');
+                tOut.innerHTML += `<br><span style="color:var(--primary)">root@apex:~#</span> ${c}`;
                 try{ const r=await fetch('/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:c})}); const d=await r.json(); tOut.innerHTML+=`<br>${d.output}`; }
                 catch{ tOut.innerHTML+='<br>Error'; }
             }
         });
 
-        function openModal(id) { document.getElementById(id+'Modal').style.display='flex'; }
+        function openModal(id) { document.getElementById(id+'Modal').style.display='flex'; if(id==='term') document.getElementById('termIn').focus(); }
         function closeModal(id) { document.getElementById(id+'Modal').style.display='none'; }
+        function copyCode() { navigator.clipboard.writeText(editor.getValue()); }
+        function download() { const b=new Blob([editor.getValue()],{type:'text/plain'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download='Apex_Protected.txt'; a.click(); }
     </script>
 </body>
 </html>
