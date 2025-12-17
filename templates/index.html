@@ -3,369 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EuroMoscow | V95 INFINITE</title>
+    <title>EuroMoscow | V110 SINGULARITY</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
-    
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Rajdhani:wght@500;700&family=JetBrains+Mono:wght@400;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/ayu-mirage.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/lua/lua.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/go/go.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/php/php.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
 
     <style>
         :root {
-            --bg: #000000;
-            --panel: rgba(10, 10, 12, 0.95);
-            --border: rgba(255, 255, 255, 0.08);
-            --primary: #9d00ff; /* Infinite Purple */
-            --accent: #00f3ff;
+            --bg: #020202;
+            --primary: #ff0040; /* Singularity Red */
+            --accent: #00ffcc;
+            --border: rgba(255, 255, 255, 0.1);
             --font-head: 'Orbitron', sans-serif;
             --font-ui: 'Rajdhani', sans-serif;
-            --font-code: 'JetBrains Mono', monospace;
         }
-
         * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; background: var(--bg); color: #fff; font-family: var(--font-ui); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
-
-        /* --- BACKGROUND FX --- */
-        #starfield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
-        .scanlines { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(0deg, rgba(0,0,0,0.2) 0px, rgba(0,0,0,0.2) 1px, transparent 1px, transparent 2px); pointer-events: none; z-index: 900; }
-
-        /* --- SCROLLBAR --- */
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: #050505; }
-        ::-webkit-scrollbar-thumb { background: #333; border: 1px solid var(--primary); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--primary); box-shadow: 0 0 10px var(--primary); }
-
-        /* --- NAVBAR --- */
-        nav {
-            height: 80px; padding: 0 40px; display: flex; align-items: center; justify-content: space-between;
-            background: rgba(5,5,5,0.9); border-bottom: 1px solid var(--border); z-index: 100;
-            box-shadow: 0 0 30px rgba(157, 0, 255, 0.1);
-        }
-        .brand { font-family: var(--font-head); font-size: 24px; font-weight: 900; letter-spacing: 2px; color: #fff; text-shadow: 0 0 15px var(--primary); }
-        .brand span { color: var(--primary); }
         
-        .nav-dock { display: flex; gap: 10px; }
-        .nav-btn {
-            background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: #aaa;
-            padding: 10px 18px; border-radius: 4px; cursor: pointer; font-weight: 700; transition: 0.3s;
-            font-family: var(--font-head); font-size: 11px; display: flex; align-items: center; gap: 8px;
-        }
-        .nav-btn:hover { border-color: var(--primary); color: #fff; background: rgba(157, 0, 255, 0.1); box-shadow: 0 0 15px var(--primary); }
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #333; border: 1px solid var(--primary); }
 
-        /* --- LAYOUT --- */
+        /* NAV */
+        nav { height: 70px; padding: 0 30px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: rgba(10,10,10,0.95); z-index: 100; }
+        .brand { font-family: var(--font-head); font-size: 20px; font-weight: 900; letter-spacing: 2px; }
+        .brand span { color: var(--primary); text-shadow: 0 0 15px var(--primary); }
+        .nav-btn { background: rgba(255,255,255,0.05); padding: 8px 15px; border-radius: 4px; cursor: pointer; border: 1px solid var(--border); font-weight: bold; color: #ccc; font-size: 11px; margin-left: 5px; }
+        .nav-btn:hover { border-color: var(--primary); color: #fff; }
+
+        /* LAYOUT */
         .layout { display: flex; flex: 1; overflow: hidden; }
-        .sidebar { width: 380px; background: var(--panel); border-right: 1px solid var(--border); padding: 30px; display: flex; flex-direction: column; z-index: 10; backdrop-filter: blur(10px); }
-
-        /* --- MODE SWITCH --- */
-        .mode-box { display: flex; background: #000; padding: 4px; border-radius: 6px; border: 1px solid var(--border); margin-bottom: 30px; }
-        .mode-opt { flex: 1; text-align: center; padding: 12px; font-weight: 800; font-size: 13px; color: #666; cursor: pointer; border-radius: 4px; transition: 0.3s; font-family: var(--font-head); }
-        .mode-opt.active { background: #151515; color: #fff; border: 1px solid var(--border); }
-        .mode-opt.active.enc { color: var(--primary); text-shadow: 0 0 10px var(--primary); }
-        .mode-opt.active.dec { color: var(--accent); text-shadow: 0 0 10px var(--accent); }
-
-        /* --- CONTROLS --- */
-        .select-styled { width: 100%; padding: 15px; background: #000; border: 1px solid var(--border); color: #fff; font-family: var(--font-head); font-size: 12px; cursor: pointer; margin-bottom: 20px; outline: none; }
+        .sidebar { width: 360px; background: rgba(15,15,20,0.95); border-right: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column; overflow-y: auto; }
         
+        /* EDITOR */
+        .editor-wrap { flex: 1; display: flex; flex-direction: column; background: #050505; }
+        .CodeMirror { flex: 1; font-family: 'JetBrains Mono'; font-size: 14px; }
+
+        /* CONTROLS */
+        .section-title { font-family: var(--font-head); font-size: 10px; color: var(--primary); margin-bottom: 10px; letter-spacing: 1px; display: block; margin-top: 15px; }
+        
+        .opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .opt-item {
-            display: flex; align-items: center; justify-content: space-between; padding: 15px;
-            background: rgba(255,255,255,0.02); border: 1px solid transparent; margin-bottom: 8px;
-            cursor: pointer; transition: 0.3s; border-radius: 4px;
+            display: flex; align-items: center; justify-content: space-between; padding: 12px;
+            background: rgba(255,255,255,0.03); border: 1px solid transparent; border-radius: 4px; cursor: pointer; transition: 0.2s;
         }
-        .opt-item:hover { border-color: var(--primary); background: rgba(157, 0, 255, 0.05); transform: translateX(5px); }
-        .opt-check { width: 18px; height: 18px; border: 2px solid #444; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
-        input:checked + .opt-check { background: var(--primary); border-color: var(--primary); box-shadow: 0 0 10px var(--primary); }
-        input:checked + .opt-check i { opacity: 1; font-size: 10px; color: #000; }
+        .opt-item:hover { border-color: var(--primary); background: rgba(255,0,64,0.05); }
+        .opt-lbl { font-size: 11px; font-weight: 700; }
+        .opt-check { width: 14px; height: 14px; border: 2px solid #444; display: flex; align-items: center; justify-content: center; }
+        input:checked + .opt-check { background: var(--primary); border-color: var(--primary); }
+        
+        /* INPUTS */
+        .cyber-input { width: 100%; background: #000; border: 1px solid var(--border); color: var(--accent); padding: 10px; font-family: 'JetBrains Mono'; font-size: 11px; margin-bottom: 10px; display: none; }
+        .cyber-input.active { display: block; animation: slideDown 0.3s ease; }
+        @keyframes slideDown { from{opacity:0; transform:translateY(-10px);} to{opacity:1; transform:translateY(0);} }
 
-        /* --- BUTTONS --- */
-        .btn-infinite {
-            width: 100%; padding: 20px; background: var(--primary); color: #000; border: none;
-            font-family: var(--font-head); font-weight: 900; font-size: 16px; cursor: pointer; margin-top: auto;
-            clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
-            transition: 0.3s; letter-spacing: 2px;
+        /* BUTTON */
+        .btn-singularity {
+            width: 100%; padding: 15px; background: var(--primary); color: #000; border: none; font-family: var(--font-head);
+            font-weight: 900; margin-top: 20px; cursor: pointer; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            transition: 0.3s;
         }
-        .btn-infinite:hover { transform: scale(1.02); box-shadow: 0 0 40px var(--primary); }
+        .btn-singularity:hover { box-shadow: 0 0 30px var(--primary); letter-spacing: 2px; }
 
-        /* --- EDITOR --- */
-        .editor-wrap { flex: 1; display: flex; flex-direction: column; background: #020202; }
-        .editor-hud { height: 50px; background: rgba(0,0,0,0.5); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; font-family: var(--font-code); font-size: 12px; color: #666; }
-        .CodeMirror { flex: 1; font-family: var(--font-code); font-size: 14px; background: transparent !important; }
-        .cm-s-ayu-mirage.CodeMirror { background: transparent !important; }
-
-        /* --- MODALS --- */
-        .modal-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
-        .win { width: 85%; height: 85%; background: #08080a; border: 1px solid var(--primary); display: flex; flex-direction: column; box-shadow: 0 0 100px rgba(157,0,255,0.2); animation: zoom 0.3s ease; }
-        @keyframes zoom { from{transform:scale(0.9);opacity:0;} to{transform:scale(1);opacity:1;} }
-        .win-head { padding: 20px 30px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-family: var(--font-head); color: var(--primary); background: rgba(157,0,255,0.05); }
-        .win-body { flex: 1; padding: 30px; overflow-y: auto; color: #ccc; font-family: var(--font-code); font-size: 14px; }
-
-        /* --- TABLES (HISTORY) --- */
-        .log-table { width: 100%; border-collapse: collapse; min-width: 500px; /* Ensure table scrolls on mobile */ }
-        .log-table th { text-align: left; padding: 15px; border-bottom: 1px solid var(--primary); color: var(--primary); }
-        .log-table td { padding: 15px; border-bottom: 1px solid #222; color: #aaa; }
-        .log-table tr:hover td { background: rgba(157,0,255,0.05); color: #fff; }
-        .table-responsive { overflow-x: auto; }
-
-        /* TERMINAL */
-        .term-out { flex: 1; padding: 20px; color: #0f0; overflow-y: auto; }
-        .term-in { padding: 20px; background: #000; border-top: 1px solid #333; color: #fff; font-family: var(--font-code); width: 100%; border: none; outline: none; }
-
-        /* NOTIFICATION */
-        .toast { position: fixed; bottom: 30px; right: 30px; padding: 15px 25px; background: var(--primary); color: #000; font-family: var(--font-head); font-size: 12px; border-radius: 4px; transform: translateX(200%); transition: 0.5s; z-index: 9000; font-weight: bold; box-shadow: 0 0 20px var(--primary); }
-
-        /* --- RESPONSIVE MEDIA QUERIES --- */
+        /* RESPONSIVE */
         @media (max-width: 900px) {
-            body { height: auto; min-height: 100vh; overflow-y: auto; }
-            .layout { flex-direction: column; overflow: visible; }
-            
-            nav { padding: 0 20px; height: auto; flex-wrap: wrap; padding-bottom: 15px; }
-            .brand { font-size: 20px; margin-top: 15px; margin-bottom: 10px; width: 100%; justify-content: center; }
-            .nav-dock { width: 100%; justify-content: space-around; }
-            
-            /* Reorder: Editor first (order 1), Sidebar controls last (order 2) */
-            .editor-wrap { height: 60vh; order: 1; border-bottom: 1px solid var(--border); }
-            .sidebar { width: 100%; height: auto; order: 2; padding: 20px; border-right: none; }
-            
-            .win { width: 95%; height: 90%; }
-            .toast { right: 10px; bottom: 10px; width: 90%; text-align: center; }
-        }
-
-        @media (max-width: 480px) {
-            .nav-btn { padding: 8px 12px; font-size: 10px; }
-            .editor-hud { padding: 0 15px; }
-            .mode-opt { padding: 10px; font-size: 11px; }
-            .opt-item { padding: 10px; }
-            .btn-infinite { font-size: 14px; padding: 16px; }
+            .layout { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; order: 2; border-top: 1px solid var(--border); }
+            .editor-wrap { height: 50vh; order: 1; }
         }
     </style>
 </head>
 <body>
 
-    <div class="scanlines"></div>
-    <canvas id="starfield"></canvas>
-
     <nav>
-        <div class="brand">V95 <span>INFINITE</span></div>
-        <div class="nav-dock">
-            <button class="nav-btn" onclick="openModal('term')"><i class="fas fa-terminal"></i> TERM</button>
-            <button class="nav-btn" onclick="fetchLogs()"><i class="fas fa-history"></i> LOGS</button>
-            <button class="nav-btn" onclick="openModal('docs')"><i class="fas fa-book"></i> API</button>
+        <div class="brand">V110 <span>SINGULARITY</span></div>
+        <div>
+            <button class="nav-btn" onclick="copyResult()">COPY</button>
+            <button class="nav-btn" onclick="location.reload()">RESET</button>
         </div>
     </nav>
 
     <div class="layout">
         <div class="sidebar">
-            <div class="mode-box">
-                <div class="mode-opt active enc" onclick="setMode('encrypt')">ENCRYPT</div>
-                <div class="mode-opt dec" onclick="setMode('decrypt')">DECRYPT</div>
+            <span class="section-title">CORE LANGUAGE</span>
+            <select id="lang" style="width:100%; padding:10px; background:#000; color:#fff; border:1px solid var(--border); margin-bottom:10px;">
+                <option value="python">PYTHON (Singularity Engine)</option>
+                <option value="javascript">JAVASCRIPT</option>
+                <option value="lua">LUA</option>
+            </select>
+
+            <span class="section-title">CYBER WEAPONRY (FEATURES)</span>
+            <div class="opt-grid">
+                <label class="opt-item" onclick="toggleInput('webhook')">
+                    <span class="opt-lbl">DISCORD SPY 📡</span>
+                    <input type="checkbox" id="opt-webhook" hidden>
+                    <div class="opt-check"></div>
+                </label>
+                <label class="opt-item">
+                    <span class="opt-lbl">FERNET AES 🔒</span>
+                    <input type="checkbox" id="opt-fernet" hidden>
+                    <div class="opt-check"></div>
+                </label>
+                <label class="opt-item">
+                    <span class="opt-lbl">ANTI-DISASSEMBLY 🛡️</span>
+                    <input type="checkbox" id="opt-antidis" hidden>
+                    <div class="opt-check"></div>
+                </label>
+                <label class="opt-item">
+                    <span class="opt-lbl">FAKE ERROR 🎭</span>
+                    <input type="checkbox" id="opt-fakeerror" hidden>
+                    <div class="opt-check"></div>
+                </label>
+                <label class="opt-item">
+                    <span class="opt-lbl">NTP TIME LOCK 🌍</span>
+                    <input type="checkbox" id="opt-ntp" hidden>
+                    <div class="opt-check"></div>
+                </label>
+                <label class="opt-item">
+                    <span class="opt-lbl">AST RENAMING 📝</span>
+                    <input type="checkbox" id="opt-rename" checked hidden>
+                    <div class="opt-check"></div>
+                </label>
             </div>
 
-            <div id="encPanel" style="display:flex; flex-direction:column; flex:1;">
-                <div style="font-size:11px; font-weight:700; color:var(--primary); margin-bottom:10px;">LANGUAGE MATRIX</div>
-                <select id="langSelect" class="select-styled" onchange="setLang(this.value)">
-                    <option value="python">PYTHON (Emoji/Chaos)</option>
-                    <option value="javascript">JAVASCRIPT (Symbolic)</option>
-                    <option value="lua">LUA (XOR Engine)</option>
-                    <option value="php">PHP (Octal Dump)</option>
-                    <option value="go">GOLANG (Hex Array)</option>
-                    <option value="html">HTML (Hex Write)</option>
-                </select>
+            <input id="inp-webhook" class="cyber-input" placeholder="Paste Discord Webhook URL Here...">
 
-                <div style="font-size:11px; font-weight:700; color:var(--primary); margin-bottom:10px;">INFINITE LAYERS</div>
-                <div id="optsContainer" style="display:flex; flex-direction:column; gap:5px;"></div>
-
-                <div style="margin-top:25px; border-top:1px solid var(--border); padding-top:20px;">
-                    <div class="opt-item" onclick="document.getElementById('file').click()">
-                        <span><i class="fas fa-file-import" style="color:var(--primary)"></i> IMPORT SOURCE</span>
-                    </div>
-                    <input type="file" id="file" hidden>
-                </div>
-            </div>
-
-            <div id="decPanel" style="display:none; flex:1; align-items:center; justify-content:center; flex-direction:column; text-align:center;">
-                <i class="fas fa-infinity" style="font-size:60px; color:var(--accent); margin-bottom:20px; filter:drop-shadow(0 0 20px var(--accent));"></i>
-                <h3 style="color:#fff; font-family:var(--font-head);">DEEP SCANNER</h3>
-                <p style="color:#888; font-size:12px;">Auto-detects algorithm up to 50 layers deep.</p>
-            </div>
-
-            <button class="btn-infinite" id="actionBtn" onclick="process()">EXECUTE CORE</button>
+            <button class="btn-singularity" id="btn" onclick="process()">INITIATE SINGULARITY</button>
         </div>
 
         <div class="editor-wrap">
-            <div class="editor-hud">
-                <span id="langLabel">PYTHON WORKSPACE</span>
-                <div style="display:flex; gap:15px;">
-                    <i class="fas fa-eraser" style="cursor:pointer" onclick="editor.setValue('')"></i>
-                    <i class="fas fa-copy" style="cursor:pointer" onclick="copy()"></i>
-                    <i class="fas fa-download" style="cursor:pointer; color:var(--primary)" onclick="download()"></i>
-                </div>
-            </div>
             <textarea id="editor"></textarea>
         </div>
     </div>
 
-    <div class="toast" id="toast">OPERATION COMPLETE</div>
-
-    <div id="termModal" class="modal-bg">
-        <div class="win">
-            <div class="win-head"><span>// ROOT_ACCESS</span> <i class="fas fa-times" onclick="closeModal('term')" style="cursor:pointer"></i></div>
-            <div class="term-out" id="termOut">EuroShield V95.0 [Infinite Access]<br>Ready...<br></div>
-            <input id="termIn" class="term-in" autofocus>
-        </div>
-    </div>
-
-    <div id="historyModal" class="modal-bg">
-        <div class="win">
-            <div class="win-head"><span>// OPERATION_LOGS</span> <i class="fas fa-times" onclick="closeModal('history')" style="cursor:pointer"></i></div>
-            <div class="win-body">
-                <div class="table-responsive">
-                    <table class="log-table">
-                        <thead><tr><th>TIME</th><th>IP</th><th>LANG</th><th>METHOD</th><th>RISK</th></tr></thead>
-                        <tbody id="logBody"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="docsModal" class="modal-bg">
-        <div class="win">
-            <div class="win-head"><span>// API_NODE</span> <i class="fas fa-times" onclick="closeModal('docs')" style="cursor:pointer"></i></div>
-            <div class="win-body">
-                <h2 style="color:var(--primary)">V95 Infinite API</h2>
-                <code>POST {{ request.url_root }}process</code>
-                <pre style="background:#111; padding:20px; border:1px solid #333; margin-top:20px; color:#fff;">
-import requests
-# Example: Python Emoji Mode
-res = requests.post("{{ request.url_root }}process", json={
-    "code": "print('V95')",
-    "action": "encrypt",
-    "lang": "python",
-    "options": ["emoji", "tamper"]
-})
-print(res.json()['result'])</pre>
-            </div>
-        </div>
-    </div>
-
     <script>
-        // --- BACKGROUND FX ---
-        const cvs = document.getElementById('starfield');
-        const ctx = cvs.getContext('2d');
-        function resizeCanvas() { cvs.width = window.innerWidth; cvs.height = window.innerHeight; }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
-        let stars = []; for(let i=0;i<100;i++) stars.push({x:Math.random()*cvs.width,y:Math.random()*cvs.height,s:Math.random()*2});
-        function anim() {
-            ctx.fillStyle='#000'; ctx.fillRect(0,0,cvs.width,cvs.height);
-            ctx.fillStyle='#fff';
-            stars.forEach(s=>{
-                s.y+=s.s; if(s.y>cvs.height) s.y=0;
-                ctx.beginPath(); ctx.arc(s.x,s.y,s.s,0,Math.PI*2); ctx.fill();
-            });
-            requestAnimationFrame(anim);
-        }
-        anim();
-
-        // --- LOGIC ---
-        let curLang='python', curMode='encrypt';
-        const UI = {
-            python: { c:'#9d00ff', opts: [{id:'emoji',l:'EMOJI ENCODING 🐍'}, {id:'chaos',l:'CHAOS LAMBDA 🌪️'}, {id:'marshal',l:'MARSHAL BINARY'}, {id:'tamper',l:'ANTI-TAMPER'}, {id:'dead',l:'DEAD CODE'}] },
-            javascript: { c:'#facc15', opts: [{id:'hex',l:'HEX SYMBOLIC'}, {id:'packer',l:'SPECTRAL PACKER'}] },
-            lua: { c:'#00d4ff', opts: [{id:'vm',l:'XOR ENGINE'}, {id:'hex',l:'HEX LOADER'}] },
-            go: { c:'#00add8', opts: [{id:'hex',l:'HEX ARRAY'}] },
-            php: { c:'#8b5cf6', opts: [{id:'ghost',l:'OCTAL DUMP'}, {id:'base64',l:'BASE64 WRAP'}] },
-            html: { c:'#f97316', opts: [{id:'hex',l:'HEX WRITE'}] }
-        };
-
         var editor = CodeMirror.fromTextArea(document.getElementById("editor"), { mode: "python", theme: "ayu-mirage", lineNumbers: true });
 
-        function setLang(l) {
-            curLang = l;
-            const conf = UI[l];
-            document.documentElement.style.setProperty('--primary', conf.c);
-            const con = document.getElementById('optsContainer'); con.innerHTML = '';
-            conf.opts.forEach(o => {
-                con.innerHTML += `
-                    <label class="opt-item">
-                        <span style="font-weight:700; font-size:12px; letter-spacing:1px;">${o.l}</span>
-                        <input type="checkbox" id="opt-${o.id}" class="opt-chk" checked hidden>
-                        <div class="opt-check"><i class="fas fa-check"></i></div>
-                    </label>`;
-            });
-            document.getElementById('langLabel').innerText = l.toUpperCase() + " WORKSPACE";
-        }
-        setLang('python');
-
-        function setMode(m) {
-            curMode = m;
-            document.querySelectorAll('.mode-opt').forEach(b => b.classList.remove('active'));
-            const btn = document.getElementById('actionBtn');
-            if(m==='encrypt') {
-                document.getElementById('encPanel').style.display='flex';
-                document.getElementById('encPanel').style.flexDirection='column';
-                document.getElementById('decPanel').style.display='none';
-                document.querySelector('.mode-opt.enc').classList.add('active');
-                btn.innerText = 'EXECUTE CORE';
-            } else {
-                document.getElementById('encPanel').style.display='none';
-                document.getElementById('decPanel').style.display='flex';
-                document.querySelector('.mode-opt.dec').classList.add('active');
-                btn.innerText = 'DEEP DECRYPT';
-            }
-        }
-
-        function showToast(msg) {
-            const t = document.getElementById('toast'); t.innerText=msg; t.style.transform='translateX(0)';
-            setTimeout(()=>t.style.transform='translateX(200%)',3000);
+        function toggleInput(id) {
+            const chk = document.getElementById('opt-'+id);
+            const inp = document.getElementById('inp-'+id);
+            setTimeout(() => {
+                if(chk.checked && inp) inp.classList.add('active');
+                else if(inp) inp.classList.remove('active');
+            }, 100);
         }
 
         async function process() {
-            const code = editor.getValue(); if(!code.trim()) return showToast("BUFFER EMPTY");
-            let opts = []; if(curMode==='encrypt') document.querySelectorAll('.opt-chk:checked').forEach(c=>opts.push(c.id.replace('opt-','')));
+            const code = editor.getValue();
+            if(!code.trim()) return alert("BUFFER EMPTY");
             
-            const btn = document.getElementById('actionBtn'); btn.innerText = 'PROCESSING...';
+            const btn = document.getElementById('btn');
+            btn.innerText = "ENCRYPTING...";
+            
+            // Collect Options
+            let opts = [];
+            document.querySelectorAll('input[type="checkbox"]:checked').forEach(c => opts.push(c.id.replace('opt-','')));
+            
+            // Collect Params
+            let params = {};
+            const webhook = document.getElementById('inp-webhook').value;
+            if(webhook) params.webhook_url = webhook;
+
             try {
-                const res = await fetch('/process', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code, action:curMode, lang:curLang, options:opts}) });
-                const d = await res.json(); editor.setValue(d.result); showToast("SUCCESS");
-            } catch { showToast("SYSTEM ERROR"); } finally { btn.innerText = curMode==='encrypt'?'EXECUTE CORE':'DEEP DECRYPT'; }
-        }
-
-        async function fetchLogs() {
-            openModal('history');
-            const res = await fetch('/history'); const data = await res.json();
-            const tb = document.getElementById('logBody'); tb.innerHTML = '';
-            data.forEach(r => {
-                tb.innerHTML += `<tr><td>${r.date}</td><td>${r.ip}</td><td>${r.lang}</td><td>${r.method}</td><td style="color:${r.risk_score>30?'red':'green'}">${r.risk_score}%</td></tr>`;
-            });
-        }
-
-        // TERMINAL
-        const tOut = document.getElementById('termOut');
-        document.getElementById('termIn').addEventListener('keypress', async e => {
-            if(e.key==='Enter') {
-                const c = e.target.value; e.target.value='';
-                tOut.innerHTML += `<br><span style="color:var(--primary)">root@v95:~#</span> ${c}`;
-                try{ const r=await fetch('/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:c})}); const d=await r.json(); tOut.innerHTML+=`<br>${d.output}`; }
-                catch{ tOut.innerHTML+='<br>Error'; }
-                tOut.scrollTop = tOut.scrollHeight;
+                const res = await fetch('/process', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        code: code,
+                        action: 'encrypt',
+                        lang: document.getElementById('lang').value,
+                        options: opts,
+                        params: params
+                    })
+                });
+                const data = await res.json();
+                editor.setValue(data.result);
+                btn.innerText = "DEPLOYED SUCCESSFULLY";
+            } catch(e) {
+                alert("SYSTEM FAILURE: " + e);
+                btn.innerText = "INITIATE SINGULARITY";
             }
-        });
+        }
 
-        function openModal(id) { document.getElementById(id+'Modal').style.display='flex'; }
-        function closeModal(id) { document.getElementById(id+'Modal').style.display='none'; }
-        function copy() { navigator.clipboard.writeText(editor.getValue()); showToast("COPIED"); }
-        function download() { const b=new Blob([editor.getValue()],{type:'text/plain'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download='V95_Protected.txt'; a.click(); }
-        document.getElementById('file').addEventListener('change', e => { const f=e.target.files[0]; if(f){ const r=new FileReader(); r.onload=ev=>editor.setValue(ev.target.result); r.readAsText(f); showToast("LOADED"); } });
+        function copyResult() {
+            navigator.clipboard.writeText(editor.getValue());
+            alert("PAYLOAD COPIED");
+        }
     </script>
 </body>
 </html>
