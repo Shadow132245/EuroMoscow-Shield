@@ -3,126 +3,366 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EuroMoscow Shield | Py Encryptor</title>
-    <meta name="description" content="Secure your Python projects with EuroMoscow Shield.">
-    <meta property="og:image" content="{{ url_for('static', filename='logo.png') }}">
+    <title>EuroMoscow | V35 Black Hole</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/ayu-mirage.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/lua/lua.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/go/go.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/php/php.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
+
     <style>
-        :root { --bg-core: #050505; --bg-panel: #111111; --accent: #00e1ff; --text-main: #eeeeee; }
-        * { box-sizing: border-box; }
-        body { margin: 0; background-color: var(--bg-core); color: var(--text-main); font-family: 'Rajdhani', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; } ::-webkit-scrollbar-track { background: var(--bg-core); } ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; } ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+        /* --- CORE VARIABLES --- */
+        :root {
+            --bg: #050508;
+            --panel: rgba(20, 20, 25, 0.6);
+            --border: rgba(255, 255, 255, 0.08);
+            --primary: #00f0ff; /* Dynamic Color */
+            --secondary: #7000ff;
+            --text: #ffffff;
+            --font-main: 'Rajdhani', sans-serif;
+            --font-tech: 'Orbitron', sans-serif;
+            --font-code: 'JetBrains Mono', monospace;
+        }
+
+        * { box-sizing: border-box; outline: none; user-select: none; }
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-main); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+        /* --- BACKGROUND FX --- */
+        #particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        .vignette { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, transparent 50%, #000 100%); pointer-events: none; z-index: 0; }
+
+        /* --- SCROLLBAR --- */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+        /* --- NAVBAR --- */
+        nav {
+            height: 75px; display: flex; align-items: center; justify-content: space-between; padding: 0 40px;
+            background: rgba(5,5,8,0.8); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border);
+            z-index: 100;
+        }
+        .brand { font-family: var(--font-tech); font-size: 24px; font-weight: 900; letter-spacing: 2px; color: #fff; display: flex; align-items: center; gap: 12px; text-shadow: 0 0 15px var(--primary); }
+        .brand i { color: var(--primary); animation: pulse 2s infinite; }
         
-        nav { height: 70px; background: rgba(10, 10, 10, 0.95); border-bottom: 2px solid var(--accent); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; flex-shrink: 0; }
-        .brand { font-size: 22px; font-weight: 800; letter-spacing: 1px; color: #fff; text-transform: uppercase; display: flex; align-items: center; gap: 10px; text-decoration: none;}
-        .brand span { color: var(--accent); text-shadow: 0 0 10px var(--accent); }
-        .nav-items { display: flex; gap: 5px; align-items: center; }
-        .nav-link { color: #888; text-decoration: none; font-weight: 600; font-size: 13px; transition: 0.3s; padding: 8px 10px; border-radius: 4px; display: flex; align-items: center; gap: 6px; border: 1px solid transparent; }
-        .nav-link:hover, .nav-link.active { color: #fff; background: rgba(255, 255, 255, 0.05); border: 1px solid #333; }
-        .nav-link.active { border-color: var(--accent); color: var(--accent); }
-        @media (max-width: 900px) { .nav-link span { display: none; } .nav-link i { font-size: 16px; } nav { padding: 0 10px; } }
+        .nav-center { display: flex; gap: 5px; background: rgba(255,255,255,0.03); padding: 5px; border-radius: 12px; border: 1px solid var(--border); }
+        .lang-btn {
+            padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 12px; color: #888; cursor: pointer; transition: 0.3s;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .lang-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
+        .lang-btn.active { background: var(--primary); color: #000; box-shadow: 0 0 20px var(--primary); }
 
-        .workspace { display: flex; flex: 1; height: calc(100vh - 100px); overflow: hidden; }
-        .sidebar { width: 300px; background: var(--bg-panel); border-right: 1px solid #222; padding: 20px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; flex-shrink: 0; z-index: 5; }
-        .editor-container { flex: 1; display: flex; flex-direction: column; border-right: 1px solid #333; position: relative; min-width: 0; }
-        .editor-toolbar { height: 40px; background: #151515; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border-bottom: 1px solid #333; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #666; flex-shrink: 0; }
-        .CodeMirror { flex: 1; font-family: 'JetBrains Mono', monospace; font-size: 14px; height: auto !important; }
-        @media (max-width: 900px) { body { height: auto; overflow-y: auto; } .workspace { flex-direction: column; height: auto; overflow: visible; } .sidebar { width: 100%; border-right: none; border-top: 2px solid var(--accent); order: 2; height: auto; } .editor-container { width: 100%; height: 400px; border-right: none; border-bottom: 1px solid #333; order: 1; } nav { position: sticky; top: 0; } }
+        .nav-right { display: flex; gap: 15px; }
+        .icon-btn { width: 40px; height: 40px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
+        .icon-btn:hover { border-color: var(--primary); background: rgba(0, 240, 255, 0.1); box-shadow: 0 0 15px var(--primary); }
 
-        .section-title { color: var(--accent); text-transform: uppercase; font-weight: bold; font-size: 14px; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 8px; }
-        .checkbox-wrapper { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px; background: #1a1a1a; border-radius: 6px; transition: 0.3s; border: 1px solid #333; }
-        .checkbox-wrapper:hover { background: #222; border-color: var(--accent); }
-        input[type="checkbox"] { accent-color: var(--accent); transform: scale(1.2); }
-        .btn { padding: 14px; border: none; border-radius: 6px; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 16px; cursor: pointer; text-transform: uppercase; transition: 0.3s; width: 100%; letter-spacing: 1px; }
-        .btn-encrypt { background: var(--accent); color: white; box-shadow: 0 4px 15px var(--accent-glow); }
-        .btn-file { background: #1a1a1a; color: #ccc; font-size: 14px; border: 1px dashed #444; }
-        .btn-download { background: transparent; border: 1px solid var(--accent); color: var(--accent); margin-top: 10px; }
-        .loader-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 50; backdrop-filter: blur(2px); }
-        .spinner { border: 4px solid #333; border-top: 4px solid var(--accent); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        footer { height: 40px; background: #080808; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #444; border-top: 1px solid #222; font-family: 'JetBrains Mono', monospace; flex-shrink: 0; margin-top: auto;}
+        /* --- LAYOUT --- */
+        .main { display: flex; flex: 1; height: calc(100vh - 75px); }
+        
+        /* SIDEBAR */
+        .sidebar { width: 360px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 25px; backdrop-filter: blur(10px); z-index: 10; transition: 0.3s; }
+        
+        /* MODE SWITCH */
+        .switch-box { display: flex; background: #000; padding: 4px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 25px; }
+        .switch-opt { flex: 1; text-align: center; padding: 10px; font-size: 13px; font-weight: 800; color: #666; cursor: pointer; border-radius: 6px; transition: 0.3s; font-family: var(--font-tech); }
+        .switch-opt.active { background: #1a1a1a; color: #fff; border: 1px solid var(--border); }
+        .switch-opt.active.enc { color: var(--primary); text-shadow: 0 0 10px var(--primary); }
+        .switch-opt.active.dec { color: #ff0055; text-shadow: 0 0 10px #ff0055; }
+
+        /* OPTIONS */
+        .opt-title { font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--primary); margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+        .opt-item {
+            display: flex; align-items: center; justify-content: space-between; padding: 12px 15px;
+            background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px;
+            margin-bottom: 8px; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden;
+        }
+        .opt-item:hover { border-color: var(--primary); background: rgba(0, 240, 255, 0.05); }
+        .opt-item span { font-weight: 600; font-size: 13px; }
+        
+        .check-circle { width: 18px; height: 18px; border: 2px solid #444; border-radius: 50%; transition: 0.3s; display: flex; align-items: center; justify-content: center; }
+        .check-circle i { font-size: 10px; opacity: 0; transform: scale(0); transition: 0.3s; color: #000; }
+        input:checked + .check-circle { background: var(--primary); border-color: var(--primary); box-shadow: 0 0 10px var(--primary); }
+        input:checked + .check-circle i { opacity: 1; transform: scale(1); }
+
+        /* ACTION BUTTONS */
+        .btn-mega {
+            width: 100%; padding: 16px; background: var(--primary); color: #000; border: none; border-radius: 8px;
+            font-family: var(--font-tech); font-weight: 900; font-size: 16px; letter-spacing: 1px;
+            cursor: pointer; margin-top: auto; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            transition: 0.3s;
+        }
+        .btn-mega:hover { transform: translateY(-3px); box-shadow: 0 0 40px var(--primary); }
+        
+        .btn-outline {
+            width: 100%; padding: 12px; background: transparent; border: 1px solid var(--border); color: #aaa;
+            font-weight: 700; font-size: 12px; border-radius: 8px; cursor: pointer; margin-top: 10px; transition: 0.3s;
+        }
+        .btn-outline:hover { border-color: var(--primary); color: #fff; background: rgba(255,255,255,0.05); }
+
+        /* EDITOR */
+        .editor-box { flex: 1; display: flex; flex-direction: column; background: #08080c; position: relative; }
+        .editor-toolbar {
+            height: 45px; background: rgba(0,0,0,0.3); border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 25px;
+            font-family: var(--font-tech); font-size: 11px; color: #666;
+        }
+        .CodeMirror { flex: 1; font-family: var(--font-code); font-size: 14px; background: transparent !important; }
+        .cm-s-ayu-mirage.CodeMirror { background: transparent !important; }
+
+        /* OVERLAYS (Terminal & API) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 200; display: none;
+            justify-content: center; align-items: center; backdrop-filter: blur(15px);
+        }
+        .modal {
+            width: 80%; height: 70%; background: #0a0a0e; border: 1px solid var(--primary);
+            border-radius: 12px; display: flex; flex-direction: column; overflow: hidden;
+            box-shadow: 0 0 100px rgba(0, 240, 255, 0.2); animation: holo-open 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        @keyframes holo-open { from{transform:scaleY(0);opacity:0;} to{transform:scaleY(1);opacity:1;} }
+        
+        .modal-head { padding: 15px 25px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-family: var(--font-tech); color: var(--primary); background: rgba(0, 240, 255, 0.05); }
+        .modal-body { flex: 1; padding: 25px; overflow-y: auto; font-family: var(--font-code); color: #ccc; }
+        
+        /* TERMINAL */
+        .term-body { background: #050505; color: #0f0; padding: 20px; font-family: var(--font-code); flex: 1; overflow-y: auto; }
+        .term-in { display: flex; background: #080808; padding: 15px; border-top: 1px solid #333; }
+        .term-field { flex: 1; background: transparent; border: none; color: #fff; font-family: var(--font-code); font-size: 16px; }
+
+        /* LOADER */
+        .loader-wrap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 999; display: flex; justify-content: center; align-items: center; transition: 0.5s; }
+        .loader-circle { width: 80px; height: 80px; border: 4px solid #111; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
+        @keyframes pulse { 0%{opacity:1;} 50%{opacity:0.5;} 100%{opacity:1;} }
+
+        @media(max-width: 900px){ .layout{flex-direction: column;} .sidebar{width:100%; order:2;} .editor-box{height:500px; order:1;} .nav-center{display:none;} }
     </style>
 </head>
-<body>
+<body onload="initParticles()">
+    
+    <div class="loader-wrap" id="pageLoader"><div class="loader-circle"></div></div>
+    <div class="vignette"></div>
+    <canvas id="particles"></canvas>
+
     <nav>
-        <a href="/" class="brand"><i class="fas fa-shield-virus"></i> EURO<span>SHIELD</span></a>
-        <div class="nav-items">
-            <a href="/" class="nav-link active"><i class="fab fa-python"></i> <span>PY ENC</span></a>
-            <a href="/decryptor" class="nav-link"><i class="fas fa-unlock"></i> <span>PY DEC</span></a>
-            <span style="color:#333;">|</span>
-            <a href="/js-shield" class="nav-link" style="color:#f7df1e;"><i class="fab fa-js"></i> <span>JS ENC</span></a>
-            <a href="/js-decryptor" class="nav-link" style="color:#f7df1e;"><i class="fas fa-unlock-alt"></i> <span>DEC</span></a>
-            <span style="color:#333;">|</span>
-            <a href="/lua-shield" class="nav-link" style="color:#00ff88;"><i class="fas fa-gamepad"></i> <span>LUA</span></a>
-            <a href="/terminal" class="nav-link" style="color:#0f0; border-color:#0f0;"><i class="fas fa-terminal"></i> <span>TERM</span></a>
-            <a href="/docs" class="nav-link"><i class="fas fa-book"></i> <span>API</span></a>
+        <div class="brand"><i class="fas fa-shield-halved"></i> V35<small style="font-size:12px; color:#666;">//BLACKHOLE</small></div>
+        <div class="nav-center">
+            <div class="lang-btn active" onclick="setLang('python', '#00f0ff')"><i class="fab fa-python"></i> PY</div>
+            <div class="lang-btn" onclick="setLang('javascript', '#facc15')"><i class="fab fa-js"></i> JS</div>
+            <div class="lang-btn" onclick="setLang('lua', '#22c55e')"><i class="fas fa-gamepad"></i> LUA</div>
+            <div class="lang-btn" onclick="setLang('go', '#00add8')"><i class="fab fa-golang"></i> GO</div>
+            <div class="lang-btn" onclick="setLang('php', '#8b5cf6')"><i class="fab fa-php"></i> PHP</div>
+            <div class="lang-btn" onclick="setLang('html', '#f97316')"><i class="fab fa-html5"></i> WEB</div>
+        </div>
+        <div class="nav-right">
+            <button class="icon-btn" onclick="openModal('term')"><i class="fas fa-terminal"></i></button>
+            <button class="icon-btn" onclick="openModal('docs')"><i class="fas fa-book-journal-whills"></i></button>
         </div>
     </nav>
 
-    <div class="workspace">
+    <div class="main">
         <div class="sidebar">
-            <div class="section-title">Core Protection</div>
-            <div style="display:flex; flex-direction:column; gap:12px;">
-                <label class="checkbox-wrapper"><input type="checkbox" id="opt-rename" checked> <span>Variable Renaming</span></label>
-                <label class="checkbox-wrapper"><input type="checkbox" id="opt-marshal" checked> <span>Portable Blob (Safe)</span></label>
-                <label class="checkbox-wrapper"><input type="checkbox" id="opt-deadcode" checked> <span>Dead Code Injection</span></label>
+            <div class="switch-box">
+                <div class="switch-opt active enc" onclick="setMode('encrypt')">ENCRYPT</div>
+                <div class="switch-opt dec" onclick="setMode('decrypt')">DECRYPT</div>
             </div>
-            <div class="section-title" style="margin-top:20px;">Encryption Layers</div>
-            <div style="display:flex; flex-direction:column; gap:12px;">
-                <label class="checkbox-wrapper"><input type="checkbox" id="opt-zlib" checked> <span>Zlib Compression</span></label>
-                <label class="checkbox-wrapper"><input type="checkbox" id="opt-rot13" checked> <span>Rot13 (New)</span></label>
-                <label class="checkbox-wrapper"><input type="checkbox" id="opt-xor" checked> <span>EuroMoscow XOR</span></label>
-                <label class="checkbox-wrapper"><input type="checkbox" id="opt-base64" checked> <span>Base64 Encoding</span></label>
+
+            <div id="encPanel" style="flex:1; display:flex; flex-direction:column;">
+                <div class="opt-title"><span>PROTECTION LAYERS</span> <i class="fas fa-layer-group"></i></div>
+                <div id="dynamicOpts"></div>
+
+                <div class="opt-title" style="margin-top:25px;"><span>FILE OPERATIONS</span> <i class="fas fa-folder-open"></i></div>
+                <label class="opt-item" onclick="document.getElementById('file').click()">
+                    <span><i class="fas fa-file-code" style="margin-right:8px; color:var(--primary)"></i> Import Source Code</span>
+                    <i class="fas fa-chevron-right" style="font-size:10px; color:#666;"></i>
+                </label>
+                <input type="file" id="file" hidden>
+                <label class="opt-item" onclick="document.getElementById('zip').click()">
+                    <span><i class="fas fa-file-zipper" style="margin-right:8px; color:var(--primary)"></i> Import Project (ZIP)</span>
+                    <i class="fas fa-chevron-right" style="font-size:10px; color:#666;"></i>
+                </label>
+                <input type="file" id="zip" hidden accept=".zip">
             </div>
-            <div class="section-title" style="margin-top:20px;">File Manager</div>
-            <input type="file" id="fileInput" style="display:none" accept=".py">
-            <button class="btn btn-file" onclick="document.getElementById('fileInput').click()"><i class="fas fa-upload"></i> Upload .py File</button>
-            <input type="file" id="zipInput" style="display:none" accept=".zip">
-            <button class="btn btn-file" style="margin-top:10px; border-color:#fff;" onclick="document.getElementById('zipInput').click()"><i class="fas fa-file-archive"></i> Upload Project (.zip)</button>
-            <div style="margin-top: auto; display:flex; flex-direction:column; gap:12px;">
-                <button class="btn btn-encrypt" onclick="runProcess('encrypt')"><i class="fas fa-lock"></i> Obfuscate Code</button>
-                <button type="button" class="btn btn-download" onclick="downloadResult()"><i class="fas fa-download"></i> Download Result</button>
+
+            <div id="decPanel" style="display:none; flex:1; text-align:center; flex-direction:column; justify-content:center;">
+                <i class="fas fa-unlock-alt" style="font-size:50px; color:var(--primary); margin-bottom:20px; filter:drop-shadow(0 0 20px var(--primary));"></i>
+                <h3 style="font-family:var(--font-tech); color:#fff;">NEURAL DECRYPTOR</h3>
+                <p style="font-size:13px; color:#888;">Paste encrypted code. The system will auto-detect the algorithm.</p>
             </div>
+
+            <button class="btn-mega" id="actionBtn" onclick="process()">INITIATE SEQUENCE</button>
+            <button class="btn-outline" onclick="download()">DOWNLOAD ARTIFACT</button>
         </div>
-        <div class="editor-container">
-            <div class="editor-toolbar"><span><i class="fas fa-code"></i> INPUT SOURCE</span> <i class="fas fa-eraser" style="cursor:pointer;" onclick="editorIn.setValue('')"></i></div>
-            <textarea id="code-input"></textarea>
-        </div>
-        <div class="editor-container" style="border-right:none;">
-            <div class="loader-overlay" id="loader"><div class="spinner"></div></div>
-            <div class="editor-toolbar"><span style="color:var(--accent); font-weight:bold;"><i class="fas fa-terminal"></i> OUTPUT</span> <i class="fas fa-copy" style="cursor:pointer; color:var(--accent);" onclick="copyToClipboard()"></i></div>
-            <textarea id="code-output"></textarea>
+
+        <div class="editor-box">
+            <div class="editor-toolbar">
+                <span id="langLabel">PYTHON ENVIRONMENT</span>
+                <div style="display:flex; gap:15px;">
+                    <i class="fas fa-broom" style="cursor:pointer; color:#888;" onclick="editor.setValue('')"></i>
+                    <i class="fas fa-copy" style="cursor:pointer; color:#888;" onclick="copy()"></i>
+                </div>
+            </div>
+            <textarea id="editor"></textarea>
         </div>
     </div>
-    <footer>&copy; 2025 EuroMoscow.</footer>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+
+    <div id="termModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-head"><span>// SYSTEM TERMINAL</span> <i class="fas fa-times" style="cursor:pointer;" onclick="closeModal('term')"></i></div>
+            <div class="term-body" id="termOut">EuroShield OS v35.0 [Root Access]<br>Ready...</div>
+            <div class="term-in">
+                <span style="color:var(--primary); margin-right:10px;">root@v35:~#</span>
+                <input id="termIn" class="term-field" autofocus>
+            </div>
+        </div>
+    </div>
+
+    <div id="docsModal" class="modal-overlay">
+        <div class="modal" style="height:auto;">
+            <div class="modal-head"><span>// API REFERENCE</span> <i class="fas fa-times" style="cursor:pointer;" onclick="closeModal('docs')"></i></div>
+            <div class="modal-body">
+                <h3 style="color:var(--primary);">POST /process</h3>
+                <p>Secure code programmatically.</p>
+                <pre style="background:#111; padding:15px; border:1px solid #333; color:#0f0;">
+import requests
+res = requests.post("{{ request.url_root }}process", json={
+    "code": "print('Hello')",
+    "action": "encrypt",
+    "lang": "python"
+})
+print(res.json()['result'])</pre>
+            </div>
+        </div>
+    </div>
+
     <script>
-        var editorIn = CodeMirror.fromTextArea(document.getElementById("code-input"), { mode: "python", theme: "dracula", lineNumbers: true, lineWrapping: true });
-        var editorOut = CodeMirror.fromTextArea(document.getElementById("code-output"), { mode: "python", theme: "dracula", lineNumbers: true, lineWrapping: true, readOnly: true });
-        document.getElementById('fileInput').addEventListener('change', function(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { editorIn.setValue(e.target.result); }; reader.readAsText(file); });
-        
-        async function runProcess(action) {
-            const code = editorIn.getValue(); if(!code.trim()) return alert("Please enter Python code first.");
-            let options = [];
-            if(document.getElementById('opt-rename').checked) options.push('rename');
-            if(document.getElementById('opt-marshal').checked) options.push('marshal');
-            if(document.getElementById('opt-deadcode').checked) options.push('deadcode');
-            if(document.getElementById('opt-zlib').checked) options.push('zlib');
-            if(document.getElementById('opt-rot13').checked) options.push('rot13');
-            if(document.getElementById('opt-xor').checked) options.push('xor');
-            if(document.getElementById('opt-base64').checked) options.push('base64');
-            document.getElementById('loader').style.display = 'flex';
-            try { const res = await fetch('/process', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ code, action, options }) }); const data = await res.json(); editorOut.setValue(data.result); } catch(e) { editorOut.setValue("Error: " + e); } finally { document.getElementById('loader').style.display = 'none'; }
+        // --- CONFIG ---
+        let curLang='python', curMode='encrypt';
+        const UI = {
+            python: { c:'#00f0ff', m:'python', o:[{id:'dead',l:'Dead Code Injection'}, {id:'rename',l:'Variable Renaming'}, {id:'marshal',l:'Bytecode (Marshal)'}, {id:'xor',l:'Poly-XOR Shield'}] },
+            javascript: { c:'#facc15', m:'javascript', o:[{id:'hex',l:'Hex Encoding'}, {id:'url',l:'URL Escape'}] },
+            lua: { c:'#22c55e', m:'lua', o:[{id:'reverse',l:'String Reversal'}, {id:'hex',l:'Hex Loader'}] },
+            go: { c:'#00add8', m:'go', o:[{id:'base64',l:'Base64 Wrap'}] },
+            php: { c:'#8b5cf6', m:'php', o:[{id:'base64',l:'Gzip + Base64'}] },
+            html: { c:'#f97316', m:'htmlmixed', o:[{id:'hex',l:'Hex Write'}] }
+        };
+
+        var editor = CodeMirror.fromTextArea(document.getElementById("editor"), { mode: "python", theme: "ayu-mirage", lineNumbers: true });
+
+        // --- PARTICLES ---
+        function initParticles() {
+            const cvs = document.getElementById('particles');
+            const ctx = cvs.getContext('2d');
+            cvs.width = window.innerWidth; cvs.height = window.innerHeight;
+            let particles = [];
+            for(let i=0; i<50; i++) particles.push({x:Math.random()*cvs.width, y:Math.random()*cvs.height, vx:(Math.random()-0.5)*0.5, vy:(Math.random()-0.5)*0.5});
+            
+            function anim() {
+                ctx.clearRect(0,0,cvs.width,cvs.height);
+                ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary');
+                particles.forEach(p => {
+                    p.x+=p.vx; p.y+=p.vy;
+                    if(p.x<0||p.x>cvs.width) p.vx*=-1; if(p.y<0||p.y>cvs.height) p.vy*=-1;
+                    ctx.beginPath(); ctx.arc(p.x,p.y,1,0,Math.PI*2); ctx.fill();
+                    particles.forEach(p2 => {
+                        let d = Math.hypot(p.x-p2.x, p.y-p2.y);
+                        if(d<100) {
+                            ctx.strokeStyle = ctx.fillStyle;
+                            ctx.globalAlpha = 1 - d/100;
+                            ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(p2.x,p2.y); ctx.stroke();
+                            ctx.globalAlpha = 1;
+                        }
+                    });
+                });
+                requestAnimationFrame(anim);
+            }
+            anim();
+            document.getElementById('pageLoader').style.opacity = '0';
+            setTimeout(()=>document.getElementById('pageLoader').remove(), 500);
         }
-        function downloadResult() { const code = editorOut.getValue(); if(!code) return alert("No result to download!"); const blob = new Blob([code], { type: "text/x-python" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = "EuroMoscow_Protected.py"; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); }
-        document.getElementById('zipInput').addEventListener('change', async function(e) { const file = e.target.files[0]; if (!file) return; if(!confirm("Encrypt everything inside this ZIP?")) return; const formData = new FormData(); formData.append('file', file); let options = []; if(document.getElementById('opt-rename').checked) options.push('rename'); if(document.getElementById('opt-marshal').checked) options.push('marshal'); if(document.getElementById('opt-xor').checked) options.push('xor'); formData.append('options', options.join(',')); document.getElementById('loader').style.display = 'flex'; try { const res = await fetch('/upload-zip', { method: 'POST', body: formData }); if(!res.ok) throw new Error("Upload failed"); const blob = await res.blob(); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = "EuroMoscow_Project_Protected.zip"; document.body.appendChild(a); a.click(); document.body.removeChild(a); alert("Project Encrypted & Downloaded!"); } catch(e) { alert("Error: " + e); } finally { document.getElementById('loader').style.display = 'none'; } });
-        function copyToClipboard() { navigator.clipboard.writeText(editorOut.getValue()); alert("Copied!"); }
+
+        // --- LOGIC ---
+        function setLang(l, c) {
+            curLang = l;
+            document.documentElement.style.setProperty('--primary', c);
+            editor.setOption("mode", UI[l].m);
+            document.getElementById('langLabel').innerText = l.toUpperCase() + " SOURCE";
+            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            
+            const con = document.getElementById('dynamicOpts'); con.innerHTML = '';
+            UI[l].o.forEach(o => {
+                con.innerHTML += `
+                    <label class="opt-item">
+                        <span>${o.l}</span>
+                        <input type="checkbox" id="opt-${o.id}" checked style="display:none">
+                        <div class="check-circle"><i class="fas fa-check"></i></div>
+                    </label>`;
+            });
+        }
+        setLang('python', '#00f0ff');
+
+        function setMode(m) {
+            curMode = m;
+            document.querySelectorAll('.switch-opt').forEach(b => b.classList.remove('active'));
+            if(m==='encrypt') {
+                document.getElementById('encPanel').style.display='flex';
+                document.getElementById('decPanel').style.display='none';
+                document.querySelector('.switch-opt.enc').classList.add('active');
+                document.getElementById('actionBtn').innerText = 'INITIATE SEQUENCE';
+            } else {
+                document.getElementById('encPanel').style.display='none';
+                document.getElementById('decPanel').style.display='flex';
+                document.querySelector('.switch-opt.dec').classList.add('active');
+                document.getElementById('actionBtn').innerText = 'DECRYPT ARTIFACT';
+            }
+        }
+
+        async function process() {
+            const code = editor.getValue(); if(!code.trim()) return alert("NO DATA DETECTED");
+            let opts = []; if(curMode==='encrypt') document.querySelectorAll('input:checked').forEach(c => opts.push(c.id.replace('opt-','')));
+            
+            const btn = document.getElementById('actionBtn'); btn.innerText = 'PROCESSING...';
+            try {
+                const res = await fetch('/process', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code, action:curMode, lang:curLang, options:opts}) });
+                const d = await res.json(); editor.setValue(d.result);
+            } catch { alert("SYSTEM FAILURE"); } finally { btn.innerText = curMode==='encrypt'?'INITIATE SEQUENCE':'DECRYPT ARTIFACT'; }
+        }
+
+        // --- TERMINAL ---
+        const tOut = document.getElementById('termOut');
+        document.getElementById('termIn').addEventListener('keypress', async e => {
+            if(e.key==='Enter') {
+                const c = e.target.value; e.target.value='';
+                tOut.innerHTML += `\n<span style="color:var(--primary)">root@v35:~#</span> ${c}`;
+                if(c==='clear') tOut.innerHTML='';
+                else {
+                    try{ const r = await fetch('/run', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code:c})});
+                    const d = await r.json(); tOut.innerHTML += `\n${d.output}`; } catch { tOut.innerHTML+="\nConnection Error"; }
+                }
+                tOut.scrollTop = tOut.scrollHeight;
+            }
+        });
+
+        function openModal(id) { document.getElementById(id+'Modal').style.display='flex'; }
+        function closeModal(id) { document.getElementById(id+'Modal').style.display='none'; }
+        
+        document.getElementById('file').addEventListener('change', e => { const f=e.target.files[0]; if(f){ const r=new FileReader(); r.onload=ev=>editor.setValue(ev.target.result); r.readAsText(f); } });
+        document.getElementById('zip').addEventListener('change', async e => { const f=e.target.files[0]; if(!f)return; const fd=new FormData(); fd.append('file',f); fd.append('options','rename'); try{const r=await fetch('/zip',{method:'POST',body:fd}); const b=await r.blob(); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download='Protected.zip'; a.click();}catch{alert('Error');} });
+        function download() { const b=new Blob([editor.getValue()],{type:'text/plain'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download=`Result.${curLang==='python'?'py':curLang==='javascript'?'js':'txt'}`; a.click(); }
+        function copy() { navigator.clipboard.writeText(editor.getValue()); alert("Copied!"); }
     </script>
 </body>
 </html>
-
